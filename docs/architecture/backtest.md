@@ -56,7 +56,12 @@ precisa. Anticiparla adesso sarebbe un'ipotesi travestita da calendario.
 
 ---
 
-## Risultati su una stagione reale
+## Risultati
+
+> Questi numeri sono di **una sola stagione**. La validazione completa su 10
+> campionati-stagione è in `docs/validation/backtest-validation.md`, e mostra
+> che lo yield di una singola stagione dà il verdetto sbagliato 7 volte su 30
+> mentre il CLV non sbaglia mai. Non usare i numeri qui sotto come benchmark.
 
 Premier League 2017-18, 306 partite, prezzi Pinnacle reali, stake piatto 1%,
 esposizione max 25%.
@@ -78,6 +83,10 @@ edge vero trovato più avanti sarebbe invisibile.
 ---
 
 ## Il risultato che giustifica la priorità del CLV
+
+*(Confermato fuori campione: vedi il report di validazione. Su 30 run, «punta
+sempre la casa» ha prodotto +287% di crescita in una stagione con un CLV di
+−0.027 e t = −11.5.)*
 
 Per l'oracolo, con 108 scommesse:
 

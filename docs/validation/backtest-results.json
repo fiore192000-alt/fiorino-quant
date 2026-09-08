@@ -1,0 +1,532 @@
+[
+  {
+    "label": "ENG_PL 2017-18",
+    "strategies": {
+      "take_home": {
+        "n_bets": 760,
+        "n_settled": 760,
+        "turnover": 7037.96,
+        "yield": 0.006950281047348948,
+        "growth": 0.048915800000000065,
+        "max_drawdown": 0.4643680960146275,
+        "clv_ev": -0.02990151265819903,
+        "clv_t": -11.475340818848215,
+        "yield_ci": [
+          -0.07590789473684216,
+          0.14944736842105266
+        ],
+        "verdict": "negative CLV, positive yield: lucky, expect it to stop"
+      },
+      "take_favourite": {
+        "n_bets": 380,
+        "n_settled": 380,
+        "turnover": 3587.73,
+        "yield": -0.055076664074498356,
+        "growth": -0.1976002,
+        "max_drawdown": 0.2572414682803067,
+        "clv_ev": -0.029312819967601416,
+        "clv_t": -10.823602627941963,
+        "yield_ci": [
+          -0.15165789473684227,
+          0.03447368421052629
+        ],
+        "verdict": "negative CLV and negative yield: no edge"
+      },
+      "oracle_beats_close": {
+        "n_bets": 242,
+        "n_settled": 242,
+        "turnover": 3674.59,
+        "yield": 0.31160186578638704,
+        "growth": 1.1450091000000002,
+        "max_drawdown": 0.20873118939403595,
+        "clv_ev": 0.1054200707716892,
+        "clv_t": 24.42119815333161,
+        "yield_ci": [
+          0.05417355371900826,
+          0.7162809917355374
+        ],
+        "verdict": "positive CLV and positive yield: consistent with an edge"
+      }
+    },
+    "invariant_failures": [],
+    "n_cohorts": 272,
+    "biggest_cohort": 20
+  },
+  {
+    "label": "ENG_PL 2018-19",
+    "strategies": {
+      "take_home": {
+        "n_bets": 760,
+        "n_settled": 760,
+        "turnover": 7447.14,
+        "yield": 0.027905759795035408,
+        "growth": 0.2078180999999999,
+        "max_drawdown": 0.39951655498177363,
+        "clv_ev": -0.040553950689264616,
+        "clv_t": -14.235579890490541,
+        "yield_ci": [
+          -0.0565789473684211,
+          0.15840789473684225
+        ],
+        "verdict": "negative CLV, positive yield: lucky, expect it to stop"
+      },
+      "take_favourite": {
+        "n_bets": 380,
+        "n_settled": 380,
+        "turnover": 3956.8,
+        "yield": -0.010785660129397492,
+        "growth": -0.04267670000000001,
+        "max_drawdown": 0.14610735041588457,
+        "clv_ev": -0.02781007204380923,
+        "clv_t": -9.889237185689076,
+        "yield_ci": [
+          -0.0944736842105263,
+          0.08173684210526318
+        ],
+        "verdict": "negative CLV and negative yield: no edge"
+      },
+      "oracle_beats_close": {
+        "n_bets": 231,
+        "n_settled": 231,
+        "turnover": 2831.85,
+        "yield": 0.105107297349789,
+        "growth": 0.2976481000000002,
+        "max_drawdown": 0.22184257621555756,
+        "clv_ev": 0.09673963249117429,
+        "clv_t": 25.247213874226382,
+        "yield_ci": [
+          -0.11870129870129874,
+          0.4371428571428573
+        ],
+        "verdict": "positive CLV and positive yield: consistent with an edge"
+      }
+    },
+    "invariant_failures": [],
+    "n_cohorts": 282,
+    "biggest_cohort": 20
+  },
+  {
+    "label": "ENG_PL 2019-20",
+    "strategies": {
+      "take_home": {
+        "n_bets": 1520,
+        "n_settled": 1520,
+        "turnover": 24099.08,
+        "yield": 0.11912416988532343,
+        "growth": 2.8707829,
+        "max_drawdown": 0.3705070499992997,
+        "clv_ev": -0.027165689583288976,
+        "clv_t": -11.47226272264315,
+        "yield_ci": [
+          0.049526315789473654,
+          0.18600657894736858
+        ],
+        "verdict": "negative CLV, positive yield: lucky, expect it to stop"
+      },
+      "take_favourite": {
+        "n_bets": 380,
+        "n_settled": 380,
+        "turnover": 3496.76,
+        "yield": -0.03602692206499731,
+        "growth": -0.12597749999999996,
+        "max_drawdown": 0.18026671997652266,
+        "clv_ev": -0.043960055918606376,
+        "clv_t": -14.57865363919866,
+        "yield_ci": [
+          -0.0905,
+          0.018815789473684227
+        ],
+        "verdict": "negative CLV and negative yield: no edge"
+      },
+      "oracle_beats_close": {
+        "n_bets": 566,
+        "n_settled": 566,
+        "turnover": 8892.73,
+        "yield": 0.1591534545634468,
+        "growth": 1.4153087000000002,
+        "max_drawdown": 0.18857487397340983,
+        "clv_ev": 0.10904223085358435,
+        "clv_t": 33.51954434654142,
+        "yield_ci": [
+          0.05899293286219082,
+          0.32731448763250887
+        ],
+        "verdict": "positive CLV and positive yield: consistent with an edge"
+      }
+    },
+    "invariant_failures": [],
+    "n_cohorts": 620,
+    "biggest_cohort": 40
+  },
+  {
+    "label": "ENG_PL 2020-21",
+    "strategies": {
+      "take_home": {
+        "n_bets": 1520,
+        "n_settled": 1520,
+        "turnover": 12292.88,
+        "yield": -0.04967031322196263,
+        "growth": -0.6105912,
+        "max_drawdown": 0.789936582862308,
+        "clv_ev": -0.04099312135350481,
+        "clv_t": -17.242308257332873,
+        "yield_ci": [
+          -0.08407894736842104,
+          0.006460526315789477
+        ],
+        "verdict": "negative CLV and negative yield: no edge"
+      },
+      "take_favourite": {
+        "n_bets": 380,
+        "n_settled": 380,
+        "turnover": 3722.6,
+        "yield": -0.01835531617686563,
+        "growth": -0.06832950000000004,
+        "max_drawdown": 0.09169005108320634,
+        "clv_ev": -0.05283382920640671,
+        "clv_t": -15.111162379218436,
+        "yield_ci": [
+          -0.07531578947368424,
+          0.040131578947368414
+        ],
+        "verdict": "negative CLV and negative yield: no edge"
+      },
+      "oracle_beats_close": {
+        "n_bets": 682,
+        "n_settled": 682,
+        "turnover": 13873.66,
+        "yield": 0.07593149896999062,
+        "growth": 1.0534477999999998,
+        "max_drawdown": 0.3319005785526923,
+        "clv_ev": 0.12011559584051945,
+        "clv_t": 37.11873743246936,
+        "yield_ci": [
+          0.03263929618768326,
+          0.28604105571847505
+        ],
+        "verdict": "positive CLV and positive yield: consistent with an edge"
+      }
+    },
+    "invariant_failures": [],
+    "n_cohorts": 884,
+    "biggest_cohort": 40
+  },
+  {
+    "label": "ESP_LL 2019-20",
+    "strategies": {
+      "take_home": {
+        "n_bets": 1518,
+        "n_settled": 1518,
+        "turnover": 29757.2,
+        "yield": 0.014066602368502412,
+        "growth": 0.4185827,
+        "max_drawdown": 0.5475649799917209,
+        "clv_ev": -0.02624226099338141,
+        "clv_t": -11.221259205128613,
+        "yield_ci": [
+          -0.008913043478260866,
+          0.08021080368906455
+        ],
+        "verdict": "negative CLV, positive yield: lucky, expect it to stop"
+      },
+      "take_favourite": {
+        "n_bets": 380,
+        "n_settled": 380,
+        "turnover": 3678.97,
+        "yield": -0.01622478574166139,
+        "growth": -0.05969050000000009,
+        "max_drawdown": 0.08095647974115974,
+        "clv_ev": -0.04674489412013783,
+        "clv_t": -12.436546193123274,
+        "yield_ci": [
+          -0.06657894736842106,
+          0.04247368421052628
+        ],
+        "verdict": "negative CLV and negative yield: no edge"
+      },
+      "oracle_beats_close": {
+        "n_bets": 570,
+        "n_settled": 570,
+        "turnover": 6658.23,
+        "yield": 0.03293175513612477,
+        "growth": 0.2192672,
+        "max_drawdown": 0.20559643303476566,
+        "clv_ev": 0.11917435977427687,
+        "clv_t": 33.381259961788714,
+        "yield_ci": [
+          -0.03345614035087722,
+          0.1481929824561403
+        ],
+        "verdict": "positive CLV and positive yield: consistent with an edge"
+      }
+    },
+    "invariant_failures": [],
+    "n_cohorts": 871,
+    "biggest_cohort": 36
+  },
+  {
+    "label": "ITA_SA 2019-20",
+    "strategies": {
+      "take_home": {
+        "n_bets": 1520,
+        "n_settled": 1520,
+        "turnover": 8208.68,
+        "yield": -0.07582049732721947,
+        "growth": -0.6223862,
+        "max_drawdown": 0.6932168,
+        "clv_ev": -0.04006379836137927,
+        "clv_t": -14.39656561526581,
+        "yield_ci": [
+          -0.09051973684210525,
+          -0.010822368421052652
+        ],
+        "verdict": "negative CLV and negative yield: no edge"
+      },
+      "take_favourite": {
+        "n_bets": 380,
+        "n_settled": 380,
+        "turnover": 3974.44,
+        "yield": 0.013351289741447852,
+        "growth": 0.053063900000000164,
+        "max_drawdown": 0.07190360537236976,
+        "clv_ev": -0.03938213146040975,
+        "clv_t": -10.224929108766174,
+        "yield_ci": [
+          -0.041552631578947376,
+          0.074
+        ],
+        "verdict": "negative CLV, positive yield: lucky, expect it to stop"
+      },
+      "oracle_beats_close": {
+        "n_bets": 638,
+        "n_settled": 638,
+        "turnover": 6977.39,
+        "yield": 0.039019275115766784,
+        "growth": 0.2722526999999999,
+        "max_drawdown": 0.21941132491026227,
+        "clv_ev": 0.11607536987829029,
+        "clv_t": 36.13802813681486,
+        "yield_ci": [
+          -0.0247962382445141,
+          0.13993730407523514
+        ],
+        "verdict": "positive CLV and positive yield: consistent with an edge"
+      }
+    },
+    "invariant_failures": [],
+    "n_cohorts": 712,
+    "biggest_cohort": 24
+  },
+  {
+    "label": "DEU_BL1 2024-25",
+    "strategies": {
+      "take_home": {
+        "n_bets": 1224,
+        "n_settled": 1224,
+        "turnover": 7777.48,
+        "yield": -0.08398506971409762,
+        "growth": -0.6531922,
+        "max_drawdown": 0.6531922,
+        "clv_ev": -0.03862059752895954,
+        "clv_t": -14.981698242943704,
+        "yield_ci": [
+          -0.1146977124183007,
+          -0.05327614379084968
+        ],
+        "verdict": "negative CLV and negative yield: no edge"
+      },
+      "take_favourite": {
+        "n_bets": 306,
+        "n_settled": 306,
+        "turnover": 3116.51,
+        "yield": -0.00897795931988025,
+        "growth": -0.027979900000000058,
+        "max_drawdown": 0.11120505849192173,
+        "clv_ev": -0.04126787500524577,
+        "clv_t": -10.793535657848652,
+        "yield_ci": [
+          -0.06408496732026144,
+          0.0572549019607843
+        ],
+        "verdict": "negative CLV and negative yield: no edge"
+      },
+      "oracle_beats_close": {
+        "n_bets": 404,
+        "n_settled": 404,
+        "turnover": 4074.54,
+        "yield": -0.013300544355927296,
+        "growth": -0.05419359999999995,
+        "max_drawdown": 0.17355881446250054,
+        "clv_ev": 0.10100607348041449,
+        "clv_t": 32.720312752712665,
+        "yield_ci": [
+          -0.07646039603960399,
+          0.07425742574257423
+        ],
+        "verdict": "positive CLV, negative yield: unlucky, edge plausible"
+      }
+    },
+    "invariant_failures": [],
+    "n_cohorts": 442,
+    "biggest_cohort": 36
+  },
+  {
+    "label": "FRA_L1 2024-25",
+    "strategies": {
+      "take_home": {
+        "n_bets": 1224,
+        "n_settled": 1224,
+        "turnover": 9510.04,
+        "yield": -0.008000344898654475,
+        "growth": -0.07608360000000003,
+        "max_drawdown": 0.5068398394594883,
+        "clv_ev": -0.03873069715947057,
+        "clv_t": -13.149096687311998,
+        "yield_ci": [
+          -0.03066176470588237,
+          0.06062091503267973
+        ],
+        "verdict": "negative CLV and negative yield: no edge"
+      },
+      "take_favourite": {
+        "n_bets": 306,
+        "n_settled": 306,
+        "turnover": 3090.17,
+        "yield": -0.013547021684891122,
+        "growth": -0.04186260000000008,
+        "max_drawdown": 0.07650475367995743,
+        "clv_ev": -0.040911870873225106,
+        "clv_t": -10.045042106118355,
+        "yield_ci": [
+          -0.07669934640522877,
+          0.04908496732026145
+        ],
+        "verdict": "negative CLV and negative yield: no edge"
+      },
+      "oracle_beats_close": {
+        "n_bets": 416,
+        "n_settled": 416,
+        "turnover": 3908.16,
+        "yield": 0.055811200155571936,
+        "growth": 0.2181190999999998,
+        "max_drawdown": 0.15869842203273546,
+        "clv_ev": 0.10762135875445157,
+        "clv_t": 26.606097510384227,
+        "yield_ci": [
+          -0.027860576923076932,
+          0.15144230769230763
+        ],
+        "verdict": "positive CLV and positive yield: consistent with an edge"
+      }
+    },
+    "invariant_failures": [],
+    "n_cohorts": 597,
+    "biggest_cohort": 36
+  },
+  {
+    "label": "NLD_ED 2024-25",
+    "strategies": {
+      "take_home": {
+        "n_bets": 1224,
+        "n_settled": 1224,
+        "turnover": 11636.68,
+        "yield": -0.04276792005967338,
+        "growth": -0.4976766,
+        "max_drawdown": 0.6727206326408719,
+        "clv_ev": -0.03267865090371819,
+        "clv_t": -10.83826626197768,
+        "yield_ci": [
+          -0.08931372549019603,
+          0.005784313725490195
+        ],
+        "verdict": "negative CLV and negative yield: no edge"
+      },
+      "take_favourite": {
+        "n_bets": 306,
+        "n_settled": 306,
+        "turnover": 2897.35,
+        "yield": -0.04718028543324072,
+        "growth": -0.13669779999999998,
+        "max_drawdown": 0.18828086917136813,
+        "clv_ev": -0.04596182656752424,
+        "clv_t": -10.077883781988623,
+        "yield_ci": [
+          -0.11392156862745098,
+          0.021176470588235283
+        ],
+        "verdict": "negative CLV and negative yield: no edge"
+      },
+      "oracle_beats_close": {
+        "n_bets": 423,
+        "n_settled": 423,
+        "turnover": 5592.57,
+        "yield": 0.029525030531580294,
+        "growth": 0.16512079999999996,
+        "max_drawdown": 0.37498640275172085,
+        "clv_ev": 0.12029110007691074,
+        "clv_t": 35.683420184761765,
+        "yield_ci": [
+          -0.049503546099290786,
+          0.19652482269503552
+        ],
+        "verdict": "positive CLV and positive yield: consistent with an edge"
+      }
+    },
+    "invariant_failures": [],
+    "n_cohorts": 622,
+    "biggest_cohort": 36
+  },
+  {
+    "label": "PRT_L1 2024-25",
+    "strategies": {
+      "take_home": {
+        "n_bets": 1224,
+        "n_settled": 1224,
+        "turnover": 11520.72,
+        "yield": 0.002201763431452201,
+        "growth": 0.02536589999999994,
+        "max_drawdown": 0.376854272149308,
+        "clv_ev": -0.07218942901168453,
+        "clv_t": -21.87446555890707,
+        "yield_ci": [
+          -0.03710784313725491,
+          0.08447712418300651
+        ],
+        "verdict": "negative CLV, positive yield: lucky, expect it to stop"
+      },
+      "take_favourite": {
+        "n_bets": 306,
+        "n_settled": 306,
+        "turnover": 3023.96,
+        "yield": -0.0024584319898411353,
+        "growth": -0.007434200000000057,
+        "max_drawdown": 0.10114042289262676,
+        "clv_ev": -0.04980242815335688,
+        "clv_t": -11.757813296195842,
+        "yield_ci": [
+          -0.06395424836601306,
+          0.06339869281045751
+        ],
+        "verdict": "negative CLV and negative yield: no edge"
+      },
+      "oracle_beats_close": {
+        "n_bets": 400,
+        "n_settled": 400,
+        "turnover": 5926.35,
+        "yield": 0.19526572004690912,
+        "growth": 1.157213,
+        "max_drawdown": 0.25449920648281316,
+        "clv_ev": 0.11137417318705638,
+        "clv_t": 34.849025585940005,
+        "yield_ci": [
+          0.059850000000000014,
+          0.4439500000000001
+        ],
+        "verdict": "positive CLV and positive yield: consistent with an edge"
+      }
+    },
+    "invariant_failures": [],
+    "n_cohorts": 654,
+    "biggest_cohort": 28
+  }
+]
