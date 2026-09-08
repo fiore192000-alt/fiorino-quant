@@ -259,6 +259,35 @@ def cmd_verify(args) -> int:
     return 0 if match else 1
 
 
+def cmd_clv(args) -> int:
+    """Score the bet ledger against the reference close and print the summary."""
+    from fiorino.clv.compute import compute_clv
+    from fiorino.clv import replay as replay_module
+
+    con = connect(args.db)
+    if args.replay:
+        n = getattr(replay_module, f"take_{args.replay}")(con)
+        print(f"replayed {n} bets ({args.replay})")
+    result = compute_clv(con, args.run)
+    print(f"scored {result.scored}, excluded {result.excluded} "
+          f"(no close {result.no_reference_close}, line mismatch {result.line_not_matched}, "
+          f"no fair prob {result.no_fair_probability})")
+    rows = con.execute(
+        """SELECT run_id, competition_id, season_id, market_type, n_bets,
+                  round(mean_clv_ev, 5), round(beat_close_rate, 3), round(clv_t_stat, 2)
+           FROM v_clv_summary ORDER BY run_id, competition_id, season_id"""
+    ).fetchall()
+    if not rows:
+        print("nothing scored yet")
+        return 0
+    print(f"\n{'run':22} {'comp':9} {'season':11} {'market':14} {'n':>6} "
+          f"{'CLV_ev':>9} {'beat':>6} {'t':>7}")
+    for r in rows:
+        print(f"{r[0][:22]:22} {r[1] or '':9} {r[2] or '':11} {r[3]:14} {r[4]:6} "
+              f"{r[5]:>+9} {r[6]:>6} {r[7]:>7}")
+    return 0
+
+
 def cmd_versions(args) -> int:
     manifests = Path(manifest_root(args.data_root))
     head = read_head(manifests)
@@ -308,6 +337,12 @@ def main(argv=None) -> int:
     p.set_defaults(func=cmd_verify)
 
     sub.add_parser("versions").set_defaults(func=cmd_versions)
+
+    p = sub.add_parser("clv", help="score bets against the reference closing line")
+    p.add_argument("--run", default=None, help="limit to one run_id")
+    p.add_argument("--replay", default=None, choices=["prematch", "closing"],
+                   help="populate the ledger with a replay instrument first")
+    p.set_defaults(func=cmd_clv)
 
     args = parser.parse_args(argv)
     if args.db is None:
