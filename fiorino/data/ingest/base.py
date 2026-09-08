@@ -56,6 +56,11 @@ class RawMatch:
     #: result visible two hours before it was knowable, which is a rule R1
     #: violation. See KICKOFF_PRECISION.
     kickoff_precision: str = "EXACT"
+    #: JSON list of odds observations the source published for this match, or
+    #: None for sources that carry no prices. Kept alongside the match rather
+    #: than in a separate partition because they share a source_id: splitting
+    #: them would mean re-deriving that join on every rebuild.
+    odds_json: str | None = None
 
     def as_row(self) -> dict:
         row = asdict(self)

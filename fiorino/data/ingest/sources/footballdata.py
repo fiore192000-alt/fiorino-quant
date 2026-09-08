@@ -34,6 +34,7 @@ from __future__ import annotations
 
 import csv
 import io
+import json
 import urllib.request
 from dataclasses import dataclass
 from datetime import datetime, time, timezone
@@ -167,7 +168,9 @@ class FootballData:
 
     def parse(self, text: str, competition_id: str, season_id: str) -> list[RawMatch]:
         reader = csv.DictReader(io.StringIO(text))
-        self.verify_columns(reader.fieldnames or [])
+        columns = reader.fieldnames or []
+        self.verify_columns(columns)
+        book = self.closing_book(columns)
 
         rows: list[RawMatch] = []
         for index, record in enumerate(reader):
@@ -200,9 +203,31 @@ class FootballData:
                     neutral_venue="false",
                     # Football-Data's Time is a local kickoff clock, not UTC.
                     kickoff_precision="LOCAL_APPROX" if raw_time else "DATE_ONLY",
+                    odds_json=_dump_odds(self._row_odds(record, book)),
                 )
             )
         return rows
+
+    def _row_odds(self, record: dict, book: str | None) -> list[OddsObservation]:
+        """Every price this row publishes, each labelled with its precision."""
+        observations: list[OddsObservation] = []
+        for (market, line, selection), (pre_col, close_col) in ODDS_COLUMNS.items():
+            for column, precision in ((pre_col, "PREMATCH"), (close_col, "CLOSING")):
+                price = _price(record.get(column))
+                if price is not None:
+                    observations.append(
+                        OddsObservation("pinnacle", market, line, selection, price, precision)
+                    )
+        if book and book != "pinnacle":
+            mapping = dict(FALLBACK_BOOKS)[book]
+            for selection, (pre_col, close_col) in mapping.items():
+                for column, precision in ((pre_col, "PREMATCH"), (close_col, "CLOSING")):
+                    price = _price(record.get(column))
+                    if price is not None:
+                        observations.append(
+                            OddsObservation(book, "ONE_X_TWO", 0.0, selection, price, precision)
+                        )
+        return observations
 
     def parse_odds(self, text: str) -> list[tuple[str, list[OddsObservation]]]:
         """Odds per row, paired with the row's source_id. Feeds M2, not M1."""
@@ -215,26 +240,7 @@ class FootballData:
         for index, record in enumerate(reader):
             if not record.get("HomeTeam"):
                 continue
-            observations: list[OddsObservation] = []
-            for (market, line, selection), (pre_col, close_col) in ODDS_COLUMNS.items():
-                for column, precision in ((pre_col, "PREMATCH"), (close_col, "CLOSING")):
-                    price = _price(record.get(column))
-                    if price is not None:
-                        observations.append(
-                            OddsObservation("pinnacle", market, line, selection,
-                                            price, precision)
-                        )
-            if book and book != "pinnacle":
-                mapping = dict(FALLBACK_BOOKS)[book]
-                for selection, (pre_col, close_col) in mapping.items():
-                    for column, precision in ((pre_col, "PREMATCH"), (close_col, "CLOSING")):
-                        price = _price(record.get(column))
-                        if price is not None:
-                            observations.append(
-                                OddsObservation(book, "ONE_X_TWO", 0.0, selection,
-                                                price, precision)
-                            )
-            out.append((f"{index:04d}", observations))
+            out.append((f"{index:04d}", self._row_odds(record, book)))
         return out
 
     @staticmethod
@@ -268,3 +274,20 @@ def _price(value):
     except ValueError:
         return None
     return price if price > 1.0 else None
+
+
+def _dump_odds(observations: list[OddsObservation]) -> str | None:
+    """Serialise observations for the bronze row. None when the row has none."""
+    if not observations:
+        return None
+    return json.dumps([
+        {
+            "bookmaker": o.bookmaker,
+            "market_type": o.market_type,
+            "line": o.line,
+            "selection": o.selection,
+            "price_decimal": o.price_decimal,
+            "capture_precision": o.capture_precision,
+        }
+        for o in observations
+    ], sort_keys=True)

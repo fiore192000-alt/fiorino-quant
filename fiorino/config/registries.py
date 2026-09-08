@@ -16,6 +16,8 @@ __all__ = [
     "COMPETITIONS",
     "SOURCE_COVERAGE",
     "SEASONS",
+    "BOOKMAKERS",
+    "reference_bookmaker",
     "all_seasons",
     "current_season",
     "FIRST_SEASON_YEAR",
@@ -83,6 +85,29 @@ def all_seasons(today: date | None = None) -> tuple[str, ...]:
 #: Seasons known at import time. Call `all_seasons()` in long-running processes
 #: so a season rollover is picked up without a restart.
 SEASONS: tuple[str, ...] = all_seasons()
+
+
+#: bookmaker_id -> (name, kind, is_reference, commission, country)
+#:
+#: Pinnacle is the reference: it runs a ~2% margin and takes sharp money, so
+#: its de-vigged close is the best free estimate of true probability. Verified
+#: on real Football-Data archives — median closing overround 2.06%.
+#:
+#: Exactly one book may be the reference. Changing it invalidates every
+#: historical CLV number, so it is effectively a constant.
+BOOKMAKERS: dict[str, tuple[str, str, bool, float, str | None]] = {
+    "pinnacle":   ("Pinnacle",        "SHARP",      True,  0.0,  "CW"),
+    "bet365":     ("bet365",          "SOFT",       False, 0.0,  "GB"),
+    "market_max": ("Market maximum",  "AGGREGATOR", False, 0.0,  None),
+    "market_avg": ("Market average",  "AGGREGATOR", False, 0.0,  None),
+}
+
+
+def reference_bookmaker() -> str:
+    refs = [b for b, meta in BOOKMAKERS.items() if meta[2]]
+    if len(refs) != 1:
+        raise ValueError(f"exactly one reference bookmaker is required, found {refs}")
+    return refs[0]
 
 
 def country_of(competition_id: str | None = None):

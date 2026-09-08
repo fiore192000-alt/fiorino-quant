@@ -16,6 +16,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from fiorino.config.registries import (
+    BOOKMAKERS,
     COMPETITIONS,
     SEASONS,
     SOURCE_COVERAGE,
@@ -56,6 +57,12 @@ def bootstrap_reference(con, *, seasons=SEASONS, competitions=COMPETITIONS) -> N
                 "INSERT INTO competition_seasons VALUES (?, ?, NULL) ON CONFLICT DO NOTHING",
                 [cid, season],
             )
+    for book_id, (name, kind, is_ref, commission, country) in BOOKMAKERS.items():
+        con.execute(
+            "INSERT INTO bookmakers (bookmaker_id, name, kind, is_reference, "
+            "commission_rate, country) VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT DO NOTHING",
+            [book_id, name, kind, is_ref, commission, country],
+        )
     for source, comps in SOURCE_COVERAGE.items():
         for cid, xg in comps.items():
             if cid in competitions:
@@ -89,7 +96,8 @@ def finish_run(con, run_id, result: TransformResult, rows_read: int) -> None:
 
 
 def ingest_bronze(
-    con, lake_root, *, auto_register_unknown: bool = False, code_version: str | None = None
+    con, lake_root, *, auto_register_unknown: bool = False, code_version: str | None = None,
+    with_odds: bool = True,
 ) -> TransformResult:
     """Promote every bronze partition into silver, one run per partition.
 
@@ -113,8 +121,20 @@ def ingest_bronze(
             con, rows, country_of=countries, ingestion_run_id=run_id,
             resolver=resolver, auto_register_unknown=auto_register_unknown,
         )
+        # Odds come after identity, never before: a market attached to a team
+        # we guessed at is worse than no market.
+        if with_odds:
+            from fiorino.odds.ingest import ingest_odds
+
+            ingest_odds(con, rows, ingestion_run_id=run_id)
         finish_run(con, run_id, result, len(rows))
         total = total + result
+
+    if with_odds:
+        from fiorino.odds.ingest import compute_fair_probabilities, materialise_closing
+
+        materialise_closing(con)
+        compute_fair_probabilities(con)
     return total
 
 
@@ -200,7 +220,8 @@ def logical_digest(con) -> str:
     return digest.hexdigest()
 
 
-def rebuild_from_manifest(con, bronze_root, manifest, *, auto_register_unknown=False):
+def rebuild_from_manifest(con, bronze_root, manifest, *, auto_register_unknown=False,
+                          with_odds: bool = True):
     """Rebuild silver/gold from exactly the files a manifest names.
 
     Reading the manifest's list rather than globbing is what makes an old
@@ -227,6 +248,16 @@ def rebuild_from_manifest(con, bronze_root, manifest, *, auto_register_unknown=F
             con, rows, country_of=countries, ingestion_run_id=run_id,
             resolver=resolver, auto_register_unknown=auto_register_unknown,
         )
+        if with_odds:
+            from fiorino.odds.ingest import ingest_odds
+
+            ingest_odds(con, rows, ingestion_run_id=run_id)
         finish_run(con, run_id, result, len(rows))
         total = total + result
+
+    if with_odds:
+        from fiorino.odds.ingest import compute_fair_probabilities, materialise_closing
+
+        materialise_closing(con)
+        compute_fair_probabilities(con)
     return total
