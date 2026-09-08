@@ -209,7 +209,15 @@ class FootballData:
         return rows
 
     def _row_odds(self, record: dict, book: str | None) -> list[OddsObservation]:
-        """Every price this row publishes, each labelled with its precision."""
+        """EVERY price this row publishes, each labelled with its precision.
+
+        All books, not just the reference. An earlier version stopped at
+        Pinnacle whenever Pinnacle was present, silently discarding bet365 and
+        the market aggregates that were sitting in the same file. Best-price
+        selection is the whole point of shopping a bet, and it cannot be done
+        from one book — so the data is kept even though M2 only uses the
+        reference for the closing line.
+        """
         observations: list[OddsObservation] = []
         for (market, line, selection), (pre_col, close_col) in ODDS_COLUMNS.items():
             for column, precision in ((pre_col, "PREMATCH"), (close_col, "CLOSING")):
@@ -218,14 +226,13 @@ class FootballData:
                     observations.append(
                         OddsObservation("pinnacle", market, line, selection, price, precision)
                     )
-        if book and book != "pinnacle":
-            mapping = dict(FALLBACK_BOOKS)[book]
+        for other, mapping in FALLBACK_BOOKS:
             for selection, (pre_col, close_col) in mapping.items():
                 for column, precision in ((pre_col, "PREMATCH"), (close_col, "CLOSING")):
                     price = _price(record.get(column))
                     if price is not None:
                         observations.append(
-                            OddsObservation(book, "ONE_X_TWO", 0.0, selection, price, precision)
+                            OddsObservation(other, "ONE_X_TWO", 0.0, selection, price, precision)
                         )
         return observations
 

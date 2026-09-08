@@ -140,13 +140,33 @@ class TestObservations:
             "SELECT capture_precision, count(*) FROM odds_observations GROUP BY 1"
         ).fetchall())
         assert set(by_precision) == {"PREMATCH", "CLOSING"}
+
+    def test_the_reference_book_has_both_precisions_in_equal_number(self, odds_db):
+        """Scoped to Pinnacle. Other books publish a pre-match price without a
+        closing one in older files, so a global equality would be false for a
+        reason that has nothing to do with correctness."""
+        by_precision = dict(odds_db.execute(
+            """SELECT capture_precision, count(*) FROM odds_observations
+               WHERE bookmaker_id = 'pinnacle' GROUP BY 1"""
+        ).fetchall())
         assert by_precision["PREMATCH"] == by_precision["CLOSING"]
 
+    def test_every_available_book_is_kept(self, odds_db):
+        """Best price cannot be shopped from one book, so none is discarded."""
+        books = {r[0] for r in odds_db.execute(
+            "SELECT DISTINCT bookmaker_id FROM odds_observations"
+        ).fetchall()}
+        assert "pinnacle" in books
+        assert len(books) > 1, "other books present in the file were dropped"
+
     def test_three_selections_per_market(self, odds_db):
+        """A complete 1X2 has exactly three selections — per BOOK and per
+        precision. Grouping without the book counts two books as one market."""
         counts = odds_db.execute(
             """SELECT count(*) FROM (
-                 SELECT match_id, capture_precision, count(*) c FROM odds_observations
-                 WHERE market_type = 'ONE_X_TWO' GROUP BY 1, 2) WHERE c <> 3"""
+                 SELECT match_id, bookmaker_id, capture_precision, count(*) c
+                 FROM odds_observations WHERE market_type = 'ONE_X_TWO'
+                 GROUP BY 1, 2, 3) WHERE c <> 3"""
         ).fetchone()[0]
         assert counts == 0
 

@@ -156,7 +156,44 @@ def check_source_coverage_scope(con) -> list[Finding]:
     ] if n else []
 
 
+def check_prematch_margin_divergence(con) -> list[Finding]:
+    """Flag when a book's PREMATCH margin is far wider than its CLOSING margin.
+
+    Football-Data's pre-match columns carry no collection time, and their
+    meaning is NOT stable across eras. Measured on real archives:
+
+        ENG_PL 2017-18   Pinnacle prematch 2.03%  closing 2.06%   co-temporal
+        NLD_ED 2024-25   Pinnacle prematch 5.43%  closing 3.60%   an OPENING price
+
+    A book opens wide and tightens as it learns. So a wide gap means the
+    pre-match column is an early price, not a near-kickoff one — and a CLV
+    baseline computed from it is not comparable with one computed from a
+    co-temporal column. Treating the two as the same quantity is how a
+    benchmark silently stops meaning anything.
+    """
+    rows = con.execute(
+        """SELECT bookmaker_id,
+                  median(overround) FILTER (WHERE capture_precision = 'PREMATCH'),
+                  median(overround) FILTER (WHERE capture_precision = 'CLOSING')
+           FROM fair_probabilities GROUP BY 1"""
+    ).fetchall()
+    findings = []
+    for book, pre, close in rows:
+        if pre is None or close is None:
+            continue
+        if pre - close > 0.01:
+            findings.append(Finding(
+                "prematch_is_an_opening_price", WARNING,
+                f"{book}: pre-match margin {pre:.2%} vs closing {close:.2%} "
+                f"(+{pre - close:.2%}); the pre-match column is an early price, so "
+                "its CLV baseline is not comparable with a co-temporal one",
+                1, book,
+            ))
+    return findings
+
+
 QUALITY_CHECKS = (
+    check_prematch_margin_divergence,
     check_duplicate_matches,
     check_missing_results,
     check_result_before_kickoff,

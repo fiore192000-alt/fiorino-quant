@@ -77,16 +77,13 @@ Chi scommette tutto perde il margine, e la perdita è statisticamente
 inequivocabile. Il drift medio quasi nullo dice che il mercato non è
 sistematicamente generoso.
 
-Ma per selezione emerge un effetto reale:
-
-| Selezione | `clv_price` medio |
-|---|---:|
-| HOME | −0.0043 |
-| DRAW | +0.0019 |
-| AWAY | +0.0045 |
-
-**I prezzi casa si accorciano, quelli trasferta si allungano.** Il denaro
-tardivo va sui favoriti di casa. È misurato, non ipotizzato.
+> **Ritirato.** Su questa stagione i prezzi casa mostravano un drift medio di
+> −0.0043 e quelli trasferta di +0.0045, e l'avevo descritto come un effetto
+> reale di mercato. **La validazione fuori campione su 10 campionati-stagione
+> lo ha falsificato:** il drift trasferta è positivo in 4 casi su 10, e le
+> medie dei due lati sono praticamente identiche (−0.0098 e −0.0105), non
+> opposte. Era un artefatto di una singola stagione.
+> Vedi `docs/validation/validation-report.md`.
 
 ---
 
