@@ -26,6 +26,7 @@ from typing import Sequence
 
 __all__ = [
     "Outcome",
+    "settle_bet",
     "OutcomeStructure",
     "Side",
     "asian_handicap_outcomes",
@@ -298,3 +299,64 @@ def one_x_two_outcomes(
         raise ValueError(f"1X2 selection must be HOME, DRAW or AWAY, got {selection}")
     win = mass[selection] / total
     return OutcomeStructure(win=win, lose=1.0 - win)
+
+
+def settle_bet(
+    market_type: str, line: float, selection: str, goals_home: int, goals_away: int
+) -> Outcome:
+    """How a bet actually settled, given the final score.
+
+    The deterministic twin of :func:`asian_handicap_outcomes`: the same margin
+    algebra and the same quarter-line composition, applied to one scoreline
+    instead of a probability grid. Written as reuse rather than a second
+    implementation precisely because two copies of settlement logic drift, and
+    a backtest that settles differently from how it priced is worthless.
+    """
+    market_type = market_type.upper()
+    selection = selection.upper()
+
+    if market_type == "ONE_X_TWO":
+        actual = "HOME" if goals_home > goals_away else "AWAY" if goals_away > goals_home else "DRAW"
+        if selection not in ("HOME", "DRAW", "AWAY"):
+            raise ValueError(f"1X2 selection must be HOME, DRAW or AWAY, got {selection!r}")
+        return Outcome.WIN if selection == actual else Outcome.LOSE
+
+    if market_type == "BTTS":
+        both = goals_home > 0 and goals_away > 0
+        if selection not in ("YES", "NO"):
+            raise ValueError(f"BTTS selection must be YES or NO, got {selection!r}")
+        return Outcome.WIN if (selection == "YES") == both else Outcome.LOSE
+
+    if market_type == "ASIAN_HANDICAP":
+        if selection == "HOME":
+            margin, effective = goals_home - goals_away, line
+        elif selection == "AWAY":
+            margin, effective = goals_away - goals_home, -line
+        else:
+            raise ValueError(f"handicap selection must be HOME or AWAY, got {selection!r}")
+        return _settle_with_quarters(margin, effective)
+
+    if market_type == "TOTALS":
+        total = goals_home + goals_away
+        if selection == "OVER":
+            margin, effective = total, -line
+        elif selection == "UNDER":
+            margin, effective = -total, line
+        else:
+            raise ValueError(f"totals selection must be OVER or UNDER, got {selection!r}")
+        return _settle_with_quarters(margin, effective)
+
+    raise ValueError(f"cannot settle market type {market_type!r}")
+
+
+def _settle_with_quarters(margin: float, line: float) -> Outcome:
+    """Settle one line, splitting quarter lines across their two neighbours."""
+    if not is_quarter_line(line):
+        return _settle_single(margin + line)
+    lower, upper = _settle_single(margin + line - 0.25), _settle_single(margin + line + 0.25)
+    try:
+        return _QUARTER_COMBINATION[(lower, upper)]
+    except KeyError:  # pragma: no cover - adjacent lines cannot disagree by two
+        raise AssertionError(
+            f"impossible quarter-line settlement {(lower, upper)} at line {line}"
+        ) from None

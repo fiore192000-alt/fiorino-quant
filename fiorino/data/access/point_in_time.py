@@ -48,6 +48,24 @@ class PointInTimeView:
         sql += " ORDER BY kickoff_utc, match_id"
         return self._rows(sql, params)
 
+    def results_for_matches(self, match_ids) -> dict:
+        """Results for specific matches, knowable at ``as_of``.
+
+        Settlement reads through here rather than querying `match_results`
+        directly. The difference matters: a result whose `settled_at` is later
+        than the settlement instant is not yet knowable, and resolving a bet
+        against it would be leakage wearing the costume of bookkeeping.
+        """
+        if not match_ids:
+            return {}
+        placeholders = ", ".join("?" for _ in match_ids)
+        rows = self.con.execute(
+            f"""SELECT match_id, goals_home, goals_away FROM results_as_of(?)
+                WHERE match_id IN ({placeholders})""",
+            [self.as_of, *match_ids],
+        ).fetchall()
+        return {r[0]: (r[1], r[2]) for r in rows}
+
     def team_membership(self) -> list[dict]:
         return self._rows(
             "SELECT * FROM team_membership_as_of(?) ORDER BY team_id, competition_id",

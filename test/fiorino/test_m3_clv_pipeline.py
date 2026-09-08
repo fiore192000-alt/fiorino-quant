@@ -31,9 +31,24 @@ def _build(con, tmp_path, method=None):
     return con
 
 
-@pytest.fixture
-def market_db(seeded_db, tmp_path):
-    return _build(seeded_db, tmp_path)
+@pytest.fixture(scope="module")
+def market_db(tmp_path_factory):
+    """One ingested season shared by the module.
+
+    Every backtest gets its own run_id and every replay its own run label, so
+    the writes do not collide. Rebuilding a 380-match season per test cost
+    seven minutes for no additional coverage.
+    """
+    from fiorino.data.db.connection import connect
+    from fiorino.data.db.migrate import migrate
+    from fiorino.data.pipeline import bootstrap_reference
+
+    con = connect()
+    migrate(con)
+    bootstrap_reference(con)
+    tmp_path = tmp_path_factory.mktemp("lake")
+    yield _build(con, tmp_path)
+    con.close()
 
 
 class TestCalibrationIdentity:
@@ -96,10 +111,9 @@ class TestCalibrationIdentity:
 class TestPrematchBaseline:
     """What every future model must beat.
 
-    Thresholds are set for the committed 17-match fixture (51 bets). On the
-    full 2017-18 season the same measurements are far sharper — 918 bets,
-    mean CLV_ev -0.028, t = -10.66 — but the fixture keeps the suite offline
-    and fast, so the assertions state only what 51 bets can support.
+    The fixture is the complete 2017-18 Premier League season, so these are
+    the real full-sample numbers: 918 bets, mean CLV_ev around -0.028,
+    t around -10.7.
     """
 
     def test_an_indiscriminate_prematch_taker_loses_the_margin(self, market_db):
@@ -108,9 +122,9 @@ class TestPrematchBaseline:
         row = market_db.execute(
             "SELECT n_bets, mean_clv_ev, clv_t_stat FROM v_clv_summary WHERE run_id='replay_prematch'"
         ).fetchone()
-        assert row[0] > 40
+        assert row[0] > 300
         assert row[1] < 0, "betting everything indiscriminately cannot beat the close"
-        assert row[2] < -1.5, "and the loss is already visible at this sample size"
+        assert row[2] < -5, "and the loss is statistically unmistakable"
 
     def test_price_drift_is_near_zero_on_average(self, market_db):
         """Pure price CLV nets out: the market is not systematically generous."""
@@ -119,7 +133,7 @@ class TestPrematchBaseline:
         mean_price_clv, = market_db.execute(
             "SELECT avg(clv_price) FROM v_bet_clv WHERE run_id='replay_prematch' AND line_matched"
         ).fetchone()
-        assert abs(mean_price_clv) < 0.02
+        assert abs(mean_price_clv) < 0.01
 
     def test_home_and_away_prices_drift_in_opposite_directions(self, market_db):
         """A real market effect: home prices shorten, away prices lengthen."""
@@ -137,7 +151,7 @@ class TestPrematchBaseline:
         rate, = market_db.execute(
             "SELECT beat_close_rate FROM v_clv_summary WHERE run_id='replay_prematch'"
         ).fetchone()
-        assert 0.35 < rate < 0.65
+        assert 0.4 < rate < 0.6
 
     def test_a_single_selection_can_be_replayed(self, market_db):
         n = take_selection(market_db, "HOME")
@@ -207,15 +221,17 @@ class TestBetLedgerHonesty:
     def test_no_replayed_bet_carries_a_fabricated_clock(self, market_db):
         take_prematch(market_db)
         n, = market_db.execute(
-            "SELECT count(*) FROM bets WHERE placed_at IS NOT NULL"
+            "SELECT count(*) FROM bets WHERE run_id LIKE 'replay%' AND placed_at IS NOT NULL"
         ).fetchone()
         assert n == 0
 
     def test_recording_is_idempotent(self, market_db):
+        """Scoped to its own run: the module shares one database."""
         first = take_prematch(market_db)
-        before, = market_db.execute("SELECT count(*) FROM bets").fetchone()
+        count = "SELECT count(*) FROM bets WHERE run_id = 'replay_prematch'"
+        before, = market_db.execute(count).fetchone()
         take_prematch(market_db)
-        after, = market_db.execute("SELECT count(*) FROM bets").fetchone()
+        after, = market_db.execute(count).fetchone()
         assert before == after == first
 
 
