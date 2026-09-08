@@ -266,22 +266,35 @@ CREATE TABLE model_runs (
 
 -- Model output already projected onto the market vocabulary, so that a
 -- prediction joins to odds on (market_type, line, selection) with no
--- translation layer. prob_push is what makes integer AH/totals lines
--- priceable at all.
+-- translation layer.
+--
+-- FIVE probabilities, not one. A quarter line (-0.25, +0.75, ...) settles as
+-- half-win or half-lose, and an integer line pushes. Collapsing this to a
+-- single prob_win is not a simplification, it is a pricing error:
+--
+--   p_win=0.42, p_push=0.08, p_lose=0.50 at price 2.60
+--     EV correct  = p_win*price + p_push - 1        = +17.2%
+--     EV collapsed= p_win*(price-1) - (1 - p_win)   =  +9.2%
+--
+--   understated by exactly p_push. Under a 10% edge threshold the bet is
+--   rejected. See fiorino/core/markets.py for the settlement algebra.
 CREATE TABLE predictions (
-    model_run_id  VARCHAR NOT NULL REFERENCES model_runs(model_run_id),
-    fixture_id    VARCHAR NOT NULL REFERENCES fixtures(fixture_id),
-    market_type   market_t NOT NULL,
-    line          DOUBLE  NOT NULL DEFAULT 0.0,
-    selection     VARCHAR NOT NULL,
-    as_of         TIMESTAMPTZ NOT NULL,
-    prob_win      DOUBLE  NOT NULL,
-    prob_push     DOUBLE  NOT NULL DEFAULT 0.0,
-    prob_lose     DOUBLE  NOT NULL,
-    lambda_home   DOUBLE,
-    lambda_away   DOUBLE,
+    model_run_id    VARCHAR NOT NULL REFERENCES model_runs(model_run_id),
+    fixture_id      VARCHAR NOT NULL REFERENCES fixtures(fixture_id),
+    market_type     market_t NOT NULL,
+    line            DOUBLE  NOT NULL DEFAULT 0.0,
+    selection       VARCHAR NOT NULL,
+    as_of           TIMESTAMPTZ NOT NULL,
+    prob_win        DOUBLE  NOT NULL,
+    prob_half_win   DOUBLE  NOT NULL DEFAULT 0.0,   -- quarter lines only
+    prob_push       DOUBLE  NOT NULL DEFAULT 0.0,   -- integer lines only
+    prob_half_lose  DOUBLE  NOT NULL DEFAULT 0.0,   -- quarter lines only
+    prob_lose       DOUBLE  NOT NULL,
+    lambda_home     DOUBLE,
+    lambda_away     DOUBLE,
     PRIMARY KEY (model_run_id, fixture_id, market_type, line, selection),
-    CHECK (abs(prob_win + prob_push + prob_lose - 1.0) < 1e-6)
+    CHECK (abs(prob_win + prob_half_win + prob_push
+               + prob_half_lose + prob_lose - 1.0) < 1e-6)
 );
 
 
