@@ -133,7 +133,7 @@ def run_backtest(con, strategy, config: BacktestConfig, start_utc, end_utc,
         available = ledger.available
 
         view = PointInTimeView.at(con, decision_utc)
-        candidates = strategy.generate(view, match_ids)
+        candidates = _dedupe(strategy.generate(view, match_ids))
         result.n_candidates += len(candidates)
         if not candidates:
             continue
@@ -198,6 +198,22 @@ def run_backtest(con, strategy, config: BacktestConfig, start_utc, end_utc,
     result.final_equity = ledger.equity
     result.max_drawdown = _max_drawdown(con, run_id)
     return result
+
+
+def _dedupe(candidates):
+    """One bet per selection per cohort.
+
+    A strategy reading several model fits can legitimately propose the same
+    selection twice; placing both would double the intended stake and collide
+    on the bet id. The best-ranked duplicate wins.
+    """
+    best: dict[tuple, object] = {}
+    for candidate in candidates:
+        key = (candidate.match_id, candidate.bookmaker_id, candidate.market_type,
+               candidate.line, candidate.selection)
+        if key not in best or candidate.rank > best[key].rank:
+            best[key] = candidate
+    return list(best.values())
 
 
 def _settle_due(con, ledger, as_of, config, run_id) -> int:

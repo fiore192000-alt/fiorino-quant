@@ -1,0 +1,812 @@
+[
+  {
+    "label": "ENG_PL 2017-18",
+    "n_fits": 33,
+    "walk_seconds": 51.8,
+    "n_predictions": 26950,
+    "n_prior_fixtures": 0,
+    "library_fallbacks": 1,
+    "invariant_failures": [],
+    "calibration": {
+      "n": 960,
+      "model_brier": 0.19470162174369954,
+      "market_brier": 0.18490969387162923,
+      "brier_edge": -0.00979192787207031,
+      "model_logloss": 0.5817215159962426,
+      "market_logloss": 0.5491454643409653,
+      "logloss_edge": -0.032576051655277216,
+      "prior_fraction": 0.0,
+      "model_wins": false
+    },
+    "edges": {
+      "n_priced": 2940,
+      "n_edge_5pct": 1037,
+      "n_edge_30pct": 340,
+      "max_edge": 2.079309657790811,
+      "fraction_edge_5pct": 0.35272108843537414
+    },
+    "strategies": {
+      "model_edge_5": {
+        "n_bets": 676,
+        "yield": -0.05105909721245252,
+        "growth": -0.3048656999999999,
+        "max_drawdown": 0.4703017050372664,
+        "clv_ev": -0.033574829502256535,
+        "clv_t": -12.261137774144007,
+        "yield_ci": [
+          -0.1511242603550295,
+          0.07903846153846152
+        ],
+        "verdict": "negative CLV and negative yield: no edge"
+      },
+      "model_edge_15": {
+        "n_bets": 428,
+        "yield": -0.10153898676193084,
+        "growth": -0.3524469,
+        "max_drawdown": 0.5342413250255877,
+        "clv_ev": -0.0339306333456192,
+        "clv_t": -9.057152927067296,
+        "yield_ci": [
+          -0.23502336448598138,
+          0.10261682242990655
+        ],
+        "verdict": "negative CLV and negative yield: no edge"
+      },
+      "model_edge_30": {
+        "n_bets": 222,
+        "yield": -0.14655206456800302,
+        "growth": -0.2879836,
+        "max_drawdown": 0.4786854177096211,
+        "clv_ev": -0.03112565371650751,
+        "clv_t": -5.689119852866901,
+        "yield_ci": [
+          -0.3702702702702702,
+          0.12621621621621626
+        ],
+        "verdict": "negative CLV and negative yield: no edge"
+      },
+      "take_home": {
+        "n_bets": 760,
+        "yield": 0.006950281047348948,
+        "growth": 0.048915800000000065,
+        "max_drawdown": 0.4730320302935004,
+        "clv_ev": -0.02990151265819898,
+        "clv_t": -11.475340818848203,
+        "yield_ci": [
+          -0.07782894736842104,
+          0.1534473684210526
+        ],
+        "verdict": "negative CLV, positive yield: lucky, expect it to stop"
+      }
+    }
+  },
+  {
+    "label": "ENG_PL 2018-19",
+    "n_fits": 33,
+    "walk_seconds": 49.8,
+    "n_predictions": 26290,
+    "n_prior_fixtures": 0,
+    "library_fallbacks": 44,
+    "invariant_failures": [],
+    "calibration": {
+      "n": 960,
+      "model_brier": 0.1847999071436089,
+      "market_brier": 0.1759304425241358,
+      "brier_edge": -0.008869464619473078,
+      "model_logloss": 0.5485191521503575,
+      "market_logloss": 0.5284491930663565,
+      "logloss_edge": -0.020069959084001,
+      "prior_fraction": 0.0,
+      "model_wins": false
+    },
+    "edges": {
+      "n_priced": 2868,
+      "n_edge_5pct": 941,
+      "n_edge_30pct": 270,
+      "max_edge": 2.6769640340314265,
+      "fraction_edge_5pct": 0.32810320781032076
+    },
+    "strategies": {
+      "model_edge_5": {
+        "n_bets": 631,
+        "yield": -0.21234499703914514,
+        "growth": -0.7207604999999999,
+        "max_drawdown": 0.7209837130295763,
+        "clv_ev": -0.02795385569062523,
+        "clv_t": -9.436158653211137,
+        "yield_ci": [
+          -0.2982250396196512,
+          -0.06581616481774964
+        ],
+        "verdict": "negative CLV and negative yield: no edge"
+      },
+      "model_edge_15": {
+        "n_bets": 362,
+        "yield": -0.25972190984807414,
+        "growth": -0.5797019000000001,
+        "max_drawdown": 0.5868468,
+        "clv_ev": -0.03559491729616874,
+        "clv_t": -8.611837558803606,
+        "yield_ci": [
+          -0.38359116022099443,
+          -0.017403314917127093
+        ],
+        "verdict": "negative CLV and negative yield: no edge"
+      },
+      "model_edge_30": {
+        "n_bets": 185,
+        "yield": -0.4023171654467402,
+        "growth": -0.5210651,
+        "max_drawdown": 0.5224977,
+        "clv_ev": -0.04046198222243752,
+        "clv_t": -6.627461718834743,
+        "yield_ci": [
+          -0.5577297297297297,
+          -0.1510810810810811
+        ],
+        "verdict": "negative CLV and negative yield: no edge"
+      },
+      "take_home": {
+        "n_bets": 760,
+        "yield": 0.027905759795035408,
+        "growth": 0.2078180999999999,
+        "max_drawdown": 0.4041177047199611,
+        "clv_ev": -0.040553950689264595,
+        "clv_t": -14.235579890490534,
+        "yield_ci": [
+          -0.058065789473684244,
+          0.16584210526315796
+        ],
+        "verdict": "negative CLV, positive yield: lucky, expect it to stop"
+      }
+    }
+  },
+  {
+    "label": "ENG_PL 2019-20",
+    "n_fits": 31,
+    "walk_seconds": 48.8,
+    "n_predictions": 24970,
+    "n_prior_fixtures": 0,
+    "library_fallbacks": 3,
+    "invariant_failures": [],
+    "calibration": {
+      "n": 960,
+      "model_brier": 0.19747081185112053,
+      "market_brier": 0.1901019803523888,
+      "brier_edge": -0.007368831498731743,
+      "model_logloss": 0.5840315439572437,
+      "market_logloss": 0.5643006668519673,
+      "logloss_edge": -0.019730877105276323,
+      "prior_fraction": 0.0,
+      "model_wins": false
+    },
+    "edges": {
+      "n_priced": 5448,
+      "n_edge_5pct": 2127,
+      "n_edge_30pct": 816,
+      "max_edge": 3.7178171079328117,
+      "fraction_edge_5pct": 0.3904185022026432
+    },
+    "strategies": {
+      "model_edge_5": {
+        "n_bets": 1465,
+        "yield": 0.014600879072589305,
+        "growth": 0.2950496,
+        "max_drawdown": 0.45446861970934865,
+        "clv_ev": -0.04421169199495573,
+        "clv_t": -17.072273179281336,
+        "yield_ci": [
+          -0.030327645051194552,
+          0.09625938566552904
+        ],
+        "verdict": "negative CLV, positive yield: lucky, expect it to stop"
+      },
+      "model_edge_15": {
+        "n_bets": 968,
+        "yield": 0.09497384413157586,
+        "growth": 1.5989426,
+        "max_drawdown": 0.21843327076953473,
+        "clv_ev": -0.041407743304207434,
+        "clv_t": -12.074990755784839,
+        "yield_ci": [
+          0.042479338842975195,
+          0.21404958677685967
+        ],
+        "verdict": "negative CLV, positive yield: lucky, expect it to stop"
+      },
+      "model_edge_30": {
+        "n_bets": 546,
+        "yield": 0.07135997768625113,
+        "growth": 0.5040091,
+        "max_drawdown": 0.21213311204461205,
+        "clv_ev": -0.04728574225010012,
+        "clv_t": -9.750984411066655,
+        "yield_ci": [
+          -0.0032783882783882783,
+          0.2246336996336997
+        ],
+        "verdict": "negative CLV, positive yield: lucky, expect it to stop"
+      },
+      "take_home": {
+        "n_bets": 1520,
+        "yield": 0.11912416988532343,
+        "growth": 2.8707829,
+        "max_drawdown": 0.3705070499992997,
+        "clv_ev": -0.02716568958328896,
+        "clv_t": -11.472262722643146,
+        "yield_ci": [
+          0.05052631578947368,
+          0.18830263157894753
+        ],
+        "verdict": "negative CLV, positive yield: lucky, expect it to stop"
+      }
+    }
+  },
+  {
+    "label": "ENG_PL 2020-21",
+    "n_fits": 29,
+    "walk_seconds": 41.4,
+    "n_predictions": 21780,
+    "n_prior_fixtures": 0,
+    "library_fallbacks": 0,
+    "invariant_failures": [],
+    "calibration": {
+      "n": 927,
+      "model_brier": 0.2061185067784915,
+      "market_brier": 0.1971252260411389,
+      "brier_edge": -0.008993280737352588,
+      "model_logloss": 0.6058699821274973,
+      "market_logloss": 0.5817905971146403,
+      "logloss_edge": -0.024079385012857002,
+      "prior_fraction": 0.0,
+      "model_wins": false
+    },
+    "edges": {
+      "n_priced": 4752,
+      "n_edge_5pct": 1671,
+      "n_edge_30pct": 674,
+      "max_edge": 5.211322107601224,
+      "fraction_edge_5pct": 0.35164141414141414
+    },
+    "strategies": {
+      "model_edge_5": {
+        "n_bets": 1312,
+        "yield": 0.042077035179701315,
+        "growth": 1.0290183000000002,
+        "max_drawdown": 0.4171439798721219,
+        "clv_ev": -0.033563768686295174,
+        "clv_t": -10.779180319962501,
+        "yield_ci": [
+          0.0077210365853658544,
+          0.18464176829268283
+        ],
+        "verdict": "negative CLV, positive yield: lucky, expect it to stop"
+      },
+      "model_edge_15": {
+        "n_bets": 947,
+        "yield": 0.06424969656323695,
+        "growth": 0.8813677,
+        "max_drawdown": 0.35082295922065604,
+        "clv_ev": -0.03140430258849175,
+        "clv_t": -7.974626935122376,
+        "yield_ci": [
+          0.010168954593452994,
+          0.22801478352692706
+        ],
+        "verdict": "negative CLV, positive yield: lucky, expect it to stop"
+      },
+      "model_edge_30": {
+        "n_bets": 518,
+        "yield": 0.04156267637587012,
+        "growth": 0.2253387,
+        "max_drawdown": 0.42682208444654235,
+        "clv_ev": -0.0275688455209923,
+        "clv_t": -4.757310688956096,
+        "yield_ci": [
+          -0.0447104247104247,
+          0.22584942084942078
+        ],
+        "verdict": "negative CLV, positive yield: lucky, expect it to stop"
+      },
+      "take_home": {
+        "n_bets": 1520,
+        "yield": -0.04967031322196263,
+        "growth": -0.6105912,
+        "max_drawdown": 0.789936582862308,
+        "clv_ev": -0.04099312135350481,
+        "clv_t": -17.242308257332883,
+        "yield_ci": [
+          -0.08099342105263159,
+          0.007164473684210532
+        ],
+        "verdict": "negative CLV and negative yield: no edge"
+      }
+    }
+  },
+  {
+    "label": "ESP_LL 2019-20",
+    "n_fits": 31,
+    "walk_seconds": 42.2,
+    "n_predictions": 22660,
+    "n_prior_fixtures": 0,
+    "library_fallbacks": 3,
+    "invariant_failures": [],
+    "calibration": {
+      "n": 957,
+      "model_brier": 0.19947086112244475,
+      "market_brier": 0.19219194134868461,
+      "brier_edge": -0.007278919773760134,
+      "model_logloss": 0.5889927253024484,
+      "market_logloss": 0.5663704486619118,
+      "logloss_edge": -0.02262227664053662,
+      "prior_fraction": 0.0,
+      "model_wins": false
+    },
+    "edges": {
+      "n_priced": 4938,
+      "n_edge_5pct": 1781,
+      "n_edge_30pct": 699,
+      "max_edge": 1.8771228043782684,
+      "fraction_edge_5pct": 0.3606723369785338
+    },
+    "strategies": {
+      "model_edge_5": {
+        "n_bets": 1382,
+        "yield": -0.09219033532157538,
+        "growth": -0.6880976,
+        "max_drawdown": 0.7624930325149303,
+        "clv_ev": -0.0456373579487722,
+        "clv_t": -15.343672340506421,
+        "yield_ci": [
+          -0.11825615050651231,
+          -0.00851664254703328
+        ],
+        "verdict": "negative CLV and negative yield: no edge"
+      },
+      "model_edge_15": {
+        "n_bets": 997,
+        "yield": -0.08531821033895484,
+        "growth": -0.5330204000000001,
+        "max_drawdown": 0.7076989288084179,
+        "clv_ev": -0.049841621545660186,
+        "clv_t": -14.348365571120187,
+        "yield_ci": [
+          -0.11871614844533607,
+          0.010120361083249749
+        ],
+        "verdict": "negative CLV and negative yield: no edge"
+      },
+      "model_edge_30": {
+        "n_bets": 534,
+        "yield": -0.0917904421925975,
+        "growth": -0.3553565999999999,
+        "max_drawdown": 0.5477673170731707,
+        "clv_ev": -0.05740586168156767,
+        "clv_t": -12.441601266839722,
+        "yield_ci": [
+          -0.1356367041198502,
+          0.022059925093632967
+        ],
+        "verdict": "negative CLV and negative yield: no edge"
+      },
+      "take_home": {
+        "n_bets": 1518,
+        "yield": 0.014066602368502412,
+        "growth": 0.4185827,
+        "max_drawdown": 0.5475649799917209,
+        "clv_ev": -0.026242260993381384,
+        "clv_t": -11.221259205128606,
+        "yield_ci": [
+          -0.009025032938076409,
+          0.08106060606060607
+        ],
+        "verdict": "negative CLV, positive yield: lucky, expect it to stop"
+      }
+    }
+  },
+  {
+    "label": "ITA_SA 2019-20",
+    "n_fits": 31,
+    "walk_seconds": 46.6,
+    "n_predictions": 24255,
+    "n_prior_fixtures": 0,
+    "library_fallbacks": 1,
+    "invariant_failures": [],
+    "calibration": {
+      "n": 954,
+      "model_brier": 0.2002049690108809,
+      "market_brier": 0.18984082652796094,
+      "brier_edge": -0.010364142482919947,
+      "model_logloss": 0.5889358058056946,
+      "market_logloss": 0.5637673612589891,
+      "logloss_edge": -0.025168444546705526,
+      "prior_fraction": 0.0,
+      "model_wins": false
+    },
+    "edges": {
+      "n_priced": 5292,
+      "n_edge_5pct": 1842,
+      "n_edge_30pct": 818,
+      "max_edge": 3.615042052691525,
+      "fraction_edge_5pct": 0.34807256235827666
+    },
+    "strategies": {
+      "model_edge_5": {
+        "n_bets": 1338,
+        "yield": -0.05876329243117678,
+        "growth": -0.6362096,
+        "max_drawdown": 0.7399679038248146,
+        "clv_ev": -0.04473257116423551,
+        "clv_t": -13.181340085640205,
+        "yield_ci": [
+          -0.11071748878923764,
+          -0.0028774289985052394
+        ],
+        "verdict": "negative CLV and negative yield: no edge"
+      },
+      "model_edge_15": {
+        "n_bets": 939,
+        "yield": -0.03547690017966755,
+        "growth": -0.34515759999999995,
+        "max_drawdown": 0.5870952938823051,
+        "clv_ev": -0.04342118743813779,
+        "clv_t": -10.146339531305998,
+        "yield_ci": [
+          -0.09108626198083068,
+          0.04643237486687964
+        ],
+        "verdict": "negative CLV and negative yield: no edge"
+      },
+      "model_edge_30": {
+        "n_bets": 565,
+        "yield": 0.01054532927966224,
+        "growth": 0.06933670000000003,
+        "max_drawdown": 0.4100923020003682,
+        "clv_ev": -0.04407614307580174,
+        "clv_t": -7.800082280628088,
+        "yield_ci": [
+          -0.05870796460176989,
+          0.13658407079646012
+        ],
+        "verdict": "negative CLV, positive yield: lucky, expect it to stop"
+      },
+      "take_home": {
+        "n_bets": 1520,
+        "yield": -0.07582049732721947,
+        "growth": -0.6223862,
+        "max_drawdown": 0.6932168,
+        "clv_ev": -0.040063798361379264,
+        "clv_t": -14.396565615265802,
+        "yield_ci": [
+          -0.09126315789473678,
+          -0.012342105263157903
+        ],
+        "verdict": "negative CLV and negative yield: no edge"
+      }
+    }
+  },
+  {
+    "label": "DEU_BL1 2024-25",
+    "n_fits": 29,
+    "walk_seconds": 40.7,
+    "n_predictions": 21340,
+    "n_prior_fixtures": 0,
+    "library_fallbacks": 27,
+    "invariant_failures": [],
+    "calibration": {
+      "n": 726,
+      "model_brier": 0.21727713278918642,
+      "market_brier": 0.2008130841853232,
+      "brier_edge": -0.01646404860386322,
+      "model_logloss": 0.6311974357302557,
+      "market_logloss": 0.5855559288012058,
+      "logloss_edge": -0.04564150692904989,
+      "prior_fraction": 0.0,
+      "model_wins": false
+    },
+    "edges": {
+      "n_priced": 4656,
+      "n_edge_5pct": 1652,
+      "n_edge_30pct": 609,
+      "max_edge": 2.9184936474465775,
+      "fraction_edge_5pct": 0.3548109965635739
+    },
+    "strategies": {
+      "model_edge_5": {
+        "n_bets": 1043,
+        "yield": -0.10025196941967154,
+        "growth": -0.6551386,
+        "max_drawdown": 0.7194901639344262,
+        "clv_ev": -0.04894314018852993,
+        "clv_t": -16.58595161804827,
+        "yield_ci": [
+          -0.1412655800575264,
+          -0.029089165867689355
+        ],
+        "verdict": "negative CLV and negative yield: no edge"
+      },
+      "model_edge_15": {
+        "n_bets": 684,
+        "yield": -0.17849170422341792,
+        "growth": -0.7148682,
+        "max_drawdown": 0.7351344430511509,
+        "clv_ev": -0.05363902156901566,
+        "clv_t": -13.573773596457322,
+        "yield_ci": [
+          -0.21843567251461987,
+          -0.11780701754385967
+        ],
+        "verdict": "negative CLV and negative yield: no edge"
+      },
+      "model_edge_30": {
+        "n_bets": 366,
+        "yield": -0.22292362836054322,
+        "growth": -0.6300223,
+        "max_drawdown": 0.6846492760432111,
+        "clv_ev": -0.04560094387237568,
+        "clv_t": -8.14177891656101,
+        "yield_ci": [
+          -0.3351366120218579,
+          -0.18456284153005464
+        ],
+        "verdict": "negative CLV and negative yield: no edge"
+      },
+      "take_home": {
+        "n_bets": 1224,
+        "yield": -0.08398506971409762,
+        "growth": -0.6531922,
+        "max_drawdown": 0.6531922,
+        "clv_ev": -0.03862059752895957,
+        "clv_t": -14.981698242943697,
+        "yield_ci": [
+          -0.1162009803921569,
+          -0.05392156862745099
+        ],
+        "verdict": "negative CLV and negative yield: no edge"
+      }
+    }
+  },
+  {
+    "label": "FRA_L1 2024-25",
+    "n_fits": 31,
+    "walk_seconds": 34.2,
+    "n_predictions": 16500,
+    "n_prior_fixtures": 0,
+    "library_fallbacks": 0,
+    "invariant_failures": [],
+    "calibration": {
+      "n": 729,
+      "model_brier": 0.1969129969217521,
+      "market_brier": 0.18766598986351196,
+      "brier_edge": -0.009247007058240136,
+      "model_logloss": 0.5854304280927926,
+      "market_logloss": 0.5591659759729101,
+      "logloss_edge": -0.026264452119882487,
+      "prior_fraction": 0.0,
+      "model_wins": false
+    },
+    "edges": {
+      "n_priced": 3600,
+      "n_edge_5pct": 1169,
+      "n_edge_30pct": 337,
+      "max_edge": 1.0805523628858502,
+      "fraction_edge_5pct": 0.32472222222222225
+    },
+    "strategies": {
+      "model_edge_5": {
+        "n_bets": 951,
+        "yield": -0.05991661315022477,
+        "growth": -0.48515679999999994,
+        "max_drawdown": 0.5580471546779848,
+        "clv_ev": -0.04459573780207923,
+        "clv_t": -13.90595906886929,
+        "yield_ci": [
+          -0.13172450052576237,
+          -0.017697160883280768
+        ],
+        "verdict": "negative CLV and negative yield: no edge"
+      },
+      "model_edge_15": {
+        "n_bets": 536,
+        "yield": -0.04731812789191364,
+        "growth": -0.2516714,
+        "max_drawdown": 0.3483652630568835,
+        "clv_ev": -0.054249604158342284,
+        "clv_t": -11.162012868547121,
+        "yield_ci": [
+          -0.11828358208955225,
+          0.026884328358208934
+        ],
+        "verdict": "negative CLV and negative yield: no edge"
+      },
+      "model_edge_30": {
+        "n_bets": 273,
+        "yield": -0.058879921191130905,
+        "growth": -0.15181539999999993,
+        "max_drawdown": 0.22028892487730725,
+        "clv_ev": -0.06516152841830214,
+        "clv_t": -9.1728071527646,
+        "yield_ci": [
+          -0.14399267399267401,
+          0.051684981684981694
+        ],
+        "verdict": "negative CLV and negative yield: no edge"
+      },
+      "take_home": {
+        "n_bets": 1224,
+        "yield": -0.008000344898654475,
+        "growth": -0.07608360000000003,
+        "max_drawdown": 0.5068398394594883,
+        "clv_ev": -0.03873069715947062,
+        "clv_t": -13.149096687312017,
+        "yield_ci": [
+          -0.0321732026143791,
+          0.06353758169934637
+        ],
+        "verdict": "negative CLV and negative yield: no edge"
+      }
+    }
+  },
+  {
+    "label": "NLD_ED 2024-25",
+    "n_fits": 32,
+    "walk_seconds": 29.7,
+    "n_predictions": 17050,
+    "n_prior_fixtures": 0,
+    "library_fallbacks": 3,
+    "invariant_failures": [],
+    "calibration": {
+      "n": 732,
+      "model_brier": 0.20345957308317475,
+      "market_brier": 0.1893475447818692,
+      "brier_edge": -0.014112028301305563,
+      "model_logloss": 0.5966793201674853,
+      "market_logloss": 0.5605534852749423,
+      "logloss_edge": -0.03612583489254295,
+      "prior_fraction": 0.0,
+      "model_wins": false
+    },
+    "edges": {
+      "n_priced": 3720,
+      "n_edge_5pct": 1033,
+      "n_edge_30pct": 317,
+      "max_edge": 1.999446059454904,
+      "fraction_edge_5pct": 0.2776881720430108
+    },
+    "strategies": {
+      "model_edge_5": {
+        "n_bets": 820,
+        "yield": -0.11155851598084635,
+        "growth": -0.7164009,
+        "max_drawdown": 0.7563044396213117,
+        "clv_ev": -0.06363835181891205,
+        "clv_t": -16.167438918347198,
+        "yield_ci": [
+          -0.209829268292683,
+          -0.08948780487804879
+        ],
+        "verdict": "negative CLV and negative yield: no edge"
+      },
+      "model_edge_15": {
+        "n_bets": 500,
+        "yield": -0.15416184295152896,
+        "growth": -0.6327912,
+        "max_drawdown": 0.6739661748012613,
+        "clv_ev": -0.0633976969143426,
+        "clv_t": -12.090289008591336,
+        "yield_ci": [
+          -0.2540400000000001,
+          -0.11458
+        ],
+        "verdict": "negative CLV and negative yield: no edge"
+      },
+      "model_edge_30": {
+        "n_bets": 248,
+        "yield": -0.1655907264895213,
+        "growth": -0.37633969999999994,
+        "max_drawdown": 0.42698736958240274,
+        "clv_ev": -0.043300423670414104,
+        "clv_t": -5.701550446340718,
+        "yield_ci": [
+          -0.2748387096774194,
+          -0.07750000000000001
+        ],
+        "verdict": "negative CLV and negative yield: no edge"
+      },
+      "take_home": {
+        "n_bets": 1224,
+        "yield": -0.04276792005967338,
+        "growth": -0.4976766,
+        "max_drawdown": 0.6727206326408719,
+        "clv_ev": -0.03267865090371815,
+        "clv_t": -10.838266261977681,
+        "yield_ci": [
+          -0.09033496732026146,
+          0.003210784313725516
+        ],
+        "verdict": "negative CLV and negative yield: no edge"
+      }
+    }
+  },
+  {
+    "label": "PRT_L1 2024-25",
+    "n_fits": 31,
+    "walk_seconds": 29.3,
+    "n_predictions": 17215,
+    "n_prior_fixtures": 0,
+    "library_fallbacks": 0,
+    "invariant_failures": [],
+    "calibration": {
+      "n": 726,
+      "model_brier": 0.19779960603340047,
+      "market_brier": 0.18912506376437271,
+      "brier_edge": -0.008674542269027752,
+      "model_logloss": 0.5838009011485042,
+      "market_logloss": 0.5581759835674751,
+      "logloss_edge": -0.02562491758102914,
+      "prior_fraction": 0.0,
+      "model_wins": false
+    },
+    "edges": {
+      "n_priced": 3756,
+      "n_edge_5pct": 973,
+      "n_edge_30pct": 220,
+      "max_edge": 1.1284495846533869,
+      "fraction_edge_5pct": 0.2590521831735889
+    },
+    "strategies": {
+      "model_edge_5": {
+        "n_bets": 722,
+        "yield": -0.096244572200688,
+        "growth": -0.4501657,
+        "max_drawdown": 0.5844147,
+        "clv_ev": -0.05251858800615784,
+        "clv_t": -13.321048122499324,
+        "yield_ci": [
+          -0.13180055401662052,
+          0.00722991689750692
+        ],
+        "verdict": "negative CLV and negative yield: no edge"
+      },
+      "model_edge_15": {
+        "n_bets": 359,
+        "yield": -0.06726421166745714,
+        "growth": -0.19855050000000007,
+        "max_drawdown": 0.3241471,
+        "clv_ev": -0.06294853247258829,
+        "clv_t": -10.314133192708324,
+        "yield_ci": [
+          -0.14988857938718667,
+          0.06317548746518103
+        ],
+        "verdict": "negative CLV and negative yield: no edge"
+      },
+      "model_edge_30": {
+        "n_bets": 171,
+        "yield": -0.12264407598197037,
+        "growth": -0.1828476000000001,
+        "max_drawdown": 0.2574928,
+        "clv_ev": -0.07200858621681822,
+        "clv_t": -10.57139438261476,
+        "yield_ci": [
+          -0.21859649122807023,
+          0.005789473684210512
+        ],
+        "verdict": "negative CLV and negative yield: no edge"
+      },
+      "take_home": {
+        "n_bets": 1224,
+        "yield": 0.002201763431452201,
+        "growth": 0.02536589999999994,
+        "max_drawdown": 0.376854272149308,
+        "clv_ev": -0.07218942901168444,
+        "clv_t": -21.874465558907048,
+        "yield_ci": [
+          -0.03625000000000002,
+          0.08362745098039218
+        ],
+        "verdict": "negative CLV, positive yield: lucky, expect it to stop"
+      }
+    }
+  }
+]

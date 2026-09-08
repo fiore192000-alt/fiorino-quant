@@ -18,7 +18,13 @@ from .frictions import NO_FRICTIONS, Frictions
 from .ledger import Ledger
 from .metrics import BacktestMetrics, compute_metrics
 from .settlement import settle
-from .strategy import Candidate, TakeFavourite, TakeSelection, TakeValueVsClose
+from .strategy import (
+    Candidate,
+    ModelEdge,
+    TakeFavourite,
+    TakeSelection,
+    TakeValueVsClose,
+)
 
 __all__ = [
     "run_backtest",
@@ -34,4 +40,5 @@ __all__ = [
     "TakeSelection",
     "TakeFavourite",
     "TakeValueVsClose",
+    "ModelEdge",
 ]

@@ -12,7 +12,14 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Protocol, Sequence
 
-__all__ = ["Candidate", "Strategy", "TakeSelection", "TakeFavourite", "TakeValueVsClose"]
+__all__ = [
+    "Candidate",
+    "Strategy",
+    "TakeSelection",
+    "TakeFavourite",
+    "TakeValueVsClose",
+    "ModelEdge",
+]
 
 
 @dataclass(frozen=True)
@@ -134,4 +141,74 @@ class TakeValueVsClose(_PriceStrategy):
             Candidate(m, b, mk, ln, sel, price, "PREMATCH",
                       model_prob=fair, rank=fair * price - 1)
             for m, b, mk, ln, sel, price, fair in rows
+        ]
+
+
+class ModelEdge(_PriceStrategy):
+    """Back every selection where the model says the price is generous.
+
+    The first strategy in the project with an actual opinion. It reads
+    `predictions` — written by a walk-forward fit that saw only settled
+    results — and bets when
+
+        model EV = p_win*(price-1) + p_half_win*(price-1)/2
+                 - p_half_lose*0.5 - p_lose  >  threshold
+
+    with push contributing zero, which is what makes integer handicap and
+    totals lines priceable at all.
+
+    Predictions priced from a league prior are excluded by default: they are
+    honest but weak, and betting them means betting hardest where the model
+    knows least.
+    """
+
+    name = "model_edge"
+
+    def __init__(self, min_edge: float = 0.05, markets=("ONE_X_TWO",),
+                 precision: str = "PREMATCH", allow_prior: bool = False):
+        self.min_edge = min_edge
+        self.markets = tuple(markets)
+        self.precision = precision
+        self.allow_prior = allow_prior
+
+    def generate(self, view, match_ids) -> list[Candidate]:
+        if not match_ids:
+            return []
+        match_ph = ", ".join("?" for _ in match_ids)
+        market_ph = ", ".join("?" for _ in self.markets)
+        # Overlapping horizons mean one fixture is priced by several fits: the
+        # walk refits weekly but prices eight days ahead, so consecutive runs
+        # both cover the overlap. Take the FRESHEST fit whose boundary precedes
+        # this decision — that is both the correct semantics and the reason a
+        # naive join produced duplicate candidates and a primary-key collision.
+        rows = view.con.execute(
+            f"""WITH eligible AS (
+                    SELECT v.*, r.trained_through,
+                           row_number() OVER (
+                               PARTITION BY v.match_id, v.bookmaker_id, v.market_type,
+                                            v.line, v.selection
+                               ORDER BY r.trained_through DESC, v.model_run_id
+                           ) AS freshness
+                    FROM v_model_vs_market v
+                    JOIN model_runs r ON r.model_run_id = v.model_run_id
+                    WHERE v.capture_precision = ?
+                      AND v.market_type IN ({market_ph})
+                      AND v.match_id IN ({match_ph})
+                      AND (? OR NOT v.used_prior)
+                      -- Rule R1 where it matters most: only a fit whose
+                      -- boundary precedes this decision may inform this bet.
+                      AND r.trained_through <= ?
+                )
+                SELECT match_id, bookmaker_id, market_type, line, selection,
+                       offered_price, prob_win, edge_ev
+                FROM eligible
+                WHERE freshness = 1 AND edge_ev > ?
+                ORDER BY match_id, selection""",
+            [self.precision, *self.markets, *match_ids,
+             self.allow_prior, view.as_of, self.min_edge],
+        ).fetchall()
+        return [
+            Candidate(m, b, mk, ln, sel, price, self.precision,
+                      model_prob=prob, rank=edge)
+            for m, b, mk, ln, sel, price, prob, edge in rows
         ]

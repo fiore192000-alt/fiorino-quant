@@ -340,12 +340,22 @@ che una strategia che legge il futuro viene bloccata dal PIT.
 **Fatto quando:** data una partita, si produce un listino completo che si unisce
 alle quote senza traduzione.
 
+Vedi [`models.md`](models.md) e
+[`../validation/model-validation.md`](../validation/model-validation.md).
+Il verdetto misurato su 10 campionati-stagione: **la chiusura de-viggata batte
+il modello 10 volte su 10**, e `model_edge` produce CLV negativo in 30 casi su
+30. Il modello grezzo non ha edge, e adesso lo si sa con un numero.
+
 ### M6 — Calibrazione e market blending
 Calibrazione out-of-fold, blending in logit space con `w` stimato, valutazione
 RPS/Brier **contro la closing line** come baseline.
 
 **Fatto quando:** esiste una tabella modello × lega di RPS calibrato contro la
 chiusura. Se non si batte la chiusura, non c'è edge — e va saputo qui, non dopo.
+
+Il baseline da battere non è più un'intenzione: Brier < 0.18491 su ENG_PL
+2017-18, sotto la chiusura in tutti e 10 i dataset, **e CLV medio positivo su
+almeno una strategia**. La seconda condizione è quella vincolante.
 
 ### M7 — Staking e portfolio
 Kelly con push (forma chiusa a tre esiti, numerico a cinque), shrinkage per
