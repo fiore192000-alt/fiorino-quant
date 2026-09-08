@@ -38,6 +38,9 @@ COMPETITIONS: dict[str, tuple[str, str, int, bool]] = {
 
 #: source -> {competition_id: supports_xg}
 SOURCE_COVERAGE: dict[str, dict[str, bool]] = {
+    # Calendar and result backbone: all eight, updated daily, no odds.
+    "openfootball": {c: False for c in COMPETITIONS},
+    # The odds source, including closing prices.
     "footballdata": {c: False for c in COMPETITIONS},
     "fbref": {c: True for c in COMPETITIONS},
     # Understat covers the big five only. The two second-tier and two smaller

@@ -1,12 +1,14 @@
 name: Data refresh
 
-# "Always up to date" in practice. GitHub's runners have open egress, which is
-# also how the Football-Data fetch works at all: the development environment's
-# network policy blocks that host, CI does not.
+# fetch -> bronze -> rebuild -> audit -> publish version -> alert
+#
+# The repository is NOT the dataset. This workflow never commits bronze: it
+# writes to the data store, publishes a version manifest, and alerts. Only the
+# identity ledger — a small, human-authored decision log — is committed, for
+# the same reason migrations are.
 on:
   schedule:
-    # 06:15 UTC daily — after openfootball's nightly update, before European
-    # kickoffs. Not on the hour, to avoid the scheduler's busiest minute.
+    # 06:15 UTC: after openfootball's nightly update, before European kickoffs.
     - cron: "15 6 * * *"
   workflow_dispatch:
     inputs:
@@ -16,7 +18,7 @@ on:
         default: false
       sources:
         description: "Comma-separated sources"
-        default: "openfootball"
+        default: "openfootball,footballdata"
 
 permissions:
   contents: write
@@ -24,6 +26,12 @@ permissions:
 concurrency:
   group: data-refresh
   cancel-in-progress: false
+
+env:
+  # Point this at the persistent data store. Anything outside the working tree
+  # keeps the dataset out of git by construction rather than by discipline.
+  FIORINO_DATA_ROOT: ${{ vars.FIORINO_DATA_ROOT || '/tmp/fiorino-data' }}
+  LEDGER: configs/identity/ledger.json
 
 jobs:
   refresh:
@@ -36,41 +44,76 @@ jobs:
           python-version: "3.12"
           cache: pip
 
-      - name: Install
-        run: pip install --quiet duckdb
+      - run: pip install --quiet duckdb
+
+      # Restore the previous bronze so today's fetch appends to history rather
+      # than starting from nothing. Replace with your object store when the
+      # dataset outgrows the cache (it is bounded to 10 GB).
+      - name: Restore bronze
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ env.FIORINO_DATA_ROOT }}
+          key: fiorino-data-${{ github.run_id }}
+          restore-keys: fiorino-data-
 
       - name: Fetch into bronze
         run: |
           python -m fiorino.cli.refresh \
-            --lake data/bronze \
-            --sources "${{ inputs.sources || 'openfootball' }}" \
+            --lake "$FIORINO_DATA_ROOT/bronze" \
+            --sources "${{ inputs.sources || 'openfootball,footballdata' }}" \
             ${{ inputs.backfill && '--backfill' || '' }}
 
-      - name: Rebuild silver and audit
+      # Rebuild, audit, and publish a version. `snapshot` exits non-zero when
+      # the audit finds a blocking problem — most often a club name nobody has
+      # adjudicated — and in that case NO version is published. The matches
+      # using it are quarantined, never silently dropped.
+      - name: Rebuild, audit and publish a dataset version
+        id: snapshot
         run: |
-          python -m fiorino.cli.main --db /tmp/fiorino.duckdb bootstrap
-          python -m fiorino.cli.main --db /tmp/fiorino.duckdb rebuild --lake data/bronze
-          # The audit exits non-zero on a BLOCKING finding. Unadjudicated fuzzy
-          # proposals are blocking by design, so a refresh that introduces a new
-          # club surfaces here instead of silently dropping its matches.
-          python -m fiorino.cli.main --db /tmp/fiorino.duckdb audit \
-            --out docs/audit/latest.md || echo "AUDIT_BLOCKING=1" >> $GITHUB_ENV
+          python -m fiorino.cli.main \
+            --ledger "$LEDGER" \
+            --code-version "${GITHUB_SHA::12}" \
+            snapshot --note "scheduled refresh"
 
-      - name: Commit bronze and audit
+      - name: Audit report
+        if: always()
+        run: |
+          mkdir -p docs/audit
+          python -m fiorino.cli.main --ledger "$LEDGER" audit --out docs/audit/latest.md || true
+
+      - name: Save bronze
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ env.FIORINO_DATA_ROOT }}
+          key: fiorino-data-${{ github.run_id }}
+
+      # The only thing committed: the identity decision log and the audit
+      # summary. Kilobytes, human-readable, reviewable in a diff.
+      - name: Commit identity ledger and audit
+        if: always()
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/bronze docs/audit/latest.md
+          git add "$LEDGER" docs/audit/latest.md 2>/dev/null || true
           if git diff --cached --quiet; then
-            echo "no new data"
+            echo "no identity or audit changes"
           else
-            git commit -m "chore(data): refresh bronze $(date -u +%Y-%m-%d)"
+            git commit -m "chore(identity): refresh $(date -u +%Y-%m-%d)"
             git push
           fi
 
-      - name: Report unadjudicated identities
-        if: env.AUDIT_BLOCKING == '1'
+      - name: Upload manifests
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dataset-manifests
+          path: ${{ env.FIORINO_DATA_ROOT }}/manifests/
+          if-no-files-found: warn
+
+      - name: Alert on a failed refresh
+        if: failure()
         run: |
-          echo "::warning::The audit reported blocking findings — most likely new"
-          echo "::warning::club names awaiting adjudication. Matches using them are"
-          echo "::warning::quarantined, not guessed. See docs/audit/latest.md"
+          echo "::error::Refresh did not publish a dataset version."
+          echo "::error::Most likely cause: new club names awaiting adjudication."
+          echo "::error::Their matches are quarantined, not dropped. See docs/audit/latest.md"

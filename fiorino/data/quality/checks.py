@@ -90,19 +90,36 @@ def check_provenance(con) -> list[Finding]:
 
 
 def check_cross_source_join(con) -> list[Finding]:
-    """How far the cross-source join actually reaches."""
+    """How far the cross-source join actually reaches.
+
+    Severity depends on how many sources were actually ingested. A dataset
+    built from ONE source is degraded, not invalid, and blocking on it would
+    make the pipeline refuse to run precisely when a second feed is
+    unavailable — which is when you most want it to keep running. Two or more
+    sources that join nothing is a different matter: that is a broken match
+    identity or a broken source-id bridge, and it must block.
+    """
     rows = con.execute(
         "SELECT n_sources, count(*) FROM v_cross_source_matches GROUP BY n_sources ORDER BY 1"
     ).fetchall()
     single = sum(c for n, c in rows if (n or 0) <= 1)
     multi = sum(c for n, c in rows if (n or 0) > 1)
+    n_sources = _scalar(con, "SELECT count(DISTINCT source) FROM match_source_ids")
+
     out = [
         Finding("cross_source_reach", INFO,
-                f"{multi} matches corroborated by 2+ sources, {single} by a single source", multi)
+                f"{multi} matches corroborated by 2+ sources, {single} by a single source "
+                f"({n_sources} source(s) ingested)", multi)
     ]
     if multi == 0 and single > 0:
-        out.append(Finding("no_cross_source_join", BLOCKING,
-                           "no match is corroborated by more than one source", single))
+        if n_sources >= 2:
+            out.append(Finding("no_cross_source_join", BLOCKING,
+                               f"{n_sources} sources ingested but nothing joined; match "
+                               "identity or the source-id bridge is broken", single))
+        else:
+            out.append(Finding("single_source_dataset", WARNING,
+                               "only one source ingested, so nothing is corroborated; "
+                               "usable but not cross-checked", single))
     return out
 
 

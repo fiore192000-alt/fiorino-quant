@@ -27,7 +27,14 @@ from fiorino.data.identity.resolver import IdentityResolver
 from fiorino.data.ingest.silver import TransformResult, transform_bronze
 from fiorino.data.lake import list_bronze, read_bronze
 
-__all__ = ["bootstrap_reference", "ingest_bronze", "rebuild_from_bronze", "canonical_snapshot"]
+__all__ = [
+    "bootstrap_reference",
+    "ingest_bronze",
+    "rebuild_from_bronze",
+    "rebuild_from_manifest",
+    "canonical_snapshot",
+    "logical_digest",
+]
 
 
 def bootstrap_reference(con, *, seasons=SEASONS, competitions=COMPETITIONS) -> None:
@@ -172,3 +179,54 @@ def canonical_snapshot(con) -> Snapshot:
                ORDER BY 1,2"""
         ),
     )
+
+
+def logical_digest(con) -> str:
+    """Fingerprint of the silver/gold dataset.
+
+    Hashes the canonical snapshot — the same projection the rebuild tests
+    compare — so two databases can be proven to hold the same facts without
+    claiming their files are byte-identical, which DuckDB does not guarantee
+    across versions and which is not what anybody actually needs.
+    """
+    import hashlib
+
+    snapshot = canonical_snapshot(con)
+    digest = hashlib.blake2b(digest_size=16)
+    for name in ("teams", "matches", "results", "memberships", "source_ids"):
+        digest.update(f"--{name}\n".encode())
+        for row in getattr(snapshot, name):
+            digest.update(("\x1f".join(str(v) for v in row) + "\n").encode())
+    return digest.hexdigest()
+
+
+def rebuild_from_manifest(con, bronze_root, manifest, *, auto_register_unknown=False):
+    """Rebuild silver/gold from exactly the files a manifest names.
+
+    Reading the manifest's list rather than globbing is what makes an old
+    dataset version reproducible after newer bronze has landed.
+    """
+    from fiorino.data.lake.reader import read_bronze_files
+
+    bootstrap_reference(con)
+    resolver = IdentityResolver(con)
+    countries = country_of()
+    total = TransformResult()
+
+    by_partition: dict[tuple[str, str, str], list[str]] = {}
+    for entry in manifest.files:
+        by_partition.setdefault((entry.source, entry.competition, entry.season), []).append(entry.path)
+
+    for (source, competition, season) in sorted(by_partition):
+        rows = read_bronze_files(con, bronze_root, sorted(by_partition[(source, competition, season)]))
+        if not rows:
+            continue
+        run_id = start_run(con, source, competition, season,
+                           code_version=manifest.code_version)
+        result = transform_bronze(
+            con, rows, country_of=countries, ingestion_run_id=run_id,
+            resolver=resolver, auto_register_unknown=auto_register_unknown,
+        )
+        finish_run(con, run_id, result, len(rows))
+        total = total + result
+    return total

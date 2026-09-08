@@ -168,7 +168,9 @@ notes/
 /scripts
 /whoscored
 
-# Fiorino Quant
-data/bronze/**/*.duckdb
+# Fiorino Quant — the repository holds code, schema, config and the identity
+# decision log. Datasets live under $FIORINO_DATA_ROOT, outside the tree.
+data/
 *.duckdb
 *.duckdb.wal
+*.duckdb.building
