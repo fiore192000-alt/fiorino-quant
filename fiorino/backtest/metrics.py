@@ -32,6 +32,14 @@ class BacktestMetrics:
     sharpe: float
     mean_clv_ev: float | None
     clv_t_stat: float | None
+    #: Mean relative price advantage over the close. clv_ev is the headline
+    #: because it is what the bankroll experiences; clv_price is reported
+    #: beside it because it is the number a trader recognises, and the two can
+    #: disagree in sign when the closing overround is large.
+    mean_clv_price: float | None = None
+    #: Fraction of bets struck at a better price than the close. Sign only —
+    #: it says how OFTEN, never by how much, so it cannot stand alone.
+    beat_close_rate: float | None = None
     yield_ci_low: float | None = None
     yield_ci_high: float | None = None
 
@@ -95,7 +103,9 @@ def compute_metrics(con, run_id: str, *, bootstrap: int = 0, seed: int = 0) -> B
         sharpe = mean / math.sqrt(var) * math.sqrt(len(returns)) if var > 0 else 0.0
 
     clv_row = con.execute(
-        """SELECT avg(c.clv_ev), stddev_samp(c.clv_ev), count(*)
+        """SELECT avg(c.clv_ev), stddev_samp(c.clv_ev), count(*),
+                  avg(c.clv_price),
+                  avg(CASE WHEN c.beat_close THEN 1.0 ELSE 0.0 END)
            FROM bets b JOIN bet_clv c ON c.bet_id = b.bet_id
            WHERE b.run_id = ? AND c.line_matched""", [run_id]
     ).fetchone()
@@ -119,6 +129,8 @@ def compute_metrics(con, run_id: str, *, bootstrap: int = 0, seed: int = 0) -> B
         sharpe=sharpe,
         mean_clv_ev=mean_clv,
         clv_t_stat=clv_t,
+        mean_clv_price=clv_row[3],
+        beat_close_rate=clv_row[4],
     )
     if bootstrap and returns:
         metrics.yield_ci_low, metrics.yield_ci_high = bootstrap_yield_ci(

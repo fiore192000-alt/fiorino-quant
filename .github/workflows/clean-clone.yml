@@ -1,0 +1,75 @@
+name: Clean clone
+
+# The workflow that would have caught the .gitignore incident.
+#
+# Seven migrations, two modules and both validation scripts were written,
+# exercised by a green test suite, and never committed: an inherited
+# `.gitignore` rule matched `fiorino/data/` and `git add -A` correctly skipped
+# them. Nothing in a normal CI run notices, because a normal CI run checks out
+# the repository into a tree that then gets the same files written into it by
+# nothing at all — it just never needed them.
+#
+# So this job asserts the property directly: a FRESH CLONE, with nothing carried
+# over, must build the whole schema and pass the whole suite. Every PR must be
+# able to start from zero.
+
+on:
+  pull_request:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  clean-clone:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone at full depth, into an empty tree
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install pytest hypothesis duckdb
+
+      - name: The schema must build from what is committed
+        # Not "the migrations run": the RELATION COUNT is asserted, because a
+        # migration file that is present but empty also runs cleanly.
+        run: |
+          python - <<'PY'
+          from fiorino.data.db.connection import connect
+          from fiorino.data.db.migrate import migrate
+          import pathlib, sys
+
+          con = connect()
+          migrate(con)
+          tables = con.execute("SELECT count(*) FROM duckdb_tables()").fetchone()[0]
+          views = con.execute(
+              "SELECT count(*) FROM duckdb_views() WHERE NOT internal"
+          ).fetchone()[0]
+          on_disk = len(list(pathlib.Path("fiorino/data/db/migrations").glob("*.sql")))
+          applied = con.execute("SELECT count(*) FROM schema_migrations").fetchone()[0]
+          print(f"{on_disk} migrations on disk, {applied} applied, "
+                f"{tables} tables, {views} views")
+          if applied != on_disk:
+              sys.exit(f"{on_disk - applied} migrations did not apply")
+          if tables + views < 40:
+              sys.exit("schema is smaller than it should be: files are missing")
+          PY
+
+      - name: Repository hygiene
+        run: pytest test/fiorino/test_repo_hygiene.py -q
+
+      - name: The suite, on the clone
+        run: pytest test/fiorino -q -p no:randomly
+
+      - name: Point-in-time audit
+        # The leakage guard runs again on its own so a failure here is
+        # unmissable in the log rather than one line among four hundred.
+        run: pytest test/fiorino/test_m1_leakage.py test/fiorino/test_m6_ensemble.py -q

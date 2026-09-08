@@ -353,9 +353,32 @@ RPS/Brier **contro la closing line** come baseline.
 **Fatto quando:** esiste una tabella modello × lega di RPS calibrato contro la
 chiusura. Se non si batte la chiusura, non c'è edge — e va saputo qui, non dopo.
 
-Il baseline da battere non è più un'intenzione: Brier < 0.18491 su ENG_PL
-2017-18, sotto la chiusura in tutti e 10 i dataset, **e CLV medio positivo su
-almeno una strategia**. La seconda condizione è quella vincolante.
+M6 è stata riformulata dopo M5. La domanda non è più «troviamo un modello con
+Brier sotto una soglia» ma:
+
+> **il modello contiene informazione che il mercato non ha?**
+
+Sono domande diverse: un modello che perde contro il mercato può comunque
+migliorarlo, se sbaglia in modo indipendente. L'esperimento è un'ablation
+`MARKET` / `MODEL` / `MARKET+MODEL` con il peso del pool stimato **solo** sul
+periodo di training.
+
+Vedi [`ensemble.md`](ensemble.md) e
+[`../validation/incremental-information.md`](../validation/incremental-information.md).
+
+I gate, in quest'ordine — il P&L è l'ultimo, non il primo:
+
+| | gate | criterio |
+|---|---|---|
+| 1 | point-in-time | zero leakage, peso incluso |
+| 2 | calibrazione | Brier, LogLoss, RPS |
+| 3 | informazione incrementale | `MARKET+MODEL` batte `MARKET` |
+| 4 | CLV | CLV > 0 out-of-sample |
+| 5 | robustezza | più leghe, più stagioni, bootstrap CI |
+| 6 | **solo dopo** | yield, drawdown, staking |
+
+Un CI che contiene lo zero non è evidenza, e il report è tenuto a dirlo invece
+di citare la stima puntuale.
 
 ### M7 — Staking e portfolio
 Kelly con push (forma chiusa a tre esiti, numerico a cinque), shrinkage per

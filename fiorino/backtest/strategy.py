@@ -164,12 +164,24 @@ class ModelEdge(_PriceStrategy):
 
     name = "model_edge"
 
+    @property
+    def label(self) -> str:
+        """Distinguishes the arms of an ablation in a run's metadata."""
+        return self.name if self.model_name is None else f"{self.name}[{self.model_name}]"
+
     def __init__(self, min_edge: float = 0.05, markets=("ONE_X_TWO",),
-                 precision: str = "PREMATCH", allow_prior: bool = False):
+                 precision: str = "PREMATCH", allow_prior: bool = False,
+                 model_name: str | None = None):
         self.min_edge = min_edge
         self.markets = tuple(markets)
         self.precision = precision
         self.allow_prior = allow_prior
+        #: Which forecast to bet. None means "any", which is correct when one
+        #: model has been fitted and wrong the moment an ablation stores
+        #: several: the freshest-fit window below would then pick whichever arm
+        #: was written last, silently comparing arms with each other instead of
+        #: betting one. M6 always names it.
+        self.model_name = model_name
 
     def generate(self, view, match_ids) -> list[Candidate]:
         if not match_ids:
@@ -192,6 +204,7 @@ class ModelEdge(_PriceStrategy):
                     FROM v_model_vs_market v
                     JOIN model_runs r ON r.model_run_id = v.model_run_id
                     WHERE v.capture_precision = ?
+                      AND (? IS NULL OR v.model_name = ?)
                       AND v.market_type IN ({market_ph})
                       AND v.match_id IN ({match_ph})
                       AND (? OR NOT v.used_prior)
@@ -204,7 +217,8 @@ class ModelEdge(_PriceStrategy):
                 FROM eligible
                 WHERE freshness = 1 AND edge_ev > ?
                 ORDER BY match_id, selection""",
-            [self.precision, *self.markets, *match_ids,
+            [self.precision, self.model_name, self.model_name,
+             *self.markets, *match_ids,
              self.allow_prior, view.as_of, self.min_edge],
         ).fetchall()
         return [
