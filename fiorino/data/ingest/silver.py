@@ -17,7 +17,7 @@ from fiorino.core.ids import match_id as make_match_id
 from fiorino.core.ids import quarantine_id
 from fiorino.data.identity.resolver import IdentityResolver, MatchMethod
 
-from .base import parse_date, parse_ts
+from .base import parse_date, parse_ts, settle_instant
 
 __all__ = [
     "TransformResult",
@@ -109,6 +109,9 @@ def transform_bronze(
     known_quarantine: set = {
         r[0] for r in con.execute("SELECT quarantine_id FROM match_quarantine").fetchall()
     }
+    seen_proposals: set = {
+        r[0] for r in con.execute("SELECT proposal_id FROM team_alias_proposals").fetchall()
+    }
 
     for row in rows:
         competition = row["competition"]
@@ -123,12 +126,20 @@ def transform_bronze(
 
         for side in (home, away):
             if side.method is MatchMethod.FUZZY_PROPOSAL:
+                # Count DISTINCT proposals, not occurrences. The same name
+                # recurs in hundreds of rows; reporting 1,138 when 17 names
+                # need adjudicating makes the audit useless.
+                if side.proposal_id not in seen_proposals:
+                    seen_proposals.add(side.proposal_id)
+                    out.proposals += 1
                 resolver.record_proposal(side, ingestion_run_id)
-                out.proposals += 1
 
         if auto_register_unknown:
             for side_name, side in (("home", home), ("away", away)):
-                if side.method is MatchMethod.UNRESOLVED and side.note and "no candidate" in side.note:
+                # can_register, not a substring of the note: a homonym and an
+                # unadjudicated fuzzy candidate are both UNRESOLVED but must
+                # NOT be minted as new clubs.
+                if side.can_register:
                     tid = resolver.register_team(side.raw_name, country, ingestion_run_id=ingestion_run_id)
                     resolver.add_alias(side.raw_name, source, country, tid,
                                        MatchMethod.SEED, ingestion_run_id=ingestion_run_id)
@@ -234,10 +245,12 @@ def transform_bronze(
             if settled:
                 settled_at = datetime.fromisoformat(str(settled).replace("Z", "+00:00"))
             else:
-                # Rule R1: a result becomes knowable when the match ENDS, not at
-                # kickoff. Two hours covers 90 minutes plus stoppage and the
-                # reporting lag; sources that give a real timestamp override it.
-                settled_at = kickoff + MATCH_DURATION
+                # Rule R1: a result becomes knowable when the match ENDS, and
+                # how confidently we can say when that was depends on how
+                # precise the source's kickoff is.
+                settled_at = settle_instant(
+                    kickoff, match_date, str(row.get("kickoff_precision") or "EXACT")
+                )
             if mid not in known_results:
                 known_results.add(mid)
                 con.execute(

@@ -1,0 +1,146 @@
+{
+ "name": "Italian Serie A 2026/27",
+ "matches": [
+  {
+   "round": "Matchday 1",
+   "date": "2026-08-22",
+   "time": "18:30",
+   "team1": "Udinese Calcio",
+   "team2": "Como 1907",
+   "score": {
+    "ht": [
+     1,
+     0
+    ],
+    "ft": [
+     1,
+     1
+    ]
+   }
+  },
+  {
+   "round": "Matchday 1",
+   "date": "2026-08-22",
+   "time": "18:30",
+   "team1": "FC Internazionale Milano",
+   "team2": "AC Monza",
+   "score": {
+    "ht": [
+     1,
+     1
+    ],
+    "ft": [
+     4,
+     1
+    ]
+   }
+  },
+  {
+   "round": "Matchday 1",
+   "date": "2026-08-22",
+   "time": "20:45",
+   "team1": "Genoa CFC",
+   "team2": "SSC Napoli",
+   "score": {
+    "ht": [
+     0,
+     0
+    ],
+    "ft": [
+     0,
+     2
+    ]
+   }
+  },
+  {
+   "round": "Matchday 1",
+   "date": "2026-08-22",
+   "time": "20:45",
+   "team1": "Parma Calcio 1913",
+   "team2": "Cagliari Calcio",
+   "score": {
+    "ht": [
+     0,
+     0
+    ],
+    "ft": [
+     0,
+     1
+    ]
+   }
+  },
+  {
+   "round": "Matchday 1",
+   "date": "2026-08-23",
+   "time": "18:30",
+   "team1": "Frosinone Calcio",
+   "team2": "Juventus FC",
+   "score": {
+    "ht": [
+     0,
+     1
+    ],
+    "ft": [
+     0,
+     1
+    ]
+   }
+  },
+  {
+   "round": "Matchday 1",
+   "date": "2026-08-23",
+   "time": "18:30",
+   "team1": "Venezia FC",
+   "team2": "US Lecce",
+   "score": {
+    "ht": [
+     0,
+     0
+    ],
+    "ft": [
+     0,
+     2
+    ]
+   }
+  },
+  {
+   "round": "Matchday 3",
+   "date": "2026-09-04",
+   "time": "20:45",
+   "team1": "Genoa CFC",
+   "team2": "Como 1907"
+  },
+  {
+   "round": "Matchday 3",
+   "date": "2026-09-05",
+   "time": "15:00",
+   "team1": "ACF Fiorentina",
+   "team2": "Torino FC"
+  },
+  {
+   "round": "Matchday 3",
+   "date": "2026-09-05",
+   "time": "18:00",
+   "team1": "FC Internazionale Milano",
+   "team2": "SSC Napoli"
+  },
+  {
+   "round": "Matchday 6",
+   "date": "2026-10-11",
+   "team1": "Atalanta BC",
+   "team2": "Venezia FC"
+  },
+  {
+   "round": "Matchday 6",
+   "date": "2026-10-11",
+   "team1": "US Sassuolo Calcio",
+   "team2": "AC Milan"
+  },
+  {
+   "round": "Matchday 6",
+   "date": "2026-10-11",
+   "team1": "US Lecce",
+   "team2": "Bologna FC 1909"
+  }
+ ]
+}

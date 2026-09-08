@@ -1,0 +1,76 @@
+name: Data refresh
+
+# "Always up to date" in practice. GitHub's runners have open egress, which is
+# also how the Football-Data fetch works at all: the development environment's
+# network policy blocks that host, CI does not.
+on:
+  schedule:
+    # 06:15 UTC daily — after openfootball's nightly update, before European
+    # kickoffs. Not on the hour, to avoid the scheduler's busiest minute.
+    - cron: "15 6 * * *"
+  workflow_dispatch:
+    inputs:
+      backfill:
+        description: "Fetch every tracked season instead of just the current one"
+        type: boolean
+        default: false
+      sources:
+        description: "Comma-separated sources"
+        default: "openfootball"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: data-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install
+        run: pip install --quiet duckdb
+
+      - name: Fetch into bronze
+        run: |
+          python -m fiorino.cli.refresh \
+            --lake data/bronze \
+            --sources "${{ inputs.sources || 'openfootball' }}" \
+            ${{ inputs.backfill && '--backfill' || '' }}
+
+      - name: Rebuild silver and audit
+        run: |
+          python -m fiorino.cli.main --db /tmp/fiorino.duckdb bootstrap
+          python -m fiorino.cli.main --db /tmp/fiorino.duckdb rebuild --lake data/bronze
+          # The audit exits non-zero on a BLOCKING finding. Unadjudicated fuzzy
+          # proposals are blocking by design, so a refresh that introduces a new
+          # club surfaces here instead of silently dropping its matches.
+          python -m fiorino.cli.main --db /tmp/fiorino.duckdb audit \
+            --out docs/audit/latest.md || echo "AUDIT_BLOCKING=1" >> $GITHUB_ENV
+
+      - name: Commit bronze and audit
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/bronze docs/audit/latest.md
+          if git diff --cached --quiet; then
+            echo "no new data"
+          else
+            git commit -m "chore(data): refresh bronze $(date -u +%Y-%m-%d)"
+            git push
+          fi
+
+      - name: Report unadjudicated identities
+        if: env.AUDIT_BLOCKING == '1'
+        run: |
+          echo "::warning::The audit reported blocking findings — most likely new"
+          echo "::warning::club names awaiting adjudication. Matches using them are"
+          echo "::warning::quarantined, not guessed. See docs/audit/latest.md"

@@ -167,3 +167,8 @@ notes/
 .vscode/
 /scripts
 /whoscored
+
+# Fiorino Quant
+data/bronze/**/*.duckdb
+*.duckdb
+*.duckdb.wal

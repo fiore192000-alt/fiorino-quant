@@ -10,10 +10,15 @@ failure, which is a worse outcome than an honest gap.
 
 from __future__ import annotations
 
+from datetime import date
+
 __all__ = [
     "COMPETITIONS",
     "SOURCE_COVERAGE",
     "SEASONS",
+    "all_seasons",
+    "current_season",
+    "FIRST_SEASON_YEAR",
     "country_of",
     "covered_competitions",
     "season_bounds",
@@ -46,10 +51,35 @@ SOURCE_COVERAGE: dict[str, dict[str, bool]] = {
     "clubelo": {c: False for c in COMPETITIONS},
 }
 
-#: Ten seasons.
-SEASONS: tuple[str, ...] = tuple(
-    f"{y}-{y + 1}" for y in range(2015, 2025)
-)
+#: First season Fiorino Quant tracks.
+FIRST_SEASON_YEAR = 2015
+
+
+def current_season(today: date | None = None) -> str:
+    """The season in progress on ``today``.
+
+    European seasons straddle the calendar year and start in July, so anything
+    from July onwards belongs to the season named for that year.
+    """
+    today = today or date.today()
+    start_year = today.year if today.month >= 7 else today.year - 1
+    return f"{start_year}-{start_year + 1}"
+
+
+def all_seasons(today: date | None = None) -> tuple[str, ...]:
+    """Every season from the first tracked one through the current one.
+
+    Derived, never frozen: a hardcoded list silently stops ingesting the moment
+    a new season starts, which is the least visible way for a data system to
+    go stale.
+    """
+    last_year = int(current_season(today).split("-")[0])
+    return tuple(f"{y}-{y + 1}" for y in range(FIRST_SEASON_YEAR, last_year + 1))
+
+
+#: Seasons known at import time. Call `all_seasons()` in long-running processes
+#: so a season rollover is picked up without a restart.
+SEASONS: tuple[str, ...] = all_seasons()
 
 
 def country_of(competition_id: str | None = None):

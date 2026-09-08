@@ -48,6 +48,12 @@ class Resolution:
     #: The only field the ingest writer is allowed to act on. False for
     #: anything fuzzy or unresolved.
     approved: bool
+    #: True when this name genuinely has no identity yet and a caller in
+    #: seeding mode may mint one. False when the name is merely *ambiguous* —
+    #: a homonym, or a fuzzy candidate awaiting adjudication — because minting
+    #: a team there would create the duplicate the whole layer exists to
+    #: prevent. An explicit flag, never inferred from the note text.
+    can_register: bool = False
     proposal_id: str | None = None
     note: str | None = None
 
@@ -135,6 +141,7 @@ class IdentityResolver:
             # is exactly the homonym case, and only a human can settle it.
             return Resolution(
                 raw, source, country, None, MatchMethod.UNRESOLVED, 0.0, False,
+                can_register=False,
                 note=f"normalised name is ambiguous across team_ids {sorted(matches)}; "
                      f"an override is required",
             )
@@ -142,19 +149,38 @@ class IdentityResolver:
         candidates = rank_candidates(
             raw, self._country_candidates(country), min_score=self.fuzzy_threshold
         )
+        # A candidate a human already rejected must not be re-proposed for ever.
+        # Without this the name stays wedged at FUZZY_PROPOSAL and can never be
+        # registered as the distinct club it actually is — which, on real data,
+        # is the common case: every proposal openfootball generates is a pair
+        # that must stay separate (Manchester United vs Manchester City at
+        # 0.926, Sporting Braga vs Sporting CP at 0.935).
+        rejected = {
+            r[0] for r in self.con.execute(
+                """SELECT candidate_team_id FROM team_alias_proposals
+                   WHERE alias_raw = ? AND source = ? AND country = ?
+                     AND status = 'REJECTED'""",
+                [raw, source, country],
+            ).fetchall()
+        }
+        candidates = [c for c in candidates if c.team_id not in rejected]
         if candidates:
             best = candidates[0]
             pid = proposal_id(raw, source, country, best.team_id)
             return Resolution(
                 raw, source, country, best.team_id, MatchMethod.FUZZY_PROPOSAL,
-                best.score, False, proposal_id=pid,
+                best.score, False, can_register=False, proposal_id=pid,
                 note=f"fuzzy suggestion {best.canonical_name!r} at {best.score:.3f}; "
                      f"quarantined pending approval",
             )
 
+        note = (
+            "fuzzy candidates were all rejected by hand; this is a distinct club"
+            if rejected else "no candidate above the fuzzy threshold"
+        )
         return Resolution(
             raw, source, country, None, MatchMethod.UNRESOLVED, 0.0, False,
-            note="no candidate above the fuzzy threshold",
+            can_register=True, note=note,
         )
 
     # -- writes -------------------------------------------------------

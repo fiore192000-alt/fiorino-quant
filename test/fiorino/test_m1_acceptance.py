@@ -39,10 +39,12 @@ def full_run(tmp_path_factory):
 
 
 class TestAcceptanceCriteria:
-    def test_ten_seasons(self, full_run):
+    def test_at_least_ten_seasons(self, full_run):
+        """The acceptance bar is ten; the registry grows past it with time."""
         con, *_ = full_run
         n = con.execute("SELECT count(DISTINCT season_id) FROM v_analytic_matches").fetchone()[0]
-        assert n == 10 == len(SEASONS)
+        assert n >= 10
+        assert n == len(SEASONS)
 
     def test_eight_competitions(self, full_run):
         con, *_ = full_run

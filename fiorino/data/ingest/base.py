@@ -10,10 +10,19 @@ its own rules.
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
-from datetime import date, datetime, timezone
+from datetime import date, datetime, time, timedelta, timezone
 from typing import Iterable, Protocol
 
-__all__ = ["RawMatch", "Source", "SOURCE_FIELDS"]
+__all__ = ["RawMatch", "Source", "SOURCE_FIELDS", "KICKOFF_PRECISION", "settle_instant"]
+
+#: Sources disagree about what a kickoff timestamp means. Rather than pretend
+#: otherwise, each adapter declares its precision and settlement is widened to
+#: match. Erring late costs a little training data; erring early is leakage.
+#:
+#:   EXACT        a real UTC instant             -> kickoff + 2h
+#:   LOCAL_APPROX local wall clock, zone unknown -> end of match day + 4h
+#:   DATE_ONLY    no time at all                 -> end of match day + 4h
+KICKOFF_PRECISION = frozenset({"EXACT", "LOCAL_APPROX", "DATE_ONLY"})
 
 
 @dataclass(frozen=True)
@@ -42,6 +51,11 @@ class RawMatch:
     neutral_venue: str | None = None
     result_settled_at: str | None = None
     ingested_at: str | None = None
+    #: How much the source's kickoff can be trusted. Not cosmetic: settled_at
+    #: is derived from kickoff, and a kickoff that is two hours early makes a
+    #: result visible two hours before it was knowable, which is a rule R1
+    #: violation. See KICKOFF_PRECISION.
+    kickoff_precision: str = "EXACT"
 
     def as_row(self) -> dict:
         row = asdict(self)
@@ -82,3 +96,20 @@ def parse_ts(value, fallback_date: date) -> datetime:
     text = str(value).replace("Z", "+00:00")
     parsed = datetime.fromisoformat(text)
     return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
+
+
+def settle_instant(kickoff: datetime, match_day: date, precision: str) -> datetime:
+    """When a result becomes knowable, given how much the kickoff can be trusted.
+
+    Deliberately conservative for imprecise sources: openfootball publishes a
+    local wall-clock time with no zone, so a Lisbon 20:00 and a Berlin 20:00 are
+    two different instants. Anchoring to the end of the match day plus a margin
+    is provably non-leaking, at the cost of making some results visible a few
+    hours later than they truly were.
+    """
+    if precision == "EXACT":
+        return kickoff + timedelta(hours=2)
+    if precision in ("LOCAL_APPROX", "DATE_ONLY"):
+        end_of_day = datetime.combine(match_day, time(23, 59), tzinfo=timezone.utc)
+        return end_of_day + timedelta(hours=4)
+    raise ValueError(f"unknown kickoff precision: {precision!r}")
