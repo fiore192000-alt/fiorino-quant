@@ -137,3 +137,64 @@ class TestCapturePrecisionIsHonest:
             "Football-Data does not say when a pre-match price was collected; "
             "inventing an instant would put a falsehood inside rule R1"
         )
+
+
+class TestAgainstRealFootballData:
+    """The adapter against genuine Football-Data.co.uk output.
+
+    The site itself is unreachable from this environment (egress policy, 403 on
+    CONNECT), but real archived files of the same format are hosted on GitHub,
+    which IS reachable. The fixture below is a verbatim extract of one — the
+    2017-18 Premier League file — so the column contract, the closing-odds
+    extraction and the date handling are proven against the real thing rather
+    than against a CSV written to the documentation.
+
+    What this does NOT prove: the current season's column set, and the live
+    fetch path. Both still need the host allowlisted.
+    """
+
+    REAL = (Path(__file__).parent / "fixtures" / "footballdata_e0_2017-18_real.csv").read_text()
+
+    def test_the_contract_passes_on_a_real_file(self):
+        FootballData.verify_columns(self.REAL.splitlines()[0].split(","))
+
+    def test_pinnacle_is_the_closing_book(self):
+        assert FootballData.closing_book(self.REAL.splitlines()[0].split(",")) == "pinnacle"
+
+    def test_older_files_carry_no_bet365_closing_columns(self):
+        """Closing coverage varies by era: pre-2019 files only close Pinnacle."""
+        columns = set(self.REAL.splitlines()[0].split(","))
+        assert {"PSCH", "PSCD", "PSCA"} <= columns
+        assert "B365CH" not in columns
+
+    def test_every_row_parses(self):
+        rows = FootballData().parse(self.REAL, "ENG_PL", "2017-2018")
+        assert len(rows) == len(self.REAL.strip().splitlines()) - 1
+        assert all(r.home_name_raw and r.away_name_raw for r in rows)
+
+    def test_older_files_have_no_kickoff_time(self):
+        rows = FootballData().parse(self.REAL, "ENG_PL", "2017-2018")
+        assert all(r.kickoff_precision == "DATE_ONLY" for r in rows)
+
+    def test_real_closing_overround_is_pinnacle_shaped(self):
+        """~2% is Pinnacle's signature. A wildly different figure would mean
+        the wrong columns are being read as the close."""
+        overrounds = []
+        for _, obs in FootballData().parse_odds(self.REAL):
+            close = {o.selection: o.price_decimal
+                     for o in obs if o.capture_precision == "CLOSING"}
+            if len(close) == 3:
+                overrounds.append(sum(1 / p for p in close.values()) - 1)
+        assert len(overrounds) >= 15
+        assert 0.005 < min(overrounds) and max(overrounds) < 0.06
+        assert 0.01 < sum(overrounds) / len(overrounds) < 0.04
+
+    def test_the_line_moves_between_prematch_and_close(self):
+        """If nothing ever moved, the two columns would be the same reading."""
+        moved = 0
+        for _, obs in FootballData().parse_odds(self.REAL):
+            pre = {o.selection: o.price_decimal for o in obs if o.capture_precision == "PREMATCH"}
+            close = {o.selection: o.price_decimal for o in obs if o.capture_precision == "CLOSING"}
+            if pre and close and any(pre[s] != close[s] for s in close if s in pre):
+                moved += 1
+        assert moved > len(FootballData().parse_odds(self.REAL)) * 0.5
