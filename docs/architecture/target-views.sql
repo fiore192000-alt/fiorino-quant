@@ -8,7 +8,7 @@
 -- ---------------------------------------------------------------------
 CREATE OR REPLACE VIEW v_reference_closing AS
 SELECT
-    c.fixture_id,
+    c.match_id,
     c.market_type,
     c.line,
     c.selection,
@@ -23,7 +23,7 @@ FROM odds_closing c
 JOIN bookmakers b
   ON b.bookmaker_id = c.bookmaker_id AND b.is_reference
 LEFT JOIN fair_probabilities f
-  ON  f.fixture_id   = c.fixture_id
+  ON  f.match_id   = c.match_id
   AND f.bookmaker_id = c.bookmaker_id
   AND f.market_type  = c.market_type
   AND f.line         = c.line
@@ -43,7 +43,7 @@ SELECT
     r.strategy_id,
     r.mode,
     b.cohort_id,
-    b.fixture_id,
+    b.match_id,
     fx.competition_id,
     fx.season,
     fx.kickoff_utc,
@@ -76,7 +76,7 @@ SELECT
     v.line_matched
 FROM bets b
 JOIN runs r         ON r.run_id = b.run_id
-JOIN fixtures fx    ON fx.fixture_id = b.fixture_id
+JOIN matches fx    ON fx.match_id = b.match_id
 LEFT JOIN bet_settlements s ON s.bet_id = b.bet_id
 LEFT JOIN clv v             ON v.bet_id = b.bet_id;
 
@@ -125,7 +125,7 @@ GROUP BY run_id, strategy_id, competition_id, market_type;
 -- ---------------------------------------------------------------------
 CREATE OR REPLACE VIEW v_line_history AS
 SELECT
-    fixture_id,
+    match_id,
     bookmaker_id,
     market_type,
     line,
@@ -140,32 +140,32 @@ SELECT
     max(price_decimal)                  AS max_price
 FROM odds_snapshots
 WHERE seconds_to_kickoff > 0
-GROUP BY fixture_id, bookmaker_id, market_type, line, selection;
+GROUP BY match_id, bookmaker_id, market_type, line, selection;
 
 
 -- ---------------------------------------------------------------------
 -- Ingest health. Run this before trusting any backtest: a period with
--- thin odds coverage produces a backtest that only saw the easy fixtures.
+-- thin odds coverage produces a backtest that only saw the easy matches.
 -- ---------------------------------------------------------------------
 CREATE OR REPLACE VIEW v_data_coverage AS
 SELECT
     fx.competition_id,
     fx.season,
-    count(DISTINCT fx.fixture_id)                                     AS n_fixtures,
-    count(DISTINCT res.fixture_id)                                    AS n_with_result,
-    count(DISTINCT o.fixture_id)                                      AS n_with_any_odds,
-    count(DISTINCT cl.fixture_id)                                     AS n_with_ref_close,
-    CAST(count(DISTINCT cl.fixture_id) AS DOUBLE)
-        / nullif(count(DISTINCT fx.fixture_id), 0)                    AS ref_close_coverage,
-    median(snap.n_snapshots)                                          AS median_snapshots_per_fixture
-FROM fixtures fx
-LEFT JOIN results res ON res.fixture_id = fx.fixture_id
-LEFT JOIN odds_snapshots o ON o.fixture_id = fx.fixture_id
-LEFT JOIN v_reference_closing cl ON cl.fixture_id = fx.fixture_id
+    count(DISTINCT fx.match_id)                                     AS n_matches,
+    count(DISTINCT res.match_id)                                    AS n_with_result,
+    count(DISTINCT o.match_id)                                      AS n_with_any_odds,
+    count(DISTINCT cl.match_id)                                     AS n_with_ref_close,
+    CAST(count(DISTINCT cl.match_id) AS DOUBLE)
+        / nullif(count(DISTINCT fx.match_id), 0)                    AS ref_close_coverage,
+    median(snap.n_snapshots)                                          AS median_snapshots_per_match
+FROM matches fx
+LEFT JOIN results res ON res.match_id = fx.match_id
+LEFT JOIN odds_snapshots o ON o.match_id = fx.match_id
+LEFT JOIN v_reference_closing cl ON cl.match_id = fx.match_id
 LEFT JOIN (
-    SELECT fixture_id, count(*) AS n_snapshots
-    FROM odds_snapshots GROUP BY fixture_id
-) snap ON snap.fixture_id = fx.fixture_id
+    SELECT match_id, count(*) AS n_snapshots
+    FROM odds_snapshots GROUP BY match_id
+) snap ON snap.match_id = fx.match_id
 GROUP BY fx.competition_id, fx.season;
 
 
@@ -182,30 +182,30 @@ GROUP BY fx.competition_id, fx.season;
 -- Latest price per selection as known at `as_of`, across all books.
 CREATE OR REPLACE MACRO odds_as_of(at_ts) AS TABLE
 SELECT
-    fixture_id, bookmaker_id, market_type, line, selection,
+    match_id, bookmaker_id, market_type, line, selection,
     arg_max(price_decimal, captured_at)  AS price_decimal,
     arg_max(available_size, captured_at) AS available_size,
     max(captured_at)                     AS captured_at
 FROM odds_snapshots
 WHERE captured_at <= at_ts
-GROUP BY fixture_id, bookmaker_id, market_type, line, selection;
+GROUP BY match_id, bookmaker_id, market_type, line, selection;
 
 -- Best available price per selection at `as_of`, with the book offering it.
 -- Optionally restricted to books you actually hold an account with.
 CREATE OR REPLACE MACRO best_price_as_of(at_ts) AS TABLE
 SELECT
-    fixture_id, market_type, line, selection,
+    match_id, market_type, line, selection,
     arg_max(bookmaker_id, price_decimal) AS bookmaker_id,
     max(price_decimal)                   AS price_decimal,
     count(*)                             AS n_books
 FROM odds_as_of(at_ts)
-GROUP BY fixture_id, market_type, line, selection;
+GROUP BY match_id, market_type, line, selection;
 
--- Fixtures that are legitimately bettable at `as_of`: not yet kicked off,
+-- Matches that are legitimately bettable at `as_of`: not yet kicked off,
 -- and not already resolved in the data.
-CREATE OR REPLACE MACRO bettable_fixtures_as_of(at_ts) AS TABLE
+CREATE OR REPLACE MACRO bettable_matches_as_of(at_ts) AS TABLE
 SELECT fx.*
-FROM fixtures fx
+FROM matches fx
 WHERE fx.kickoff_utc > at_ts
   AND fx.status = 'SCHEDULED';
 
@@ -214,7 +214,7 @@ CREATE OR REPLACE MACRO results_as_of(at_ts) AS TABLE
 SELECT r.*, fx.competition_id, fx.season, fx.kickoff_utc,
        fx.home_team_id, fx.away_team_id, fx.neutral_venue
 FROM results r
-JOIN fixtures fx ON fx.fixture_id = r.fixture_id
+JOIN matches fx ON fx.match_id = r.match_id
 WHERE r.settled_at <= at_ts;
 
 -- Most recent feature value per (entity, feature) knowable at `as_of`.

@@ -47,7 +47,7 @@ fiorino/
 │   ├── identity/      risoluzione identità squadra (alias → team_id stabile)
 │   ├── ingest/
 │   │   ├── odds/      feed quote → odds_snapshots
-│   │   ├── fixtures/  calendari e risultati → fixtures, results
+│   │   ├── matches/  calendari e risultati → matches, results
 │   │   └── features/  feature point-in-time → feature_values
 │   └── access/        PointInTimeView (R1) · repositories (solo ingest/report)
 ├── odds/              devig · closing (materializzazione) · best_price
@@ -58,7 +58,7 @@ fiorino/
 ├── pricing/           grid → righe (market_type, line, selection) con push
 ├── strategy/          generazione candidati (NON dimensiona le puntate)
 ├── staking/           kelly (con push) · shrinkage per errore di stima
-├── portfolio/         allocator di coorte · correlazione intra-fixture
+├── portfolio/         allocator di coorte · correlazione intra-match
 ├── backtest/          engine · clock · ledger · settlement · frictions · metrics
 ├── reporting/         tearsheet · dashboard CLV
 └── cli/               bootstrap · ingest · devig · fit · price · backtest · clv
@@ -252,7 +252,7 @@ DDL completo in `fiorino/data/db/schema.sql`; viste e macro point-in-time in
 | Gruppo | Tabelle |
 |---|---|
 | Riferimento | `competitions`, `teams`, `team_aliases`, `bookmakers`, `market_selections` |
-| Partite | `fixtures`, `results` |
+| Partite | `matches`, `results` |
 | **Quote** | `odds_snapshots`, `odds_closing`, `fair_probabilities` |
 | Feature | `feature_values` |
 | Modelli | `model_runs`, `predictions` |
@@ -270,7 +270,7 @@ DDL completo in `fiorino/data/db/schema.sql`; viste e macro point-in-time in
 | `v_data_coverage` | salute dell'ingestione — da leggere prima di ogni backtest |
 | `odds_as_of(at_ts)` | **macro PIT** — prezzo più recente conoscibile |
 | `best_price_as_of(at_ts)` | **macro PIT** — miglior prezzo e book che lo offre |
-| `bettable_fixtures_as_of(at_ts)` | **macro PIT** — partite legittimamente giocabili |
+| `bettable_matches_as_of(at_ts)` | **macro PIT** — partite legittimamente giocabili |
 | `results_as_of(at_ts)` | **macro PIT** — le sole righe su cui un modello può allenarsi |
 | `features_as_of(at_ts)` | **macro PIT** — ultimo valore feature conoscibile |
 
@@ -280,7 +280,7 @@ vede il futuro.
 
 ### Note di design
 
-- **ID deterministici.** `fixture_id` è un hash di
+- **ID deterministici.** `match_id` è un hash di
   `(competition_id, season, utc_date, home_team_id, away_team_id)`: re-ingerire
   la stessa partita da qualunque fonte è idempotente.
 - **`market_key`** è una colonna generata che raggruppa le selezioni di un
@@ -303,7 +303,7 @@ Le fasi M1→M4 vanno quindi in ordine.
 
 ### M1 — Data layer *(priorità)*
 Bootstrap DuckDB dallo schema, `core/` (ids, money, vocabolario mercati),
-risolutore di identità squadra, ingestione fixture e risultati, backfill
+risolutore di identità squadra, ingestione match e risultati, backfill
 storico. `PointInTimeView` con il test che vieta l'accesso grezzo.
 
 **Fatto quando:** 10 stagioni × 8 leghe caricate, zero squadre non risolte tra
@@ -349,7 +349,7 @@ chiusura. Se non si batte la chiusura, non c'è edge — e va saputo qui, non do
 
 ### M7 — Staking e portfolio
 Kelly con push (forma chiusa a tre esiti, numerico a cinque), shrinkage per
-errore di stima, allocator di coorte con correlazione intra-fixture.
+errore di stima, allocator di coorte con correlazione intra-match.
 
 **Fatto quando:** Monte Carlo a 10.000 percorsi con probabilità di rovina sotto
 la soglia configurata.

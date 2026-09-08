@@ -44,7 +44,7 @@ CREATE TYPE market_t AS ENUM (
 
 CREATE TYPE book_kind_t AS ENUM ('SHARP', 'SOFT', 'EXCHANGE', 'AGGREGATOR');
 
-CREATE TYPE fixture_status_t AS ENUM (
+CREATE TYPE match_status_t AS ENUM (
     'SCHEDULED', 'LIVE', 'FINISHED', 'POSTPONED', 'ABANDONED', 'CANCELLED'
 );
 
@@ -119,27 +119,27 @@ CREATE TABLE market_selections (
 
 
 -- ---------------------------------------------------------------------
--- 2. Fixtures and results
+-- 2. Matches and results
 -- ---------------------------------------------------------------------
--- fixture_id is a deterministic hash of
+-- match_id is a deterministic hash of
 --   (competition_id, season, utc_date, home_team_id, away_team_id)
--- so that re-ingesting the same fixture from any source is idempotent.
-CREATE TABLE fixtures (
-    fixture_id     VARCHAR PRIMARY KEY,
+-- so that re-ingesting the same match from any source is idempotent.
+CREATE TABLE matches (
+    match_id     VARCHAR PRIMARY KEY,
     competition_id VARCHAR NOT NULL REFERENCES competitions(competition_id),
     season         VARCHAR NOT NULL,              -- '2024-2025'
     kickoff_utc    TIMESTAMPTZ NOT NULL,
     home_team_id   VARCHAR NOT NULL REFERENCES teams(team_id),
     away_team_id   VARCHAR NOT NULL REFERENCES teams(team_id),
     neutral_venue  BOOLEAN NOT NULL DEFAULT FALSE,
-    status         fixture_status_t NOT NULL DEFAULT 'SCHEDULED',
+    status         match_status_t NOT NULL DEFAULT 'SCHEDULED',
     ingested_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
     CHECK (home_team_id <> away_team_id)
 );
 
 CREATE TABLE results (
-    fixture_id     VARCHAR PRIMARY KEY REFERENCES fixtures(fixture_id),
+    match_id     VARCHAR PRIMARY KEY REFERENCES matches(match_id),
     goals_home     SMALLINT NOT NULL,
     goals_away     SMALLINT NOT NULL,
     goals_home_ht  SMALLINT,
@@ -157,13 +157,13 @@ CREATE TABLE results (
 -- 3. Odds — the line history
 -- ---------------------------------------------------------------------
 -- The highest-cardinality table in the system: one row per
--- (fixture, book, market, line, selection, poll). Millions of rows per
+-- (match, book, market, line, selection, poll). Millions of rows per
 -- season. Everything else about pricing is derived from it.
 CREATE SEQUENCE seq_odds_snapshot START 1;
 
 CREATE TABLE odds_snapshots (
     snapshot_id        BIGINT PRIMARY KEY DEFAULT nextval('seq_odds_snapshot'),
-    fixture_id         VARCHAR NOT NULL REFERENCES fixtures(fixture_id),
+    match_id         VARCHAR NOT NULL REFERENCES matches(match_id),
     bookmaker_id       VARCHAR NOT NULL REFERENCES bookmakers(bookmaker_id),
     market_type        market_t NOT NULL,
     line               DOUBLE  NOT NULL DEFAULT 0.0,   -- R3/R4
@@ -177,19 +177,19 @@ CREATE TABLE odds_snapshots (
     -- Groups the selections that together form one complete market, which
     -- is the unit of overround removal.
     market_key         VARCHAR GENERATED ALWAYS AS (
-                           md5(fixture_id || '|' || bookmaker_id || '|' ||
+                           md5(match_id || '|' || bookmaker_id || '|' ||
                                CAST(market_type AS VARCHAR) || '|' ||
                                CAST(line AS VARCHAR))
                        ) VIRTUAL,
     CHECK (price_decimal > 1.0),
-    UNIQUE (fixture_id, bookmaker_id, market_type, line, selection, captured_at)
+    UNIQUE (match_id, bookmaker_id, market_type, line, selection, captured_at)
 );
 
 -- Materialised from odds_snapshots: the last snapshot strictly before
--- kickoff for each (fixture, book, market, line, selection).
+-- kickoff for each (match, book, market, line, selection).
 -- Rebuilt by fiorino.odds.closing after every ingest cycle.
 CREATE TABLE odds_closing (
-    fixture_id         VARCHAR NOT NULL REFERENCES fixtures(fixture_id),
+    match_id         VARCHAR NOT NULL REFERENCES matches(match_id),
     bookmaker_id       VARCHAR NOT NULL REFERENCES bookmakers(bookmaker_id),
     market_type        market_t NOT NULL,
     line               DOUBLE  NOT NULL DEFAULT 0.0,
@@ -203,14 +203,14 @@ CREATE TABLE odds_closing (
     -- staleness threshold.
     is_trusted         BOOLEAN NOT NULL DEFAULT TRUE,
     materialized_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
-    PRIMARY KEY (fixture_id, bookmaker_id, market_type, line, selection)
+    PRIMARY KEY (match_id, bookmaker_id, market_type, line, selection)
 );
 
 -- Overround-free probabilities. Computed per complete market, per capture
 -- instant. Multiple methods may coexist for the same key so that the
 -- de-vig choice can be A/B tested without re-ingesting.
 CREATE TABLE fair_probabilities (
-    fixture_id        VARCHAR NOT NULL REFERENCES fixtures(fixture_id),
+    match_id        VARCHAR NOT NULL REFERENCES matches(match_id),
     bookmaker_id      VARCHAR NOT NULL REFERENCES bookmakers(bookmaker_id),
     market_type       market_t NOT NULL,
     line              DOUBLE  NOT NULL DEFAULT 0.0,
@@ -223,7 +223,7 @@ CREATE TABLE fair_probabilities (
     n_selections      SMALLINT NOT NULL,
     is_closing        BOOLEAN NOT NULL DEFAULT FALSE,
     computed_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
-    PRIMARY KEY (fixture_id, bookmaker_id, market_type, line,
+    PRIMARY KEY (match_id, bookmaker_id, market_type, line,
                  selection, captured_at, devig_method),
     CHECK (fair_prob > 0.0 AND fair_prob < 1.0)
 );
@@ -236,7 +236,7 @@ CREATE TABLE fair_probabilities (
 -- table would need a migration each time. as_of is the instant the value
 -- became computable from already-settled information.
 CREATE TABLE feature_values (
-    entity_type  VARCHAR NOT NULL,     -- 'TEAM' | 'FIXTURE'
+    entity_type  VARCHAR NOT NULL,     -- 'TEAM' | 'MATCH'
     entity_id    VARCHAR NOT NULL,
     feature_set  VARCHAR NOT NULL,     -- 'form_v1', 'xg_rolling_v2'
     feature_name VARCHAR NOT NULL,
@@ -280,7 +280,7 @@ CREATE TABLE model_runs (
 --   rejected. See fiorino/core/markets.py for the settlement algebra.
 CREATE TABLE predictions (
     model_run_id    VARCHAR NOT NULL REFERENCES model_runs(model_run_id),
-    fixture_id      VARCHAR NOT NULL REFERENCES fixtures(fixture_id),
+    match_id      VARCHAR NOT NULL REFERENCES matches(match_id),
     market_type     market_t NOT NULL,
     line            DOUBLE  NOT NULL DEFAULT 0.0,
     selection       VARCHAR NOT NULL,
@@ -292,7 +292,7 @@ CREATE TABLE predictions (
     prob_lose       DOUBLE  NOT NULL,
     lambda_home     DOUBLE,
     lambda_away     DOUBLE,
-    PRIMARY KEY (model_run_id, fixture_id, market_type, line, selection),
+    PRIMARY KEY (model_run_id, match_id, market_type, line, selection),
     CHECK (abs(prob_win + prob_half_win + prob_push
                + prob_half_lose + prob_lose - 1.0) < 1e-6)
 );
@@ -347,7 +347,7 @@ CREATE TABLE bets (
     bet_id                 VARCHAR PRIMARY KEY,
     run_id                 VARCHAR NOT NULL REFERENCES runs(run_id),
     cohort_id              VARCHAR REFERENCES cohorts(cohort_id),
-    fixture_id             VARCHAR NOT NULL REFERENCES fixtures(fixture_id),
+    match_id             VARCHAR NOT NULL REFERENCES matches(match_id),
     bookmaker_id           VARCHAR NOT NULL REFERENCES bookmakers(bookmaker_id),
     market_type            market_t NOT NULL,
     line                   DOUBLE  NOT NULL DEFAULT 0.0,
@@ -419,13 +419,13 @@ CREATE TABLE equity_curve (
 -- ---------------------------------------------------------------------
 -- 8. Indexes
 -- ---------------------------------------------------------------------
-CREATE INDEX idx_fixtures_kickoff    ON fixtures (kickoff_utc);
-CREATE INDEX idx_fixtures_comp       ON fixtures (competition_id, season);
-CREATE INDEX idx_snap_fixture        ON odds_snapshots (fixture_id);
+CREATE INDEX idx_matches_kickoff    ON matches (kickoff_utc);
+CREATE INDEX idx_matches_comp       ON matches (competition_id, season);
+CREATE INDEX idx_snap_match        ON odds_snapshots (match_id);
 CREATE INDEX idx_snap_captured       ON odds_snapshots (captured_at);
-CREATE INDEX idx_snap_market         ON odds_snapshots (fixture_id, market_type, line);
-CREATE INDEX idx_fair_fixture        ON fair_probabilities (fixture_id, market_type, line);
+CREATE INDEX idx_snap_market         ON odds_snapshots (match_id, market_type, line);
+CREATE INDEX idx_fair_match        ON fair_probabilities (match_id, market_type, line);
 CREATE INDEX idx_feat_lookup         ON feature_values (entity_id, feature_name, as_of);
 CREATE INDEX idx_bets_run            ON bets (run_id);
-CREATE INDEX idx_bets_fixture        ON bets (fixture_id);
-CREATE INDEX idx_pred_fixture        ON predictions (fixture_id);
+CREATE INDEX idx_bets_match        ON bets (match_id);
+CREATE INDEX idx_pred_match        ON predictions (match_id);

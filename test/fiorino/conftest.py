@@ -1,5 +1,12 @@
 """Shared fixtures for the Fiorino specification suite."""
 
+import sys
+from pathlib import Path
+
+# Let tests do `from factories import ...` without packaging the fixture module.
+sys.path.insert(0, str(Path(__file__).parent))
+
+
 import pytest
 
 
@@ -43,3 +50,64 @@ def exact_grid():
         return grid
 
     return _build
+
+
+# ---------------------------------------------------------------------
+# M1 data-layer fixtures
+# ---------------------------------------------------------------------
+
+import pytest as _pytest
+
+
+@_pytest.fixture
+def db():
+    """An empty, fully migrated in-memory database."""
+    from fiorino.data.db.connection import connect
+    from fiorino.data.db.migrate import migrate
+
+    con = connect()
+    migrate(con)
+    try:
+        yield con
+    finally:
+        con.close()
+
+
+@_pytest.fixture
+def seeded_db(db):
+    """Migrated database with reference dimensions loaded."""
+    from fiorino.data.pipeline import bootstrap_reference
+
+    bootstrap_reference(db)
+    return db
+
+
+@_pytest.fixture
+def resolver(seeded_db):
+    from fiorino.data.identity.resolver import IdentityResolver
+
+    return IdentityResolver(seeded_db)
+
+
+SMALL_COMPETITIONS = ["ENG_PL", "PRT_L1"]
+SMALL_SEASONS = ["2017-2018", "2019-2020"]
+
+
+@_pytest.fixture(scope="session")
+def small_lake(tmp_path_factory):
+    """Bronze for two competitions and two seasons — fast, still nasty.
+
+    Session-scoped: the lake is immutable by construction, so building it once
+    is both safe and the difference between a 4-minute suite and a 20-second
+    one. Tests that mutate a database get a fresh one from `seeded_db`.
+    """
+    from factories import build_bronze
+    from fiorino.data.db.connection import connect
+    from fiorino.data.pipeline import bootstrap_reference
+
+    root = tmp_path_factory.mktemp("lake")
+    con = connect()
+    bootstrap_reference(con)
+    build_bronze(con, root, competitions=SMALL_COMPETITIONS, seasons=SMALL_SEASONS)
+    con.close()
+    return root
