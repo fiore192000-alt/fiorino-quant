@@ -1,0 +1,162 @@
+[
+  {
+    "label": "ENG_PL 2017-18",
+    "competition_id": "ENG_PL",
+    "n": 380,
+    "closing_brier": 0.1856781096121893,
+    "closing_brier_ci": [
+      0.17274798852182355,
+      0.19840381331020882
+    ],
+    "closing_logloss": 0.9406347280053589,
+    "closing_rps": 0.1848246183316354,
+    "mean_calibration_gap": 0.016172390640019997,
+    "worst_band_gap": 0.032871128713427095,
+    "mean_overround": 0.021086390302934063,
+    "prematch_to_close_brier_gain": 0.0008314054186188413
+  },
+  {
+    "label": "ENG_PL 2018-19",
+    "competition_id": "ENG_PL",
+    "n": 380,
+    "closing_brier": 0.17341275695582645,
+    "closing_brier_ci": [
+      0.16171393041212456,
+      0.1862003602394386
+    ],
+    "closing_logloss": 0.8896728916566523,
+    "closing_rps": 0.18474560713223653,
+    "mean_calibration_gap": 0.01864412676398948,
+    "worst_band_gap": 0.09032047748795169,
+    "mean_overround": 0.023505190234361352,
+    "prematch_to_close_brier_gain": 0.00029936096709304305
+  },
+  {
+    "label": "ENG_PL 2019-20",
+    "competition_id": "ENG_PL",
+    "n": 380,
+    "closing_brier": 0.19154308511133106,
+    "closing_brier_ci": [
+      0.17888916363020377,
+      0.20412948348279147
+    ],
+    "closing_logloss": 0.9731276562148556,
+    "closing_rps": 0.19848074710404884,
+    "mean_calibration_gap": 0.013546663623877258,
+    "worst_band_gap": 0.036265821934489614,
+    "mean_overround": 0.028560734390344445,
+    "prematch_to_close_brier_gain": 7.406992560970993e-05
+  },
+  {
+    "label": "ENG_PL 2020-21",
+    "competition_id": "ENG_PL",
+    "n": 380,
+    "closing_brier": 0.19747983448466694,
+    "closing_brier_ci": [
+      0.18688317308396693,
+      0.20941485731196385
+    ],
+    "closing_logloss": 0.997884417555351,
+    "closing_rps": 0.21124052465674248,
+    "mean_calibration_gap": 0.011465005280140142,
+    "worst_band_gap": 0.08901860753540217,
+    "mean_overround": 0.023916794342929888,
+    "prematch_to_close_brier_gain": 0.0019029133712345214
+  },
+  {
+    "label": "ESP_LL 2019-20",
+    "competition_id": "ESP_LL",
+    "n": 380,
+    "closing_brier": 0.1947016144679331,
+    "closing_brier_ci": [
+      0.18406666864897564,
+      0.2057486515958464
+    ],
+    "closing_logloss": 0.9761646792260789,
+    "closing_rps": 0.19440179190402912,
+    "mean_calibration_gap": 0.011366348680267565,
+    "worst_band_gap": 0.04925070500075797,
+    "mean_overround": 0.031273869773224,
+    "prematch_to_close_brier_gain": null
+  },
+  {
+    "label": "ITA_SA 2019-20",
+    "competition_id": "ITA_SA",
+    "n": 380,
+    "closing_brier": 0.1885789125718509,
+    "closing_brier_ci": [
+      0.17678262754964216,
+      0.2003040540097447
+    ],
+    "closing_logloss": 0.9585317067990062,
+    "closing_rps": 0.1967741854892485,
+    "mean_calibration_gap": 0.023395322706508362,
+    "worst_band_gap": 0.04542037132627824,
+    "mean_overround": 0.031931007718519186,
+    "prematch_to_close_brier_gain": 0.000982100315562895
+  },
+  {
+    "label": "DEU_BL1 2024-25",
+    "competition_id": "DEU_BL1",
+    "n": 306,
+    "closing_brier": 0.19684355887847405,
+    "closing_brier_ci": [
+      0.18346691222479186,
+      0.2108476823339628
+    ],
+    "closing_logloss": 0.9885418924162165,
+    "closing_rps": 0.2020710842691774,
+    "mean_calibration_gap": 0.021771848271470162,
+    "worst_band_gap": 0.07502463336704857,
+    "mean_overround": 0.030316440402831057,
+    "prematch_to_close_brier_gain": 0.0004312208250018823
+  },
+  {
+    "label": "FRA_L1 2024-25",
+    "competition_id": "FRA_L1",
+    "n": 306,
+    "closing_brier": 0.18798487513829207,
+    "closing_brier_ci": [
+      0.17428132286459722,
+      0.20146392311227992
+    ],
+    "closing_logloss": 0.9546008384014536,
+    "closing_rps": 0.2007868099060274,
+    "mean_calibration_gap": 0.013044751199452384,
+    "worst_band_gap": 0.04446435325129505,
+    "mean_overround": 0.030439292294153035,
+    "prematch_to_close_brier_gain": 0.0007696440642788183
+  },
+  {
+    "label": "NLD_ED 2024-25",
+    "competition_id": "NLD_ED",
+    "n": 306,
+    "closing_brier": 0.1854233042657108,
+    "closing_brier_ci": [
+      0.17185958114528843,
+      0.19986304428919197
+    ],
+    "closing_logloss": 0.9373756371612683,
+    "closing_rps": 0.18462921544715058,
+    "mean_calibration_gap": 0.013095099433828954,
+    "worst_band_gap": 0.03156795818516256,
+    "mean_overround": 0.036582348308692045,
+    "prematch_to_close_brier_gain": 0.0023038620892922024
+  },
+  {
+    "label": "PRT_L1 2024-25",
+    "competition_id": "PRT_L1",
+    "n": 306,
+    "closing_brier": 0.1823976069954548,
+    "closing_brier_ci": [
+      0.17048074665086524,
+      0.19550133287626764
+    ],
+    "closing_logloss": 0.9228870613052245,
+    "closing_rps": 0.18110376021305305,
+    "mean_calibration_gap": 0.016779448065910984,
+    "worst_band_gap": 0.09648690929751202,
+    "mean_overround": 0.036153369151672866,
+    "prematch_to_close_brier_gain": 0.0016929480693410326
+  }
+]

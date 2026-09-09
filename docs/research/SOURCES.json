@@ -15,15 +15,25 @@
     "  UNKNOWN                   not inspected. NEVER treated as timestamped",
     "",
     "status vocabulary: USABLE_NOW | USABLE_WITH_EXTERNAL_INGEST |",
-    "                   PROMISING_BUT_UNVERIFIED | NOT_SUITABLE"
+    "                   PROMISING_BUT_UNVERIFIED | NOT_SUITABLE",
+    "cost / licence / legal_note: aggiunti su richiesta. Dove la licenza non e stata ispezionata lo dice esplicitamente: una fonte commerciale con un piano gratuito non e un dataset aperto, e i termini vanno letti prima di conservare payload."
   ],
   "sources": [
     {
       "id": "beatthebookie-sql",
       "name": "BeatTheBookie — MySQL dump (odds_series)",
       "bookmaker_identifiable": true,
-      "bookmakers": ["bet365", "Pinnacle Sports", "William Hill", "bwin", "Betfair Sports", "+27 altri"],
-      "markets": ["1X2"],
+      "bookmakers": [
+        "bet365",
+        "Pinnacle Sports",
+        "William Hill",
+        "bwin",
+        "Betfair Sports",
+        "+27 altri"
+      ],
+      "markets": [
+        "1X2"
+      ],
       "historical_depth": "2005-2016, ~113.860 partite nelle serie",
       "timestamp_quality": "ABSOLUTE_PER_OBSERVATION",
       "timestamp_evidence": "ohs.odds_datetime, verificato nella query di src/generate_odds_series_csv.php",
@@ -35,14 +45,19 @@
       "inaccessibility_reason": "environment access limitation: dropbox.com e drive.google.com sono bloccati dalla policy di egress",
       "pit_usable": true,
       "status": "USABLE_WITH_EXTERNAL_INGEST",
-      "main_limitation": "Non raggiungibile da questo ambiente. Storico fermo al 2016: serve per microstruttura storica, non per un terminale live."
+      "main_limitation": "Non raggiungibile da questo ambiente. Storico fermo al 2016: serve per microstruttura storica, non per un terminale live.",
+      "cost": "gratuito",
+      "licence": "GPL-3.0 sul repository; i dati sono pubblicati dagli autori del paper senza licenza dati separata",
+      "legal_note": "Dataset accademico pubblicato dagli autori a corredo di arXiv:1710.02824. Uso di ricerca: nessuna restrizione dichiarata. NON verificato: i termini dei siti da cui gli autori raccolsero le quote."
     },
     {
       "id": "beatthebookie-txt",
       "name": "BeatTheBookie — export .txt (odds_series)",
       "bookmaker_identifiable": false,
       "bookmakers": [],
-      "markets": ["1X2"],
+      "markets": [
+        "1X2"
+      ],
       "historical_depth": "come il dump",
       "timestamp_quality": "RESAMPLED_GRID",
       "timestamp_evidence": "time_window_hours = 72, interval_mins = 60; matrice 32 x 216 = 3 selezioni x 72 punti orari relativi al kickoff",
@@ -54,14 +69,25 @@
       "inaccessibility_reason": "environment access limitation",
       "pit_usable": false,
       "status": "NOT_SUITABLE",
-      "main_limitation": "Il ricampionamento orario distrugge l'istante e anonimizza il bookmaker. Una griglia oraria non puo risolvere le formazioni, che escono 60-75 minuti dal kickoff."
+      "main_limitation": "Il ricampionamento orario distrugge l'istante e anonimizza il bookmaker. Una griglia oraria non puo risolvere le formazioni, che escono 60-75 minuti dal kickoff.",
+      "cost": "gratuito",
+      "licence": "GPL-3.0 sul repository; i dati sono pubblicati dagli autori del paper senza licenza dati separata, come per il dump SQL",
+      "legal_note": "Stesso dataset accademico del dump (arXiv:1710.02824), stessa assenza di restrizioni dichiarate per la ricerca. La differenza fra i due artefatti e tecnica, non legale."
     },
     {
       "id": "football-data-mirrors",
       "name": "Football-Data.co.uk (mirror su GitHub)",
       "bookmaker_identifiable": true,
-      "bookmakers": ["Pinnacle", "bet365", "+altri"],
-      "markets": ["1X2", "ASIAN_HANDICAP", "TOTALS"],
+      "bookmakers": [
+        "Pinnacle",
+        "bet365",
+        "+altri"
+      ],
+      "markets": [
+        "1X2",
+        "ASIAN_HANDICAP",
+        "TOTALS"
+      ],
       "historical_depth": "1993-oggi",
       "timestamp_quality": "NONE",
       "timestamp_evidence": "due colonne di prezzo per partita, prematch e closing, senza alcuna colonna temporale",
@@ -73,7 +99,10 @@
       "inaccessibility_reason": null,
       "pit_usable": false,
       "status": "NOT_SUITABLE",
-      "main_limitation": "Non e una serie temporale. Gia in uso da M2 per cio che e: due osservazioni per partita."
+      "main_limitation": "Non e una serie temporale. Gia in uso da M2 per cio che e: due osservazioni per partita.",
+      "cost": "gratuito",
+      "licence": "football-data.co.uk consente l'uso personale; i mirror su GitHub non dichiarano licenza",
+      "legal_note": "In uso da M2 per ricerca. Una ridistribuzione richiederebbe di verificare i termini originali, che da qui non sono raggiungibili."
     },
     {
       "id": "openfootball",
@@ -92,14 +121,21 @@
       "inaccessibility_reason": null,
       "pit_usable": false,
       "status": "USABLE_NOW",
-      "main_limitation": "Non porta quote. Usabile solo per le fixture, che e cio per cui e in uso da PR #2."
+      "main_limitation": "Non porta quote. Usabile solo per le fixture, che e cio per cui e in uso da PR #2.",
+      "cost": "gratuito",
+      "licence": "public domain, dichiarato: 'use as you please with no restrictions whatsoever'",
+      "legal_note": "La piu pulita del gruppo. Nessuna restrizione."
     },
     {
       "id": "betfair-historical",
       "name": "Betfair Historical Data (piano Basic)",
       "bookmaker_identifiable": true,
-      "bookmakers": ["Betfair Exchange"],
-      "markets": ["molti"],
+      "bookmakers": [
+        "Betfair Exchange"
+      ],
+      "markets": [
+        "molti"
+      ],
       "historical_depth": "2015-oggi, dichiarato",
       "timestamp_quality": "UNKNOWN",
       "timestamp_evidence": "il fornitore dichiara il millisecondo. Schema NON ispezionato da qui: una promessa non e una verifica.",
@@ -111,14 +147,23 @@
       "inaccessibility_reason": "environment access limitation: historicdata.betfair.com bloccato",
       "pit_usable": false,
       "status": "PROMISING_BUT_UNVERIFIED",
-      "main_limitation": "Ne schema ne licenza sono stati ispezionati. E un exchange, non un book: il prezzo ha una semantica diversa e va trattato di conseguenza."
+      "main_limitation": "Ne schema ne licenza sono stati ispezionati. E un exchange, non un book: il prezzo ha una semantica diversa e va trattato di conseguenza.",
+      "cost": "piano Basic gratuito; i piani con piu granularita sono a pagamento",
+      "licence": "termini Betfair, NON ispezionati da qui",
+      "legal_note": "Richiede un account. I termini d'uso dei dati storici non sono stati letti: e una fonte commerciale con un piano gratuito, non un dataset aperto."
     },
     {
       "id": "the-odds-api",
       "name": "the-odds-api.com (free tier)",
       "bookmaker_identifiable": true,
-      "bookmakers": ["molti"],
-      "markets": ["1X2", "TOTALS", "SPREADS"],
+      "bookmakers": [
+        "molti"
+      ],
+      "markets": [
+        "1X2",
+        "TOTALS",
+        "SPREADS"
+      ],
       "historical_depth": "sconosciuta nel piano free",
       "timestamp_quality": "UNKNOWN",
       "timestamp_evidence": "non ispezionabile: l'host e bloccato",
@@ -130,14 +175,22 @@
       "inaccessibility_reason": "environment access limitation",
       "pit_usable": false,
       "status": "PROMISING_BUT_UNVERIFIED",
-      "main_limitation": "Profondita storica del piano gratuito non accertata. Utile forse per la raccolta IN AVANTI, non per lo storico."
+      "main_limitation": "Profondita storica del piano gratuito non accertata. Utile forse per la raccolta IN AVANTI, non per lo storico.",
+      "cost": "free tier a quota; oltre e a pagamento",
+      "licence": "termini commerciali, NON ispezionati",
+      "legal_note": "Aggregatore commerciale. La redistribuzione e tipicamente vietata dai termini; da verificare prima di conservare payload."
     },
     {
       "id": "marcoblume-pinnacle",
       "name": "marcoblume/pinnacle.data",
       "bookmaker_identifiable": true,
-      "bookmakers": ["Pinnacle"],
-      "markets": ["moneyline", "totals"],
+      "bookmakers": [
+        "Pinnacle"
+      ],
+      "markets": [
+        "moneyline",
+        "totals"
+      ],
       "historical_depth": "MLB 2016",
       "timestamp_quality": "ABSOLUTE_PER_OBSERVATION",
       "timestamp_evidence": "UTC reali, dichiarati e coerenti con il formato R",
@@ -149,14 +202,19 @@
       "inaccessibility_reason": null,
       "pit_usable": false,
       "status": "NOT_SUITABLE",
-      "main_limitation": "Non e calcio. Forzarlo nel magazzino richiederebbe di inventare partite e squadre per contenerlo."
+      "main_limitation": "Non e calcio. Forzarlo nel magazzino richiederebbe di inventare partite e squadre per contenerlo.",
+      "cost": "gratuito",
+      "licence": "pacchetto R su CRAN",
+      "legal_note": "Nessuna restrizione rilevante: non e comunque utilizzabile, non e calcio."
     },
     {
       "id": "iredchuk-soccer-odds",
       "name": "iredchuk/soccer-bookmaker-odds",
       "bookmaker_identifiable": false,
       "bookmakers": [],
-      "markets": ["1X2"],
+      "markets": [
+        "1X2"
+      ],
       "historical_depth": "2005-2019, 5 leghe",
       "timestamp_quality": "NONE",
       "timestamp_evidence": "quote medie fra book, un valore per partita",
@@ -168,7 +226,10 @@
       "inaccessibility_reason": null,
       "pit_usable": false,
       "status": "NOT_SUITABLE",
-      "main_limitation": "Media fra bookmaker: nemmeno il libro e identificabile."
+      "main_limitation": "Media fra bookmaker: nemmeno il libro e identificabile.",
+      "cost": "gratuito",
+      "licence": "non dichiarata nel repository",
+      "legal_note": "Licenza assente. Non blocca la lettura per ricerca, blocca una ridistribuzione."
     }
   ]
 }

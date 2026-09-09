@@ -325,6 +325,9 @@ Il laboratorio ha ora regole scritte, non solo consuetudini:
 * [**Layer temporale del mercato**](architecture/market-path.md) — PR #3:
   adapter e viste del percorso del prezzo, costruiti prima dei loro dati.
   «Perché il mercato si è mosso del 9%» è la domanda; oggi manca il percorso.
+* [**Efficienza per campionato**](validation/league-efficiency.md) — le
+  prime divisioni sono indistinguibili fra loro: la dispersione fra campionati
+  è più piccola dell'incertezza dentro un campionato.
 * [**Audit delle fonti**](research/FREE_SOURCES_AUDIT.md) e
   [`SOURCES.json`](research/SOURCES.json) — otto fonti verificate campo per
   campo. Una sola è PIT-usabile, e non è raggiungibile da qui.

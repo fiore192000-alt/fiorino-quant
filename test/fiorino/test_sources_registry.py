@@ -134,6 +134,37 @@ class TestTheEvidenceIsRecorded:
         assert usable == ["beatthebookie-sql"], usable
 
 
+class TestCostAndLicenceAreRecorded:
+    """Scouting that omits cost and licence is half an answer: a source can be
+    technically perfect and unusable."""
+
+    def test_every_source_states_its_cost(self, sources):
+        for s in sources:
+            assert s.get("cost"), s["id"]
+
+    def test_every_source_states_its_licence_or_says_it_was_not_read(self, sources):
+        for s in sources:
+            licence = s.get("licence", "")
+            assert licence, s["id"]
+            assert len(licence) > 15, s["id"]
+
+    def test_an_uninspected_licence_is_declared_as_such(self, sources):
+        """A commercial source with a free tier is not an open dataset, and
+        saying nothing would let it pass for one."""
+        for s in sources:
+            if "NON ispezionat" in s["licence"]:
+                assert s["status"] in {"PROMISING_BUT_UNVERIFIED", "NOT_SUITABLE"}, s["id"]
+
+    def test_a_source_with_an_unread_licence_is_never_pit_usable(self, sources):
+        for s in sources:
+            if "NON ispezionat" in s["licence"]:
+                assert not s["pit_usable"], s["id"]
+
+    def test_every_source_carries_a_legal_note(self, sources):
+        for s in sources:
+            assert len(s.get("legal_note", "")) > 40, s["id"]
+
+
 class TestTheDocumentAgrees:
     def test_the_markdown_audit_exists_and_names_every_source(self, sources):
         text = (REPO / "docs/research/FREE_SOURCES_AUDIT.md").read_text().lower()
