@@ -1,0 +1,18 @@
+name: movement-lab
+on:
+  workflow_dispatch:
+    inputs:
+      seasons:
+        description: "Stagioni"
+        default: "2627 2526 2425 2324"
+permissions:
+  contents: read
+jobs:
+  measure:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python scripts/movement_lab.py --seasons ${{ inputs.seasons || '2627 2526 2425 2324' }}
