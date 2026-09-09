@@ -92,6 +92,23 @@ deliberato con evidenza.
 
 ---
 
+## La scheda partita, misurata
+
+La stessa domanda vista dal prodotto invece che dalle fonti:
+[copertura della scheda partita](MATCH_CARD_COVERAGE.md). Dei nove blocchi
+proposti, **due si riempiono oggi** — il titolo della partita e la parola che
+dice che non si scommette. Sei sono `DATA_GAP` e si chiudono con un solo
+input, perché il codice che li alimenta è già scritto e testato e le viste
+`v_market_*` restituiscono zero righe soltanto perché nessuna quota porta un
+istante.
+
+Serve a decidere l'ordine, non a fare un elenco: il blocco delle formazioni è
+l'unico che richiede una fonte **che non esiste** e quindi mesi di raccolta in
+avanti, mentre i blocchi di mercato richiedono una fonte che esiste ed è ferma
+su un ostacolo di rete o di termini d'uso, cioè giorni.
+
+---
+
 ## Fase A — le tre azioni fuori da questo ambiente
 
 Nessuna richiede codice. Tutte richiedono una decisione o un accesso.
