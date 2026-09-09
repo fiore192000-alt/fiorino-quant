@@ -44,6 +44,17 @@ TARGETS = [
      "partite GIA' GIOCATE con quote, ultimi giorni compresi"),
     ("SEASON_D1_2627", "https://www.football-data.co.uk/mmz4281/2627/D1.csv",
      "come sopra, per confermare che non e' un caso isolato"),
+
+    # La prima esecuzione ha risposto: il sito e' VIVO sull'host senza www e
+    # 503 su tutto sull'host con www, con lo stesso User-Agent, dallo stesso
+    # runner, senza TLS bypass. Non e' un rifiuto del client: e' un host rotto.
+    # Questi ripetono gli stessi file sull'host che funziona.
+    ("FIXTURES_CSV_NO_WWW", "https://football-data.co.uk/fixtures.csv",
+     "l'endpoint del collector funziona: bastava l'host giusto"),
+    ("SEASON_E0_NO_WWW", "https://football-data.co.uk/mmz4281/2627/E0.csv",
+     "partite gia' giocate con quote, ultimi giorni compresi"),
+    ("SEASON_D1_NO_WWW", "https://football-data.co.uk/mmz4281/2627/D1.csv",
+     "come sopra, seconda conferma"),
 ]
 
 
