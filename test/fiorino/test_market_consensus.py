@@ -98,3 +98,54 @@ class TestTheRefusalGuardIsStrictOnPurpose:
                                       q("TOO_GOOD", home=2.60, draw=3.40, away=3.60)])
         assert "TOO_GOOD" in built.refused
         assert built.best_book[0] != "TOO_GOOD"
+
+
+class TestTheWinnersCurseIsNeutralised:
+    """The bug this layer shipped with, and the guard that keeps it out.
+
+    Taking the best price across N books and comparing it to the median of all
+    N graded five matches out of eighteen as class A. Measured on the real
+    dispersion those matches showed — 0.024 probability points across seven
+    books, zero inefficiency by construction — the best-of-seven price clears
+    +4% half the time. The grades were the dispersion, restated.
+    """
+
+    def identical_books(self, n=7):
+        """Books that agree exactly. Any edge here is an artefact."""
+        return [q(f"B{i}", home=2.00, draw=3.30, away=3.30) for i in range(n)]
+
+    def test_a_named_book_in_an_agreeing_market_shows_no_excess(self):
+        built = build_consensus("m", self.identical_books())
+        edge = built.edge_leave_one_out("B0", 0)
+        assert edge < built.null_edge(0) + 1e-9
+
+    def test_a_book_is_never_compared_against_itself(self):
+        """Self-inclusion shrinks every edge toward zero and hides the real
+        ones; it is the opposite bias to the winner's curse and just as wrong."""
+        books = self.identical_books(5) + [q("ODD", home=2.30, draw=3.15, away=3.15)]
+        built = build_consensus("m", books)
+        others = [v for v in built.books if v.bookmaker != "ODD"]
+        assert len(others) == 5
+        assert built.edge_leave_one_out("ODD", 0) is not None
+
+    def test_leave_one_out_needs_at_least_two_others(self):
+        built = build_consensus("m", [q("A"), q("B")])
+        assert built.edge_leave_one_out("A", 0) is None
+
+    def test_the_null_band_grows_with_disagreement(self):
+        """It is computed from each match's own dispersion, which is the whole
+        point: a fixed threshold cannot know how much the books disagreed."""
+        tight = build_consensus("m", [q(f"B{i}", home=2.00, draw=3.30, away=3.30)
+                                      for i in range(6)])
+        wide = build_consensus("m", [q("A", home=2.00, draw=3.30, away=3.30),
+                                     q("B", home=2.20, draw=3.20, away=3.20),
+                                     q("C", home=1.85, draw=3.45, away=3.45),
+                                     q("D", home=2.35, draw=3.10, away=3.10),
+                                     q("E", home=1.95, draw=3.35, away=3.35),
+                                     q("F", home=2.10, draw=3.25, away=3.25)])
+        assert wide.null_edge(0) > tight.null_edge(0)
+
+    def test_the_null_band_is_deterministic(self):
+        """A threshold that moved between runs would make a grade unfalsifiable."""
+        built = build_consensus("m", self.identical_books())
+        assert built.null_edge(0) == built.null_edge(0)

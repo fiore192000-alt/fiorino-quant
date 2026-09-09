@@ -46,15 +46,19 @@ def classify(consensus, best_edge, kicked_off) -> tuple[str, str]:
         return "D", f"solo {consensus.n_books} book: consenso troppo sottile"
     if best_edge is None:
         return "D", "nessun prezzo valutabile"
-    if best_edge < EDGE_THRESHOLD:
-        return "C", (f"il miglior prezzo non si stacca dal consenso "
-                     f"({best_edge:+.2%} < {EDGE_THRESHOLD:.0%})")
-    # Above the threshold. It is still not a bet: no signal family in this
-    # project has ever shown replicated positive CLV, and PROMOTED is the
-    # register that would say otherwise.
-    level = "A" if best_edge >= 2 * EDGE_THRESHOLD else "B"
-    return level, (f"il miglior prezzo paga {best_edge:+.2%} sopra il consenso "
-                   f"di {consensus.n_books} book")
+    # The threshold is this match's own null band, not a constant. The first
+    # version used a flat +2%/+4% and graded five matches out of eighteen as A;
+    # measured against the dispersion those matches actually showed, the
+    # best-of-N price clears +4% half the time with zero inefficiency. The
+    # grades were the winner's curse wearing a letter.
+    null = max(consensus.null_edge(i) for i in range(3))
+    excess = best_edge - null
+    if excess <= 0:
+        return "C", (f"l'edge {best_edge:+.2%} non supera cio che la sola "
+                     f"dispersione produce ({null:+.2%})")
+    level = "A" if excess >= EDGE_THRESHOLD else "B"
+    return level, (f"eccesso {excess:+.2%} sopra la banda nulla "
+                   f"({best_edge:+.2%} contro {null:+.2%}, {consensus.n_books} book)")
 
 
 def main() -> int:

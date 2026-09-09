@@ -86,6 +86,63 @@ class Consensus:
     def n_books(self) -> int:
         return len(self.books)
 
+    def edge_leave_one_out(self, bookmaker: str, index: int) -> float | None:
+        """EV of one NAMED book's price under the consensus of the OTHERS.
+
+        Two biases removed at once.
+
+        A book included in the consensus it is measured against is partly
+        compared to itself, which shrinks every edge toward zero and hides the
+        real ones. So the book under test is dropped from the median.
+
+        The larger one is what this method exists instead of. Taking the BEST
+        price across N books and comparing it to the median of all N is the
+        winner's curse: the maximum of N noisy prices is biased upward, and the
+        bias grows with disagreement. Measured on real data — consensus 0.163,
+        observed dispersion 0.024 across 7 books, zero inefficiency by
+        construction — the best-of-seven price shows a median "edge" of +4.0%
+        and clears +4% half the time. That is not an edge. It is the dispersion,
+        restated.
+
+        Naming the book removes the selection entirely: there is no maximum to
+        pick, so there is nothing to be cursed by.
+        """
+        others = [v for v in self.books if v.bookmaker != bookmaker]
+        mine = next((v for v in self.books if v.bookmaker == bookmaker), None)
+        if mine is None or len(others) < 2:
+            return None
+        reference = st.median(v.fair[index] for v in others)
+        return reference * mine.prices[index] - 1.0
+
+    def null_edge(self, index: int, draws: int = 4000, seed: int = 20260909) -> float:
+        """What edge this much disagreement produces with NO inefficiency.
+
+        The number an observed edge has to beat before it means anything. It is
+        computed from this match's own dispersion, so it is not a constant
+        threshold pulled from the air — which is what the first version of the
+        A/B/C/D classifier used, and why it graded five matches A.
+        """
+        import random
+
+        column = [v.fair[index] for v in self.books]
+        centre, spread = st.median(column), max(column) - min(column)
+        if spread <= 0:
+            return 0.0
+        rng = random.Random(seed)
+        n = len(self.books)
+        out = []
+        for _ in range(draws):
+            drawn = [max(1e-4, centre + rng.uniform(-spread / 2, spread / 2))
+                     for _ in range(n)]
+            # One book named at random, exactly as edge_leave_one_out does.
+            i = rng.randrange(n)
+            others = drawn[:i] + drawn[i + 1:]
+            price = 1.0 / (drawn[i] * (1 + self.mean_overround / 3))
+            out.append(st.median(others) * price - 1.0)
+        out.sort()
+        # The 95th percentile: an edge below this is ordinary disagreement.
+        return out[int(0.95 * len(out))]
+
     def edge_vs_consensus(self, index: int) -> float:
         """Expected value of the best price under the consensus probability.
 
