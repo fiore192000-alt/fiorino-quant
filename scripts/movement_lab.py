@@ -192,28 +192,34 @@ def main() -> int:
     print(f"CLV medio su tutto  {st.mean(r['clv'] for r in rows):+.4f}  "
           f"(e il margine: la base da cui staccarsi)\n")
 
-    # L'IPOTESI e il suo controllo negativo, definiti prima.
-    lento = [r["clv"] for r in rows
-             if r["deviation"] < -0.005 and r["movement"] > MOVED]
-    veloce = [r["clv"] for r in rows
-              if r["deviation"] > 0.005 and r["movement"] > MOVED]
-    fermo = [r["clv"] for r in rows if abs(r["movement"]) <= MOVED]
-
-    tests = [
-        ("IPOTESI  book lento + mercato sale", lento),
-        ("CONTROLLO book corto + mercato sale", veloce),
-        ("mercato fermo", fermo),
-    ]
-    # Condizionamento sull'ampiezza del movimento.
-    for lo, hi in ((0.010, 0.025), (0.025, 0.050), (0.050, 1.0)):
-        subset = [r["clv"] for r in rows
-                  if r["deviation"] < -0.005 and lo <= r["movement"] < hi]
-        tests.append((f"  lento, movimento {lo:.3f}-{hi:.3f}", subset))
-    # E per book, sul solo lato dell'ipotesi.
+    # SOLO condizioni note AL MOMENTO DELLA SCOMMESSA.
+    #
+    # La prima versione condizionava su `movement`, che e'
+    # close_fair - consensus_open, e poi segnava con
+    # clv = close_fair * prezzo - 1. La stessa chiusura da entrambe le parti:
+    # selezionare i casi in cui close_fair e' salito alza meccanicamente il
+    # prodotto close_fair * prezzo. Non era un segnale, era una tautologia — e
+    # al momento in cui la scommessa andrebbe piazzata, all'apertura, quel
+    # movimento NON e' noto perche' e' definito da un prezzo che non esiste
+    # ancora.
+    #
+    # Misurato: su un mercato simulato con zero segnale per costruzione, la
+    # stessa selezione produce +0.0702 contro il +0.0440 osservato sui dati
+    # veri. L'artefatto e' PIU' GRANDE dell'"effetto". Dose-risposta, controllo
+    # negativo che si comporta bene e replica per stagione si riproducono tutti
+    # dove non c'e' niente da trovare.
+    #
+    # E' la stessa classe di errore gia' trovata in M6, dove il braccio MARKET
+    # mostrava +0.0234 di CLV per pura definizione. Ci sono ricascato.
+    tests = []
+    for lo, hi in ((-1.0, -0.020), (-0.020, -0.005), (-0.005, 0.005),
+                   (0.005, 0.020), (0.020, 1.0)):
+        subset = [r["clv"] for r in rows if lo <= r["deviation"] < hi]
+        tests.append((f"scostamento dal consenso {lo:+.3f}/{hi:+.3f}", subset))
     for book, _, _ in BOOKS:
-        subset = [r["clv"] for r in rows if r["book"] == book
-                  and r["deviation"] < -0.005 and r["movement"] > MOVED]
-        tests.append((f"  lento: {book}", subset))
+        subset = [r["clv"] for r in rows
+                  if r["book"] == book and r["deviation"] < -0.005]
+        tests.append((f"  piu' lungo del consenso: {book}", subset))
 
     cells = [c for c in (cell(v, k) for k, v in tests) if c]
     for c, q in zip(cells, bh([c["p"] for c in cells])):
@@ -233,9 +239,19 @@ def main() -> int:
         print("\nREPLICA PER STAGIONE — senza questa non e' un effetto.")
         for season in args.seasons:
             subset = [r["clv"] for r in rows if r["season"] == season
-                      and r["deviation"] < -0.005 and r["movement"] > MOVED]
+                      and r["deviation"] < -0.005]
             if len(subset) > 100:
                 print(f"  {season}: {st.mean(subset):+.4f}  (n={len(subset):,})")
+
+    # Per confronto, e SOLO come promemoria: la cella circolare.
+    circolare = [r["clv"] for r in rows
+                 if r["deviation"] < -0.005 and r["movement"] > MOVED]
+    print(f"\nPER CONFRONTO, LA CELLA CIRCOLARE: {st.mean(circolare):+.4f} "
+          f"su {len(circolare):,}")
+    print("Condiziona sul movimento verso la chiusura e poi segna contro la")
+    print("chiusura. Un mercato simulato con zero segnale produce +0.0702 con")
+    print("la stessa selezione. NON e' un risultato, ed e' qui solo perche'")
+    print("cancellarlo avrebbe cancellato anche la ragione per cui e' sbagliato.")
     print("\nNESSUNA SCOMMESSA. Questo script misura.")
     return 0
 
