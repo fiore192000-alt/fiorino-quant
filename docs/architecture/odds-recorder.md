@@ -8,8 +8,20 @@ Va detto subito perché la tentazione è di venderlo per di più.
 ## Cosa risolve, e cosa no
 
 `football-data.co.uk/fixtures.csv` è un file di **partite non ancora giocate**
-con le quote di più bookmaker, fra cui **Pinnacle** (`PSH/PSD/PSA`) — il book
-contro cui è tarata tutta la metodologia M3, M5 e M6.
+con le quote di più bookmaker.
+
+> **Correzione, 2026-09-09.** Questa pagina diceva che il file porta Pinnacle
+> (`PSH/PSD/PSA`), il book contro cui è tarata la metodologia M3-M5-M6.
+> L'intestazione vera, letta dal runner con HTTP 200, **non ha quella colonna**
+> — né William Hill. Ci sono bet365, Betfair Sportsbook, BetVictor, bwin,
+> Paddy Power, SkyBet, il Betfair Exchange, il massimo e la media di mercato.
+> Il valore della fonte poggia quindi su bet365 e sull'aggregato, non sul
+> benchmark. È un'affermazione più piccola, ed è quella che l'evidenza sostiene.
+>
+> E l'host conta: `www.football-data.co.uk` risponde **503 su ogni percorso**,
+> root compresa; `football-data.co.uk` risponde **200** alla stessa richiesta,
+> stesso User-Agent, stesso runner, TLS verificata. Il muro era un host rotto,
+> non una regola anti-bot e non un'interruzione.
 
 Leggerlo a un istante che possiamo nominare rende `captured_at` un istante
 vero. Sono quindi le **prime quote TIMESTAMPED del progetto**, quelle che le

@@ -8,22 +8,30 @@ so it raises none of the questions that keep OddsPortal classified as
 unverified. It is free, it has been published the same way for two decades, and
 it carries the column convention the rest of this project already reads.
 
-And it carries **Pinnacle** (`PSH/PSD/PSA`) alongside bet365, which matters
-more than it looks: Pinnacle's de-vigged close is the benchmark M3, M5 and M6
-are all measured against. A prematch Pinnacle price with a real instant on an
-unplayed match is the first row of the dataset that was missing.
+IT DOES NOT CARRY PINNACLE, AND THAT WAS THE POINT OF CHECKING
+--------------------------------------------------------------
+This adapter was written expecting `PSH/PSD/PSA`, on the reasoning that
+Pinnacle's de-vigged close is the benchmark M3, M5 and M6 are measured against,
+and that a prematch Pinnacle price with a real instant would be the missing row.
 
-WHAT IS NOT VERIFIED
---------------------
-The column list below comes from Football-Data's own published notes, read from
-a mirror, and from the fact that its client libraries parse the fixtures file
-with the same names. **No request has ever been made to fixtures.csv from
-here** — the domain is blocked by this environment's egress policy — so it is
-possible the fixtures file carries fewer columns than a season file.
+The real header, read on 2026-09-09, has no Pinnacle column at all. What it has
+is bet365, Betfair Sportsbook, BetVictor, bwin, Paddy Power, SkyBet, the
+Betfair Exchange, and the market max and average.
 
-That is exactly what `scripts/record_odds.py --verify` is for, and why the
-first scheduled run should be a verification. Nothing here guesses a price: a
-row whose 1X2 is incomplete is skipped and counted, never normalised.
+So the value of this source rests on bet365 and the market aggregate, not on
+the benchmark. That is a smaller claim than the one this file used to make, and
+it is the one the evidence supports.
+
+THE HOST MATTERS
+----------------
+`www.football-data.co.uk` answers 503 on every path, root included.
+`football-data.co.uk` — same request, same User-Agent, same runner, no TLS
+bypass — answers 200. The wall was one broken host, not an anti-bot rule and
+not an outage, and dropping four characters is a corrected URL rather than a
+workaround.
+
+Nothing here guesses a price: a row whose 1X2 is incomplete is skipped and
+counted, never normalised.
 """
 
 from __future__ import annotations
@@ -35,18 +43,31 @@ import urllib.request
 
 from fiorino.data.ingest.odds_feed.recorder import OddsPoll, Quote, utcnow
 
-URL = "https://www.football-data.co.uk/fixtures.csv"
+URL = "https://football-data.co.uk/fixtures.csv"
 TIMEOUT = 60
 
-#: Bookmaker column triples, in the order we prefer them. Pinnacle first: it is
-#: the book the rest of the project benchmarks against, and the only one whose
-#: prematch price is worth much on its own.
+#: Bookmaker column triples, verified against the real header on 2026-09-09.
+#:
+#: This list used to lead with Pinnacle, on the reasoning that Pinnacle is the
+#: book the rest of the project benchmarks against. The real file does not
+#: carry it: there is no PSH/PSD/PSA column, and no WHH/WHD/WHA either.
+#:
+#: Pinnacle stays in the list anyway, last and expected to be absent. It costs
+#: nothing — a missing column is skipped — and it turns `BOOK_PINNACLE=0` in
+#: the verify into a standing monitor: the day it becomes non-zero, the
+#: benchmark is back, and nobody has to remember to check.
 BOOKS = (
-    ("PINNACLE", ("PSH", "PSD", "PSA")),
     ("BET365", ("B365H", "B365D", "B365A")),
-    ("WILLIAM_HILL", ("WHH", "WHD", "WHA")),
+    ("BETFAIR_SB", ("BFDH", "BFDD", "BFDA")),
+    ("BETVICTOR", ("BVH", "BVD", "BVA")),
+    ("BWIN", ("BWH", "BWD", "BWA")),
+    ("PADDY_POWER", ("PPH", "PPD", "PPA")),
+    ("SKYBET", ("SKBH", "SKBD", "SKBA")),
+    ("BETFAIR_EX", ("BFEH", "BFED", "BFEA")),
     ("MARKET_MAX", ("MaxH", "MaxD", "MaxA")),
     ("MARKET_AVG", ("AvgH", "AvgD", "AvgA")),
+    # Assente nel file al 2026-09-09. Tenuto come sentinella, non come attesa.
+    ("PINNACLE", ("PSH", "PSD", "PSA")),
 )
 
 

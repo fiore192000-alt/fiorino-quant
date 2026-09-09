@@ -194,3 +194,42 @@ class TestTheCollectionCanActuallyStart:
         says the column was looked for and was not there."""
         runner = (self.REPO / "scripts/record_odds.py").read_text()
         assert "for book, _ in source.BOOKS" in runner
+
+class TestAgainstTheRealHeader:
+    """Written from the header the source actually returned on 2026-09-09,
+    not from one imagined for the test. The previous version of this adapter
+    passed every synthetic test and would have mapped nothing at all."""
+
+    #: Verbatim from the probe: STATUS=200, BYTES=5609.
+    HEADER = ("Div,Date,Time,HomeTeam,AwayTeam,Referee,"
+              "B365H,B365D,B365A,BFDH,BFDD,BFDA,BVH,BVD,BVA,BWH,BWD,BWA,"
+              "PPH,PPD,PPA,SKBH,SKBD,SKBA,MaxH,MaxD,MaxA,AvgH,AvgD,AvgA,"
+              "BFEH,BFED,BFEA")
+
+    def row(self):
+        values = ["E0", "12/09/2026", "20:00", "Liverpool", "Arsenal", "M Oliver"]
+        # nine 1X2 triples, one per book present in the real file
+        for base in (2.05, 2.06, 2.04, 2.07, 2.05, 2.06, 2.08, 2.14, 2.05):
+            values += [str(base), "3.45", "3.70"]
+        return self.HEADER + "\n" + ",".join(values) + "\n"
+
+    def test_the_url_uses_the_host_that_answers(self):
+        """www.football-data.co.uk returns 503 on every path; the bare host
+        returns 200. Four characters, and it is a corrected URL, not a
+        workaround."""
+        assert source.URL == "https://football-data.co.uk/fixtures.csv"
+
+    def test_every_configured_book_except_pinnacle_maps(self):
+        scope, quotes = source.parse(self.row())
+        found = {q.bookmaker for q in quotes}
+        assert len(scope) == 1
+        assert "BET365" in found and "BETFAIR_EX" in found and "MARKET_MAX" in found
+        assert len(found) == 9
+
+    def test_pinnacle_is_absent_and_that_is_recorded_not_hidden(self):
+        """The benchmark this source was chosen for is not in the file. The
+        column stays configured as a sentinel: the day BOOK_PINNACLE stops
+        being zero, the benchmark is back."""
+        assert "PINNACLE" in dict(source.BOOKS)
+        _, quotes = source.parse(self.row())
+        assert not [q for q in quotes if q.bookmaker == "PINNACLE"]

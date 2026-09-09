@@ -391,9 +391,13 @@
       "name": "football-data.co.uk — fixtures.csv (timestamped snapshot source)",
       "bookmaker_identifiable": true,
       "bookmakers": [
-        "Pinnacle Sports",
         "bet365",
-        "William Hill",
+        "Betfair Sportsbook",
+        "BetVictor",
+        "bwin",
+        "Paddy Power",
+        "SkyBet",
+        "Betfair Exchange",
         "massimo di mercato",
         "media di mercato"
       ],
@@ -404,7 +408,7 @@
       "timestamp_quality": "UNKNOWN",
       "timestamp_evidence": "Non e la fonte a fornire l'istante. Lo fornisce il nostro poll: il file contiene partite NON ancora giocate, quindi leggerlo a un momento che possiamo nominare rende captured_at un istante vero, e queste sarebbero le prime quote TIMESTAMPED del progetto. Il file stesso non porta orari di rilevazione.",
       "timestamp_quality_expected": "ABSOLUTE_PER_OBSERVATION",
-      "unverified_because": "Nessuna richiesta e mai partita: football-data.co.uk e bloccato dalla policy di egress. Le colonne dell'adapter vengono dalle note pubblicate dal sito e dal fatto che le sue librerie client leggono fixtures.csv con gli stessi nomi; e possibile che il file delle partite future ne porti meno di un file di stagione. La prima esecuzione di record_odds.py --verify stampa COLUMNS per intero ed e la verifica.",
+      "unverified_because": "L'intestazione NON e piu un'ipotesi: letta il 2026-09-09 dal runner, HTTP 200, 5.609 byte. Resta non verificato solo il passo successivo, cioe che un poll reale produca un'osservazione nel layer TIMESTAMPED. Nota sull'host: www.football-data.co.uk risponde 503 su ogni percorso, root compresa; football-data.co.uk risponde 200 con la stessa richiesta, stesso User-Agent, stesso runner e TLS verificata.",
       "future_fixtures": true,
       "access_method": "download diretto di https://www.football-data.co.uk/fixtures.csv, nessun token e nessun account; il workflow .github/workflows/record-odds.yml fa un poll ogni 30 minuti e committa l'osservazione",
       "access_documented": true,
@@ -413,7 +417,7 @@
       "inaccessibility_reason": "environment access limitation: football-data.co.uk e bloccato dalla policy di egress (403 dal proxy). Il collector non gira qui, gira sui runner di GitHub Actions.",
       "pit_usable": false,
       "status": "PROMISING_BUT_UNVERIFIED",
-      "main_limitation": "NON e un market feed, ed e la descrizione onesta delle sue capacita: e una sorgente di istantanee timestampate. Football-Data raccoglie le quote del weekend il venerdi e quelle infrasettimanali il martedi, quindi da uno o due punti prematch per partita e non un percorso. captured_at significa quando Fiorino ha letto il file, non quando il prezzo e stato fissato ne quando Football-Data lo ha aggiornato: e un'osservazione vera di Fiorino, non un market_price_at. Chiude il blocco mercato della scheda e parte del movimento, mai il consenso fra book ne la reazione a un'informazione. E non recupera niente all'indietro.",
+      "main_limitation": "NON porta Pinnacle, ed e la scoperta che ridimensiona questa fonte. L'adapter era stato scritto aspettandosi PSH/PSD/PSA perche la chiusura Pinnacle de-viggata e il benchmark di M3, M5 e M6: nell'intestazione vera quella colonna non esiste, e non esiste nemmeno William Hill. Ci sono bet365, Betfair Sportsbook, BetVictor, bwin, Paddy Power, SkyBet, il Betfair Exchange e il massimo e la media di mercato. Quindi il valore della fonte poggia su bet365 e sull'aggregato, non sul benchmark: e un'affermazione piu piccola di quella iniziale, ed e quella che l'evidenza sostiene. Resta inoltre una timestamped snapshot source e non un feed: uno o due punti prematch per partita, mai il consenso fra book ne la reazione a un'informazione, e non recupera niente all'indietro.",
       "cost": "gratuito, nessuna registrazione",
       "licence": "NON ispezionata in questa sessione: il sito consente l'uso gratuito con una clausola non commerciale che andrebbe riletta prima di qualunque uso oltre la ricerca interna",
       "legal_note": "File pubblicato dal sito per il download, non scraping di una pagina: e una posizione diversa da quella di un aggregatore interrogato con l'automazione di un browser. Resta da rileggere la clausola non commerciale."
