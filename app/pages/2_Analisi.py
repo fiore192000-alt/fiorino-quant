@@ -7,8 +7,8 @@ from pathlib import Path
 import streamlit as st
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-from app.lib import build_warehouse  # noqa: E402
-from fiorino.decision import classify  # noqa: E402
+from app.lib import build_warehouse, evidence_card  # noqa: E402
+from fiorino.decision import classify, score_signal  # noqa: E402
 
 # NB: nessun import di fiorino.models qui, e nessun fit.
 #
@@ -99,9 +99,19 @@ for selection, prob, price, edge, prior, book in rows:
             used_prior=bool(prior),
             data_age=timedelta(minutes=1),
         )
-        st.markdown(f"### {BADGE[decision.level]} {decision.level}")
-        for reason in decision.reasons:
-            st.markdown(f"{'✅' if reason.supports else '⛔'} **{reason.code}** — {reason.detail}")
+        score = score_signal(
+            edge=edge, historical_clv=-0.0336, n_settled=676,
+            replications=0, adversarial_passed=0,
+            data_age=timedelta(minutes=1),
+        )
+        evidence_card(
+            f"{home} – {away} · {selection}", decision, score,
+            facts={
+                "Mercato": f"{implied:.1%} (quota {price:.2f}, {book})",
+                "Fiorino": f"{prob:.1%}",
+                "Edge": f"{prob - implied:+.1%} · EV {edge:+.1%}",
+            },
+        )
 
 st.divider()
 st.caption(

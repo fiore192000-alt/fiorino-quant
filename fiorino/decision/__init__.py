@@ -1,5 +1,6 @@
-"""Signal classification. The part of the system whose job is to say no."""
+"""Signal classification and scoring. The part of the system whose job is to say no."""
 
+from .score import GATES, GRADED_WEIGHTS, SignalScore, score_signal
 from .signal import (
     LEVELS,
     Decision,
@@ -10,4 +11,5 @@ from .signal import (
 )
 
 __all__ = ["SignalLevel", "LEVELS", "Reason", "Decision", "classify",
-           "promoted_strategies"]
+           "promoted_strategies", "SignalScore", "score_signal",
+           "GRADED_WEIGHTS", "GATES"]

@@ -82,3 +82,46 @@ def system_status() -> dict:
     }
     con.close()
     return status
+
+
+BADGE = {"NO_SIGNAL": "⚪", "WATCH": "🔵", "CANDIDATE": "🟡", "QUALIFIED": "🟢"}
+
+
+def evidence_card(title: str, decision, score=None, *, facts=None):
+    """The card a person reads before deciding not to act.
+
+    Two halves, and the second is the one that matters: WHY NOT. A card that
+    only lists supporting evidence is an advertisement.
+    """
+    with st.container(border=True):
+        st.markdown(f"### {BADGE[decision.level]} {decision.level}")
+        st.caption(title)
+
+        for key, value in (facts or {}).items():
+            st.markdown(f"**{key}** {value}")
+
+        if score is not None:
+            st.progress(min(max(score.value, 0.0), 1.0),
+                        text=f"qualita del segnale {score.value:.2f}")
+            if score.failed_gate:
+                st.error(f"gate **{score.failed_gate}** fallito: il punteggio è "
+                         f"zero indipendentemente dal resto")
+            elif score.weakest:
+                st.caption(f"componente più debole: **{score.weakest}** "
+                           f"({score.graded.get(score.weakest, 0):.2f})")
+
+        supporting = [r for r in decision.reasons if r.supports]
+        blocking = decision.blocking
+
+        if supporting:
+            st.markdown("**A favore**")
+            for r in supporting:
+                st.markdown(f"✅ {r.code} — {r.detail}")
+
+        st.markdown("**Perché NON scommettere**")
+        if blocking:
+            for r in blocking:
+                st.markdown(f"⛔ {r.code} — {r.detail}")
+        else:
+            st.markdown("⛔ nessun motivo registrato — il che, con zero "
+                        "strategie promosse, non dovrebbe accadere")

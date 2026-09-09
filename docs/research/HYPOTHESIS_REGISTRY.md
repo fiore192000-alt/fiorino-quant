@@ -9,6 +9,39 @@ Aggiornare **prima** di eseguire (stato `REGISTERED`) e di nuovo dopo
 
 ---
 
+## Stati di un esperimento
+
+Un esperimento non è «riuscito» o «fallito». Attraversa stati, e ognuno ha una
+condizione di uscita scritta prima.
+
+```
+  REGISTERED ──► RUNNING ──┬──► NEGATIVE ──────► (resta a registro, per sempre)
+                           │
+                           ├──► PROMISING ──► REPLICATED ──► PROMOTED
+                           │         │              │
+                           │         └──► NEGATIVE  └──► NEGATIVE
+                           │
+                           └──► FAILED  (l'esperimento non è stato eseguibile,
+                                         non è un risultato: di solito DATA GAP)
+```
+
+| stato | significa | come si esce |
+|---|---|---|
+| `REGISTERED` | ipotesi scritta, dati non ancora guardati | eseguendo |
+| `RUNNING` | in esecuzione | dal risultato |
+| `FAILED` | non eseguibile — di norma DATA GAP | acquisendo il dato |
+| `NEGATIVE` | eseguito, nessuna evidenza | **non si esce.** Resta |
+| `PROMISING` | positivo su un campione | replica |
+| `REPLICATED` | 2 campionati e 2 periodi | suite avversariale |
+| `PROMOTED` | tutti e sei i gate | va al paper trading |
+| `RETIRED` | promosso e poi decaduto | resta a registro con la data |
+
+`NEGATIVE` non è uno stato transitorio. Un esperimento negativo si ripropone
+solo dichiarando **cosa è cambiato** — dati nuovi, campione maggiore, meccanismo
+diverso — mai una soglia diversa.
+
+---
+
 ## Famiglie di test multipli
 
 Una famiglia è l'insieme entro cui si applica Benjamini-Hochberg. Le famiglie

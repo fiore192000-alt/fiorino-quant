@@ -119,6 +119,42 @@ non usa.
 
 Ogni push sul branch fa il redeploy.
 
+## Le pagine
+
+| pagina | cosa risponde |
+|---|---|
+| Partite | il mercato, senza opinione |
+| Analisi | Evidence Card per selezione: mercato, modello, edge, **e perché non scommettere** |
+| **Segnali scartati** | ogni opportunità respinta, con il motivo, contata |
+| **Mappa efficienza** | dove il laboratorio ha guardato, cosa ha trovato, e le caselle vuote |
+| Ricerca | 11 ipotesi chiuse, 0 positive, e le affermazioni ritirate |
+| Sistema | freschezza, audit PIT, **metodo di de-vig effettivamente usato** |
+
+### Perché «Segnali scartati» è la pagina più importante
+
+Una dashboard che mostra solo le occasioni non è verificabile: non si scopre
+mai cosa ha scartato in silenzio, né se il motivo era buono. E impedisce che
+la stessa idea torni fra sei mesi come se fosse nuova.
+
+### Il punteggio di qualità non è la dimensione dell'edge
+
+```
+  score = (prodotto dei gate) x (media pesata dei graduati)
+
+  GATE      point-in-time, freschezza, eseguibilità.
+            Uno zero qui azzera tutto: un prezzo vecchio non è un prezzo
+            leggermente peggiore, non è un prezzo.
+  GRADUATI  CLV 0.30, replica 0.25, campione 0.20, edge 0.10,
+            robustezza 0.10, liquidità 0.05
+```
+
+Misurato: edge **+30%** su 9 scommesse → **0.454**. Edge **+2%** su 6.000
+replicato → **0.790**. Ottimo ma prezzo vecchio di due ore → **0.000**.
+
+Il CLV pesa tre volte l'edge di proposito: in M4 il verdetto del CLV era
+corretto 30 volte su 30 e quello dello yield 23 su 30, ed edge è più parente
+di yield che di CLV.
+
 ## Cosa manca per la V1
 
 | | |

@@ -5,6 +5,36 @@
 <meta name="twitter:image" content="https://raw.githubusercontent.com/martineastwood/penaltyblog/refs/heads/master/logo.png">
 <meta name="twitter:card" content="summary_large_image">
 
+# Fiorino Quant
+
+> **Fiorino Quant does not search for bets.
+> It searches for reproducible information advantages over the market.**
+
+Un laboratorio quantitativo per il calcio europeo, costruito sopra penaltyblog
+— che qui è una **dipendenza**, non il core.
+
+Lo scopo dichiarato è **dimostrare o falsificare** un vantaggio. Finora ha
+falsificato, e i risultati negativi sono l'asset:
+
+| domanda | risposta | evidenza |
+|---|---|---|
+| Il modello batte la chiusura de-viggata? | **no** | 10 dataset su 10 |
+| Il modello aggiunge informazione al mercato? | **no** | 20 CI su 20 contengono lo zero |
+| Qualche situazione è mal prezzata? | **nessuna** | 0/14 sopravvive a Benjamini-Hochberg |
+| Qualche strategia ha CLV positivo? | **mai** | 0 su 30 combinazioni |
+
+Con il limite che qualifica il tutto: la scansione rileva effetti sopra **0.039–0.072
+punti di probabilità**. «Nessun bias trovato» significa «nessun bias **grande**».
+
+Il verdetto completo: **[`docs/FINDINGS.md`](docs/FINDINGS.md)**
+Il protocollo: **[`docs/research/RESEARCH_PROTOCOL.md`](docs/research/RESEARCH_PROTOCOL.md)**
+La dashboard: **[`docs/architecture/webapp.md`](docs/architecture/webapp.md)**
+
+Non esiste un livello `BET` nel motore di decisione. Aggiungerlo richiede un
+record di promozione, non una costante.
+
+---
+
 # Penalty Blog
 
 <div align="center">
