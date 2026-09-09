@@ -43,6 +43,7 @@ timestampata.
 | `eatpizzanot/soccer-dataset` | non verificato | 1X2 | dichiarate 673.966 partite, 186.813 con quota | **non verificata**: dichiara `known_at`, nessuna riga ispezionata | no | Hugging Face (completo), campioni su GitHub | sì | **bloccato** | **no** | letta solo la documentazione; avviso importante sull'xG di API-Football |
 | `salimt/football-datasets` — infortuni | — | — | 143.195 storie di infortunio | **nessuno**: `from_date` è retrodatata, non è una pubblicazione | no | CSV nel repo, copia su Kaggle | sì | percorso non risolto | **no** | trappola di leakage: attribuirebbe conoscenza che il mercato non aveva |
 | `datasets/football-datasets` (datahub) | sì | 1X2 | 1993→oggi, top 5 | **nessuno**: i commit quotidiani datano lo scraper, su partite già giocate | no | raw.githubusercontent / datahub.io | sì (PDDL) | **raggiungibile** | **no** | sembra la soluzione e non lo è: l'istante cade dopo l'esito |
+| **SportMonks** — piano gratuito | — | nessuno (formazioni) | nessuna: fonte per la raccolta **in avanti**, 2 competizioni | **non la fornisce la fonte**: l'istante lo mette il nostro poll, con l'incertezza misurata | sì | API REST ufficiale, token gratuito | sì | **bloccato qui**, gira su GitHub Actions | **no** | l'adapter non è mai stato eseguito; termini del piano gratuito non letti |
 | `api-sports.io`, `football-data.org`, SofaScore, FBref | — | — | — | — | — | REST | vario | **bloccati** | **non verificato** | nessuna proprietà accertabile da qui |
 
 ---
@@ -234,6 +235,31 @@ esistono (StatsBomb, schochastics, i vari scraper di WhoScored e SofaScore)
 portano la formazione della partita, non il momento in cui è diventata
 pubblica. Resta la conclusione già registrata: quell'istante **esiste solo se
 lo si registra in avanti**, e nessuno lo ha registrato per noi.
+
+---
+
+### SportMonks — la scelta per le formazioni, e perché non è entusiasmante
+
+Le altre opzioni sono state escluse per ragioni di **termini**, non di
+tecnologia: football-data.org non serve formazioni sul piano gratuito;
+API-Football ne dà ~100 chiamate al giorno contro le ~300 che il polling
+richiede; SofaScore e FotMob sono endpoint non ufficiali con termini non letti,
+che è esattamente l'obiezione sollevata contro OddsPortal — e sarebbe
+incoerente sollevarla lì e ignorarla qui.
+
+Resta SportMonks v3: undici confermati sul piano gratuito, API ufficiale, token di
+registrazione gratuita. Due competizioni sole, il che colloca la raccolta
+**sul pavimento** della potenza statistica calcolata per C-107, non sopra.
+
+La cosa importante è che qui **l'istante non lo fornisce la fonte**. Lo mette il
+nostro poll, e l'incertezza è lo scarto reale fra poll avvenuti. Un eventuale
+orario di pubblicazione dichiarato dall'API non viene nemmeno letto: sarebbe un
+fatto datato da altri, adottato come se lo avessimo saputo allora — lo stesso
+errore del `from_date` di Transfermarkt.
+
+L'adapter **non è mai stato eseguito**, perché ogni API esterna è bloccata da
+questo ambiente. Per questo la prima esecuzione è una verifica esplicita e non
+una raccolta.
 
 ---
 

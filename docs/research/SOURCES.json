@@ -365,6 +365,30 @@
       "cost": "gratuito",
       "licence": "PDDL 1.0 (public domain) per i dataset dei campionati, dichiarata nel README",
       "legal_note": "Dedicazione al pubblico dominio sulla compilazione. I dati a monte restano di Football-Data.co.uk, con la sua clausola d'uso non commerciale non riletta qui."
+    },
+    {
+      "id": "sportmonks-free-lineups",
+      "name": "SportMonks v3 — undici confermati, piano gratuito",
+      "bookmaker_identifiable": false,
+      "bookmakers": [],
+      "markets": [],
+      "historical_depth": "nessuna profondita storica utile allo scopo: e una fonte per la raccolta IN AVANTI. Il piano gratuito copre due competizioni.",
+      "timestamp_quality": "UNKNOWN",
+      "timestamp_evidence": "Non e la fonte a fornire l'istante, ed e il punto. Il registratore usa il proprio orologio: known_at e l'istante in cui il nostro poll ha visto per la prima volta un undici CONFIRMED, con l'incertezza calcolata dallo scarto reale fra poll avvenuti. Un eventuale orario di pubblicazione dichiarato dall'API non viene letto: sarebbe un fatto datato da altri, adottato come se lo avessimo saputo allora.",
+      "timestamp_quality_expected": "ABSOLUTE_PER_OBSERVATION",
+      "unverified_because": "Nessuna richiesta e mai partita: ogni API esterna e bloccata dalla policy di egress di questo ambiente, quindi i nomi dei campi dell'adapter vengono dalla superficie pubblicata dell'API e non da una risposta osservata. La prima esecuzione del workflow in modalita --verify e la verifica.",
+      "future_fixtures": true,
+      "access_method": "API REST ufficiale con token di registrazione gratuita; il workflow .github/workflows/record-lineups.yml esegue un poll ogni 10 minuti",
+      "access_documented": true,
+      "free": true,
+      "accessible_here": false,
+      "inaccessibility_reason": "environment access limitation: api.sportmonks.com e bloccato dalla policy di egress. Il collector non gira qui, gira sui runner di GitHub Actions.",
+      "pit_usable": false,
+      "status": "PROMISING_BUT_UNVERIFIED",
+      "main_limitation": "Copre due competizioni sul piano gratuito, e finche il token non esiste non raccoglie niente. Ma e l'unica opzione che non richiede ne di leggere quote oltre il piano gratuito ne di interrogare un endpoint non ufficiale con termini non letti, obiezione che sarebbe incoerente sollevare contro OddsPortal e ignorare qui. L'adapter e sostituibile: la disciplina su known_at e indipendente dalla fonte.",
+      "cost": "gratuito, piano free con registrazione",
+      "licence": "NON ispezionati i termini del piano gratuito: sono l'unica cosa da leggere prima di conservare payload oltre l'undici e l'istante",
+      "legal_note": "API ufficiale del fornitore, non scraping: l'uso rientra in un piano che il fornitore stesso offre, il che e una posizione diversa da quella di un endpoint non ufficiale. Resta da leggere cosa il piano gratuito consente di conservare e ridistribuire."
     }
   ]
 }

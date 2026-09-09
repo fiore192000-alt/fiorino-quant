@@ -156,6 +156,26 @@ interrogare ogni giorno**, e va presa prima di poter iniziare.
 
 ---
 
+## Fase B — costruita. Manca il token.
+
+Il registratore di formazioni esiste ed è testato:
+[documentazione](../architecture/lineup-recorder.md).
+
+- `fiorino/data/ingest/lineups/recorder.py` — la disciplina su `known_at`,
+  indipendente dalla fonte, 17 test
+- `fiorino/data/ingest/lineups/sources/sportmonks.py` — un adapter, **non
+  verificato**, con `--verify` per la prima esecuzione
+- `.github/workflows/record-lineups.yml` — un poll ogni 10 minuti, verde senza
+  token, commit in rebase perché nessuna osservazione vada persa
+- migrazione `0017` — `known_at_uncertainty_seconds`, e `v_resolved_lineups`
+  che esclude le righe la cui incertezza non è nota
+
+**Resta una sola azione, e non posso farla io:** registrarsi su SportMonks
+(gratuito), incollare il token nel secret `SPORTMONKS_TOKEN`, lanciare il
+workflow con *verify* spuntato. Da quel momento l'archivio cresce da solo.
+
+---
+
 ## Fase B — Lineup Dataset v1
 
 Il primo dataset proprietario. Non enorme, non perfetto, solo **esistente**.

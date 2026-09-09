@@ -453,7 +453,9 @@
       "status": "NOT_DEMONSTRATED",
       "verified_by": [],
       "evidence": "The power calculation says otherwise: an unexpected goalkeeper absence occurs in roughly 3-5% of matches, so the 31 events needed for a 2-point effect require 600-1000 matches.",
-      "limits": "One league-season gives ~380 matches and ~15 goalkeeper events. Two leagues collected in parallel for a season is the realistic floor for the category breakdown; the aggregate question needs far less."
+      "limits": "One league-season gives ~380 matches and ~15 goalkeeper events. Two leagues collected in parallel for a season is the realistic floor for the category breakdown; the aggregate question needs far less. Da notare, perche e un vincolo e non una comodita: il piano gratuito SportMonks copre esattamente due competizioni, cioe il registratore parte SUL pavimento della potenza statistica, non sopra. Per la scomposizione per tipo di assenza non ci sara margine, e questo va detto prima di raccogliere, non dopo.",
+      "next_action": "Impostare il secret SPORTMONKS_TOKEN e lanciare record-lineups in modalita --verify: il registratore, il workflow e la disciplina su known_at esistono gia e restano fermi finche il token non c'e. Ogni giorno di ritardo e un giorno che non si recupera.",
+      "next_action_kind": "DATA_ACQUISITION"
     },
     {
       "id": "C-028",

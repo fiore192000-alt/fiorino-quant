@@ -1,0 +1,75 @@
+# The lineup recorder.
+#
+# This is the only workflow in the repository whose value comes from running
+# often rather than from running correctly once: a poll not made is a fact that
+# cannot be recovered later, at any price.
+#
+# It stays green with no token configured. That is deliberate — a workflow that
+# fails every five minutes until someone configures it is a workflow people mute,
+# and a muted collector is a collector that silently stops.
+name: record-lineups
+
+on:
+  schedule:
+    # Every 10 minutes. GitHub delays scheduled runs under load, sometimes by a
+    # lot, so this is an intention and not a guarantee. Nothing downstream
+    # trusts it: the uncertainty on every sighting is computed from the actual
+    # gap between polls that happened, never from this line.
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+    inputs:
+      verify:
+        description: "Report what the source returns, write nothing"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  # Never two polls appending at once; never cancel one in flight, because the
+  # one cancelled is the observation lost.
+  group: record-lineups
+  cancel-in-progress: false
+
+jobs:
+  poll:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Poll
+        env:
+          SPORTMONKS_TOKEN: ${{ secrets.SPORTMONKS_TOKEN }}
+        run: |
+          if [ "${{ inputs.verify }}" = "true" ]; then
+            python scripts/record_lineups.py --verify
+          else
+            python scripts/record_lineups.py
+          fi
+
+      - name: Commit the observation
+        if: ${{ inputs.verify != true }}
+        run: |
+          if [ -z "$(git status --porcelain archive/)" ]; then
+            echo "niente da committare: nessun token, o nessuna scrittura"
+            exit 0
+          fi
+          git config user.name  "fiorino-lineup-recorder"
+          git config user.email "noreply@github.com"
+          git add archive/
+          # The commit message carries the poll instant, so the archive is
+          # readable from the git log without opening a file.
+          git commit -m "lineups: poll $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          # Another poll may have landed while this one ran. Rebase rather than
+          # force: every observation is kept, none is overwritten.
+          for i in 1 2 3 4 5; do
+            git pull --rebase --autostash origin "${GITHUB_REF_NAME}" && \
+            git push origin "HEAD:${GITHUB_REF_NAME}" && exit 0
+            sleep $((i * 5))
+          done
+          echo "push fallito dopo 5 tentativi"; exit 1
