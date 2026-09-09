@@ -302,6 +302,25 @@ e non sono state simulate su fixture per farle sembrare tali.
 
 ---
 
+## Protocollo di ricerca
+
+Il laboratorio ha ora regole scritte, non solo consuetudini:
+
+* [**Protocollo di ricerca**](research/RESEARCH_PROTOCOL.md) — dieci regole, e
+  il vocabolario obbligatorio degli esiti. «Promettente» non è un esito.
+* [**Gate di promozione**](research/PROMOTION_GATES.md) — sei cancelli, il P&L
+  è l'ultimo.
+* [**Registro delle ipotesi**](research/HYPOTHESIS_REGISTRY.md) — tutto ciò che
+  è stato testato, incluse le affermazioni che il laboratorio ha ritirato.
+* [**Catalogo dei dati**](research/DATA_CATALOG.md) — cosa c'è, cosa manca,
+  cosa è raggiungibile.
+* [**Modulo dell'esperimento**](research/EXPERIMENT_TEMPLATE.md) — si compila
+  prima di guardare i dati.
+* [**Audit del PR #1**](research/PR1_AUDIT.md) — 4 MUST FIX, nessuno di natura
+  statistica.
+
+---
+
 ## Indice
 
 **Architettura**
