@@ -7,9 +7,24 @@ name: Data refresh
 # identity ledger — a small, human-authored decision log — is committed, for
 # the same reason migrations are.
 on:
-  schedule:
-    # 06:15 UTC: after openfootball's nightly update, before European kickoffs.
-    - cron: "15 6 * * *"
+  # SCHEDULER DISATTIVATO FINO ALLA VERIFICA DEL PRIMO PAYLOAD REALE.
+  #
+  # Non e' un ripensamento sul workflow: e' che master e' entrato in una fase di
+  # validazione controllata, e questo workflow ha contents: write. Un secondo
+  # automatismo in scrittura mentre si verifica la pipeline delle quote rende
+  # ambiguo qualunque risultato: se qualcosa va storto non si sa piu' quale
+  # componente sia responsabile.
+  #
+  # Va inoltre riacceso SEPARATAMENTE dai collector, e non insieme. Sono due
+  # funzioni diverse: questo aggiorna il dataset storico e l'identity ledger,
+  # i collector devono prima dimostrare di produrre osservazioni temporali
+  # reali, e il refresh storico non deve interferire con quella prova.
+  #
+  # Per riaccendere: togliere il commento alle due righe qui sotto.
+  #
+  # schedule:
+  #   # 06:15 UTC: after openfootball's nightly update, before European kickoffs.
+  #   - cron: "15 6 * * *"
   workflow_dispatch:
     inputs:
       backfill:
