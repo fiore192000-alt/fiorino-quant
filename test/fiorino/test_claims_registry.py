@@ -149,13 +149,22 @@ class TestTheRegistryIsAlsoARoadmap:
             if claim["status"] == "PROVEN":
                 assert "next_action" not in claim, claim["id"]
 
+    KINDS = {"DATA_ACQUISITION", "MEASUREMENT", "ENGINEERING", "NONE"}
+
+    def test_every_next_action_declares_its_kind(self, registry):
+        """Declared, not inferred from the prose. Matching substrings against
+        free text was fragile: a correct action failed because it happened to
+        say 'dump' rather than 'dati'."""
+        for claim in registry["claims"]:
+            if "next_action" in claim:
+                assert claim.get("next_action_kind") in self.KINDS, claim["id"]
+
     def test_the_data_gaps_point_at_data_not_at_modelling(self, registry):
-        """The bottleneck is time, not the model. If a DATA_GAP's next action
-        talks about models, the diagnosis has drifted."""
+        """The bottleneck is time, not the model. A DATA_GAP whose next step is
+        a modelling step means the diagnosis has drifted."""
         for claim in registry["claims"]:
             if claim["status"] == "DATA_GAP":
-                action = claim["next_action"].lower()
-                assert any(w in action for w in ("quot", "dat", "raccolt", "fonte")), claim["id"]
+                assert claim["next_action_kind"] == "DATA_ACQUISITION", claim["id"]
 
 
 class TestTheRegistryMatchesTheDocs:

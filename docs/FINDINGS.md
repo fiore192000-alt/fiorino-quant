@@ -322,6 +322,9 @@ Il laboratorio ha ora regole scritte, non solo consuetudini:
   è l'ultimo.
 * [**Registro delle ipotesi**](research/HYPOTHESIS_REGISTRY.md) — tutto ciò che
   è stato testato, incluse le affermazioni che il laboratorio ha ritirato.
+* [**Audit delle fonti**](research/FREE_SOURCES_AUDIT.md) e
+  [`SOURCES.json`](research/SOURCES.json) — otto fonti verificate campo per
+  campo. Una sola è PIT-usabile, e non è raggiungibile da qui.
 * [**Catalogo dei dati**](research/DATA_CATALOG.md) — cosa c'è, cosa manca,
   cosa è raggiungibile.
 * [**Modulo dell'esperimento**](research/EXPERIMENT_TEMPLATE.md) — si compila

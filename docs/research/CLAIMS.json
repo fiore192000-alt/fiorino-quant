@@ -12,10 +12,11 @@
     "  UNTESTED            the code path exists and no test exercises it",
     "  DATA_GAP            cannot be tested: the required data does not exist here",
     "  NOT_DEMONSTRATED    claimed nowhere; listed so nobody assumes it",
-    "next_action: per ogni claim non PROVEN, il singolo passo che cambierebbe il suo stato. Rende il registro anche una roadmap: PROVEN -> TESTED_BUT_LIMITED -> UNTESTED -> DATA_GAP -> prossimo esperimento."
+    "next_action: per ogni claim non PROVEN, il singolo passo che cambierebbe il suo stato. Rende il registro anche una roadmap: PROVEN -> TESTED_BUT_LIMITED -> UNTESTED -> DATA_GAP -> prossimo esperimento.",
+    "next_action_kind: DATA_ACQUISITION | MEASUREMENT | ENGINEERING | NONE. Dichiarato invece di dedotto dal testo: un DATA_GAP deve avere DATA_ACQUISITION, e cercarlo per sottostringa era fragile."
   ],
   "generated_for": "PR #1 gate audit",
-  "suite_size": 596,
+  "suite_size": 620,
   "claims": [
     {
       "id": "C-001",
@@ -53,7 +54,8 @@
         "test/fiorino/test_m1_leakage.py::TestNoRawTableAccessInConsumers::test_every_guarded_table_exists"
       ],
       "evidence": "A package absent from both role lists fails. The previous guard named odds_snapshots, a table in no migration.",
-      "limits": "Two BOUNDED_READS exemptions exist, each with a written reason; their safety lives in SQL a future edit could remove."
+      "limits": "Two BOUNDED_READS exemptions exist, each with a written reason; their safety lives in SQL a future edit could remove.",
+      "next_action_kind": "ENGINEERING"
     },
     {
       "id": "C-004",
@@ -89,7 +91,8 @@
         "test/fiorino/test_m2_odds.py::TestDevigFallbackIsHonest::test_the_method_is_stable_across_repeated_devigs"
       ],
       "evidence": "Probing per call was non-deterministic: one rebuild produced SHIN and MULTIPLICATIVE rows, the next only SHIN, from identical input.",
-      "limits": "In an environment without penaltyblog, every de-vig falls back to multiplicative. The data says so; the numbers differ."
+      "limits": "In an environment without penaltyblog, every de-vig falls back to multiplicative. The data says so; the numbers differ.",
+      "next_action_kind": "ENGINEERING"
     },
     {
       "id": "C-007",
@@ -138,7 +141,8 @@
       ],
       "evidence": "Validation over 30 strategy-dataset pairs: CLV verdict correct 30/30, yield 23/30. Worst false positive +11.91% yield with CLV -0.0272, t=-11.5.",
       "limits": "The 30/30 figure comes from scripts/validate_backtest.py, which fetches from the network and is NOT in the suite. Reproducible, not automatic.",
-      "next_action": "Portare la validazione a 30 coppie strategia-dataset dentro la suite, con un dataset committato come fixture, cosi il 30/30 diventa automatico."
+      "next_action": "Portare la validazione a 30 coppie strategia-dataset dentro la suite, con un dataset committato come fixture, cosi il 30/30 diventa automatico.",
+      "next_action_kind": "ENGINEERING"
     },
     {
       "id": "C-011",
@@ -151,7 +155,8 @@
       ],
       "evidence": "10 datasets out of 10, both Brier and log-loss. Mean Brier edge -0.01012.",
       "limits": "The suite test runs on ENG_PL 2017-18 only. The 10-dataset result is in scripts/validate_models.py, network-fetching.",
-      "next_action": "Nessuna: il risultato e stabile su 10 dataset. Ripetere solo se cambia la fonte delle quote o il metodo di de-vig."
+      "next_action": "Nessuna: il risultato e stabile su 10 dataset. Ripetere solo se cambia la fonte delle quote o il metodo di de-vig.",
+      "next_action_kind": "NONE"
     },
     {
       "id": "C-012",
@@ -163,7 +168,8 @@
       ],
       "evidence": "1,037 of 2,940 selections above 5%, peak +521% EV, CLV negative 30 times out of 30.",
       "limits": "The suite test runs on one league-season. The full count comes from scripts/validate_models.py, which fetches from the network and is not part of the automatic suite.",
-      "next_action": "Nessuna. E un corollario di C-011 e serve come avvertimento, non come linea di ricerca."
+      "next_action": "Nessuna. E un corollario di C-011 e serve come avvertimento, non come linea di ricerca.",
+      "next_action_kind": "NONE"
     },
     {
       "id": "C-013",
@@ -175,7 +181,8 @@
         "test/fiorino/test_m5_models.py::TestGrid::test_an_out_of_range_rho_is_clamped_not_propagated"
       ],
       "evidence": "82 fallbacks across 311 fits, 44 in one season.",
-      "limits": "A high fallback rate changes the prediction distribution. Now gated: see C-021."
+      "limits": "A high fallback rate changes the prediction distribution. Now gated: see C-021.",
+      "next_action_kind": "MEASUREMENT"
     },
     {
       "id": "C-014",
@@ -200,7 +207,8 @@
       ],
       "evidence": "0 of 10 datasets. All 20 confidence intervals contain zero; 18 of 20 point estimates are worse. Unconstrained optimal weight negative in 5 of 10, to -0.51.",
       "limits": "The ablation itself lives in scripts/validate_m6.py, network-fetching. The suite verifies the machinery, not the finding.",
-      "next_action": "Ripetere l'ablation con una fonte informativa NUOVA al posto del modello di gol. Ripeterla con un altro modello di gol e gia stato risposto."
+      "next_action": "Ripetere l'ablation con una fonte informativa NUOVA al posto del modello di gol. Ripeterla con un altro modello di gol e gia stato risposto.",
+      "next_action_kind": "MEASUREMENT"
     },
     {
       "id": "C-016",
@@ -212,7 +220,8 @@
       ],
       "evidence": "Three datasets gave a training weight of 17-21% and no out-of-sample gain; two of three got worse.",
       "limits": "The suite proves only that an in-sample gain cannot be negative, which is arithmetic. The vanishing out-of-sample is measured by scripts/validate_m6.py, network-fetching and not automatic.",
-      "next_action": "Nessuna. Il risultato serve come vincolo di progettazione: piu capacita nasconde questo fenomeno, non lo risolve."
+      "next_action": "Nessuna. Il risultato serve come vincolo di progettazione: piu capacita nasconde questo fenomeno, non lo risolve.",
+      "next_action_kind": "NONE"
     },
     {
       "id": "C-017",
@@ -237,7 +246,8 @@
       ],
       "evidence": "14 situations x 3 selections over 3,502 matches; 0 survive at q = 0.10 with replication in 7 of 10.",
       "limits": "MINIMUM DETECTABLE EFFECT 0.039-0.072 probability points. This excludes coarse mispricing, NOT a 2-3 point bias that would be highly profitable.",
-      "next_action": "Aumentare il campione di un ordine di grandezza per scendere sotto i 2 punti di probabilita, oppure accettare che effetti piccoli restino invisibili."
+      "next_action": "Aumentare il campione di un ordine di grandezza per scendere sotto i 2 punti di probabilita, oppure accettare che effetti piccoli restino invisibili.",
+      "next_action_kind": "DATA_ACQUISITION"
     },
     {
       "id": "C-019",
@@ -249,7 +259,8 @@
       ],
       "evidence": "The de-vigged price tracks realised frequency in every band from 3% to 85%, max |z| = 1.38. On raw prices the margin rises toward FAVOURITES, not longshots.",
       "limits": "Pinnacle 1X2 only. Says nothing about other books or markets.",
-      "next_action": "Ripetere su un book soft e su mercati diversi da 1X2, dove il bias favorito-longshot potrebbe essere presente anche se su Pinnacle non lo e."
+      "next_action": "Ripetere su un book soft e su mercati diversi da 1X2, dove il bias favorito-longshot potrebbe essere presente anche se su Pinnacle non lo e.",
+      "next_action_kind": "DATA_ACQUISITION"
     },
     {
       "id": "C-020",
@@ -262,7 +273,8 @@
         "test/fiorino/test_m65_event_study.py::TestDifferenceInDifferences::test_no_effect_is_not_invented"
       ],
       "evidence": "require_timestamped() raises. The difference-in-differences finds a planted effect and invents none.",
-      "limits": "Validated on synthetic data only. It has never seen a real information event."
+      "limits": "Validated on synthetic data only. It has never seen a real information event.",
+      "next_action_kind": "DATA_ACQUISITION"
     },
     {
       "id": "C-022",
@@ -288,7 +300,8 @@
         "test/fiorino/test_deploy_contract.py::TestRequirements::test_pytz_is_declared_explicitly"
       ],
       "evidence": "Verified in an empty virtualenv: 19s build, 575 MB peak, all six pages HTTP 200.",
-      "limits": "In that environment the de-vig is MULTIPLICATIVE, not SHIN. The System page says so."
+      "limits": "In that environment the de-vig is MULTIPLICATIVE, not SHIN. The System page says so.",
+      "next_action_kind": "NONE"
     },
     {
       "id": "C-101",
@@ -298,7 +311,8 @@
       "verified_by": [],
       "evidence": null,
       "limits": "No reachable source carries a lineup publication instant. published_at is NOT NULL with no default, so the schema refuses substitutes.",
-      "next_action": "Avviare una raccolta IN AVANTI delle formazioni con l'istante di pubblicazione su un campionato. Il dato non esiste retroattivamente."
+      "next_action": "Avviare una raccolta IN AVANTI delle formazioni con l'istante di pubblicazione su un campionato: nessuna fonte pubblica, gratuita o a pagamento, archivia quel dato retroattivamente.",
+      "next_action_kind": "DATA_ACQUISITION"
     },
     {
       "id": "C-102",
@@ -306,9 +320,10 @@
       "claim": "Market microstructure — speed, breadth, reversal, price discovery — carries exploitable information.",
       "status": "DATA_GAP",
       "verified_by": [],
-      "evidence": "Ceiling measured: the whole prematch-to-close channel is worth 0.00099 Brier, about a tenth of the model's deficit.",
+      "evidence": "Tetto misurato: l'intero canale prematch-chiusura vale 0.00099 Brier, circa un decimo del divario del modello. Fonte candidata verificata: il dump SQL di BeatTheBookie ha odds_datetime per osservazione e 32 bookmaker per nome; l'export .txt della stessa fonte NO, e ricampionato su griglia oraria.",
       "limits": "Not one TIMESTAMPED row exists. odds_as_of() is written, tested and never exercised.",
-      "next_action": "Sbloccare una fonte di quote timestampate. La piu vicina e BeatTheBookie (~113.860 partite), ferma dietro Dropbox e Google Drive."
+      "next_action": "Acquisire fuori da questo ambiente il DUMP SQL di BeatTheBookie (non i file .txt) e costruirne l'adapter. La granularita oraria dell'export non risolverebbe l'evento formazioni.",
+      "next_action_kind": "DATA_ACQUISITION"
     },
     {
       "id": "C-103",
@@ -318,7 +333,8 @@
       "verified_by": [],
       "evidence": null,
       "limits": "Never tested. Nothing in M1-M6 bears on it: 'model A plus X gives nothing' does not imply 'any use of X gives nothing'.",
-      "next_action": "Testare UNA feature alla volta con l'ablation MARKET / MARKET+X, partendo da quella con l'istante piu netto. Non aggiungerle tutte insieme."
+      "next_action": "Testare UNA feature alla volta con l'ablation MARKET / MARKET+X, partendo da quella con l'istante piu netto. Non aggiungerle tutte insieme.",
+      "next_action_kind": "MEASUREMENT"
     },
     {
       "id": "C-104",
@@ -330,7 +346,8 @@
       ],
       "evidence": null,
       "limits": "Covered by unit tests, but the validation never exercised it: with min_train = 60 every team has played by the first fit. Prior fraction was 0.0% in all 10 datasets.",
-      "next_action": "Quotare in cross-season, dove le neopromosse arrivano senza storico, e misurare la frazione di predizioni da prior."
+      "next_action": "Quotare in cross-season, dove le neopromosse arrivano senza storico, e misurare la frazione di predizioni da prior.",
+      "next_action_kind": "MEASUREMENT"
     },
     {
       "id": "C-105",
@@ -342,7 +359,8 @@
       ],
       "evidence": null,
       "limits": "55 selections per fixture are priced and verified internally coherent, but no reference close exists for them in this data, so they are never measured against the market.",
-      "next_action": "Acquisire una chiusura di riferimento per handicap e totals, oppure dichiarare che quei mercati restano non misurabili con questa fonte."
+      "next_action": "Acquisire una chiusura di riferimento per handicap e totals, oppure dichiarare che quei mercati restano non misurabili con questa fonte.",
+      "next_action_kind": "DATA_ACQUISITION"
     },
     {
       "id": "C-200",
@@ -385,6 +403,19 @@
         "test/fiorino/test_signal_score.py::TestUnknownComponentsAreExcluded::test_weights_renormalise_over_what_is_known"
       ],
       "evidence": "Liquidity defaulted to 1.0 and added its full weight to every score: a worthless opportunity came out at 0.0502 instead of near zero.",
+      "limits": null
+    },
+    {
+      "id": "C-026",
+      "milestone": "AUDIT",
+      "claim": "A source cannot be marked point-in-time usable without a verified absolute instant.",
+      "status": "PROVEN",
+      "verified_by": [
+        "test/fiorino/test_sources_registry.py::TestPitUsabilityCannotBeClaimedLoosely::test_unknown_timestamp_quality_can_never_be_pit_usable",
+        "test/fiorino/test_sources_registry.py::TestPitUsabilityCannotBeClaimedLoosely::test_a_resampled_grid_is_never_pit_usable",
+        "test/fiorino/test_sources_registry.py::TestTheEvidenceIsRecorded::test_the_two_beatthebookie_artefacts_are_separate_entries"
+      ],
+      "evidence": "BeatTheBookie ships two artefacts from one database: the SQL dump carries odds_datetime per observation, the .txt export resamples onto a 72-point hourly grid and anonymises the bookmaker. Only the first is PIT usable.",
       "limits": null
     }
   ]
