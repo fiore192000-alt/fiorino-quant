@@ -278,6 +278,21 @@ dati e ingestione**, non modellazione. Lo schema per le quote timestampate e il
 suo lettore point-in-time sono già scritti e non sono mai stati esercitati —
 non esiste una riga `TIMESTAMPED` in nessuno dei 10 dataset.
 
+**La scansione di ipotesi** ha poi cercato ciò che i dati esistenti possono
+esprimere — riposo, congestione, motivazione, calendario, banda di prezzo — con
+la correzione per test multipli che quella procedura richiede: 14 situazioni ×
+3 selezioni su 3.502 partite, **zero sopravvissute**. Con il limite che
+qualifica il risultato: la scansione può escludere bias più grandi di ~4–7
+punti di probabilità, non bias di 2–3 punti, che sarebbero comunque molto
+profittevoli. Vedi
+[`validation/hypothesis-scan.md`](validation/hypothesis-scan.md).
+
+Il sottoprodotto più utile è una tabella di calibrazione: **il prezzo Pinnacle
+de-viggato segue la frequenza realizzata in ogni banda**, dal 3% all'85%,
+scostamento massimo |z| = 1.38. E il bias favorito-longshot, il mispricing più
+documentato in letteratura, **non è presente in questo mercato** — il margine
+non cresce verso i longshot, cresce verso i favoriti.
+
 M6.5 ha confermato il vincolo con delle prove invece che con un'assunzione:
 otto sonde di rete, un solo host raggiungibile, e nessuna fonte pubblica di
 quote timestampate sul calcio. Vedi
