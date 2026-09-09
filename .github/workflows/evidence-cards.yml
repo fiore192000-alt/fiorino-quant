@@ -21,3 +21,6 @@ jobs:
 
       - name: Ranking
         run: python scripts/edge_ranking.py
+
+      - name: Ultimi giorni
+        run: python scripts/last_days.py --days 3
