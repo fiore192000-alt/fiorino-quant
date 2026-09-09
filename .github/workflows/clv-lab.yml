@@ -1,0 +1,23 @@
+# Laboratorio CLV su piu' stagioni. Read-only: misura e stampa, non scrive.
+name: clv-lab
+
+on:
+  workflow_dispatch:
+    inputs:
+      seasons:
+        description: "Stagioni separate da spazio"
+        default: "2627 2526 2425"
+
+permissions:
+  contents: read
+
+jobs:
+  measure:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Misura
+        run: python scripts/clv_lab.py --seasons ${{ inputs.seasons || '2627 2526 2425' }}
