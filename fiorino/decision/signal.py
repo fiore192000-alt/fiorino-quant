@@ -43,6 +43,12 @@ class SignalLevel:
     it is a decision that requires a promotion record, not a constant.
     """
 
+    #: Not on the ladder. "I could not evaluate this" is not a weaker verdict
+    #: than "I evaluated it and found nothing" — it is a different kind of
+    #: statement, and putting it at the bottom of the same scale would let a
+    #: missing price read as a measured absence of edge.
+    DATA_GAP = "DATA_GAP"
+
     NO_SIGNAL = "NO_SIGNAL"
     WATCH = "WATCH"
     CANDIDATE = "CANDIDATE"
@@ -151,10 +157,14 @@ def classify(
         return Decision(SignalLevel.NO_SIGNAL, reasons)
 
     if edge is None:
-        reasons.append(Reason("NO_EDGE_COMPUTED",
-                              "nessuna previsione disponibile per questa selezione",
+        # DATA_GAP, not NO_SIGNAL. Without a price there is nothing to evaluate
+        # against, and reporting that as "no signal" would assert a measurement
+        # that was never made.
+        reasons.append(Reason("NO_ODDS",
+                              "nessuna quota disponibile: non valutabile, "
+                              "che è diverso da valutato e senza vantaggio",
                               False))
-        return Decision(SignalLevel.NO_SIGNAL, reasons)
+        return Decision(SignalLevel.DATA_GAP, reasons)
 
     if edge <= min_edge:
         reasons.append(Reason("EDGE_BELOW_THRESHOLD",

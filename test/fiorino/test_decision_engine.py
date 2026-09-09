@@ -70,8 +70,12 @@ class TestDisqualifiers:
                             n_settled=500, historical_clv=0.02)
         assert decision.level == SignalLevel.WATCH
 
-    def test_no_prediction_is_no_signal(self):
-        assert classify(edge=None).level == SignalLevel.NO_SIGNAL
+    def test_no_prediction_is_a_data_gap_not_no_signal(self):
+        """It used to return NO_SIGNAL, which asserted a measurement that never
+        happened. Without a price there is nothing to evaluate against."""
+        decision = classify(edge=None)
+        assert decision.level == SignalLevel.DATA_GAP
+        assert decision.level != SignalLevel.NO_SIGNAL
 
     def test_an_edge_below_threshold_is_no_signal(self):
         assert classify(edge=0.01, min_edge=0.02).level == SignalLevel.NO_SIGNAL

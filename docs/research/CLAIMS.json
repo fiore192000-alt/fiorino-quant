@@ -11,10 +11,11 @@
     "  TESTED_BUT_LIMITED  measured on real data, with a stated limit on scope or power",
     "  UNTESTED            the code path exists and no test exercises it",
     "  DATA_GAP            cannot be tested: the required data does not exist here",
-    "  NOT_DEMONSTRATED    claimed nowhere; listed so nobody assumes it"
+    "  NOT_DEMONSTRATED    claimed nowhere; listed so nobody assumes it",
+    "next_action: per ogni claim non PROVEN, il singolo passo che cambierebbe il suo stato. Rende il registro anche una roadmap: PROVEN -> TESTED_BUT_LIMITED -> UNTESTED -> DATA_GAP -> prossimo esperimento."
   ],
   "generated_for": "PR #1 gate audit",
-  "suite_size": 577,
+  "suite_size": 596,
   "claims": [
     {
       "id": "C-001",
@@ -136,7 +137,8 @@
         "test/fiorino/test_m3_clv.py::TestSignAgreement::test_beating_the_close_implies_positive_ev[0.4044-2.4-2.75]"
       ],
       "evidence": "Validation over 30 strategy-dataset pairs: CLV verdict correct 30/30, yield 23/30. Worst false positive +11.91% yield with CLV -0.0272, t=-11.5.",
-      "limits": "The 30/30 figure comes from scripts/validate_backtest.py, which fetches from the network and is NOT in the suite. Reproducible, not automatic."
+      "limits": "The 30/30 figure comes from scripts/validate_backtest.py, which fetches from the network and is NOT in the suite. Reproducible, not automatic.",
+      "next_action": "Portare la validazione a 30 coppie strategia-dataset dentro la suite, con un dataset committato come fixture, cosi il 30/30 diventa automatico."
     },
     {
       "id": "C-011",
@@ -148,7 +150,8 @@
         "test/fiorino/test_m5_models.py::TestModelVersusMarket::test_the_model_still_reports_many_apparent_edges"
       ],
       "evidence": "10 datasets out of 10, both Brier and log-loss. Mean Brier edge -0.01012.",
-      "limits": "The suite test runs on ENG_PL 2017-18 only. The 10-dataset result is in scripts/validate_models.py, network-fetching."
+      "limits": "The suite test runs on ENG_PL 2017-18 only. The 10-dataset result is in scripts/validate_models.py, network-fetching.",
+      "next_action": "Nessuna: il risultato e stabile su 10 dataset. Ripetere solo se cambia la fonte delle quote o il metodo di de-vig."
     },
     {
       "id": "C-012",
@@ -159,7 +162,8 @@
         "test/fiorino/test_m5_models.py::TestModelVersusMarket::test_the_model_still_reports_many_apparent_edges"
       ],
       "evidence": "1,037 of 2,940 selections above 5%, peak +521% EV, CLV negative 30 times out of 30.",
-      "limits": "The suite test runs on one league-season. The full count comes from scripts/validate_models.py, which fetches from the network and is not part of the automatic suite."
+      "limits": "The suite test runs on one league-season. The full count comes from scripts/validate_models.py, which fetches from the network and is not part of the automatic suite.",
+      "next_action": "Nessuna. E un corollario di C-011 e serve come avvertimento, non come linea di ricerca."
     },
     {
       "id": "C-013",
@@ -195,7 +199,8 @@
         "test/fiorino/test_m6_ensemble.py::TestArmsAgainstRealData::test_the_arms_are_selected_separately_by_name"
       ],
       "evidence": "0 of 10 datasets. All 20 confidence intervals contain zero; 18 of 20 point estimates are worse. Unconstrained optimal weight negative in 5 of 10, to -0.51.",
-      "limits": "The ablation itself lives in scripts/validate_m6.py, network-fetching. The suite verifies the machinery, not the finding."
+      "limits": "The ablation itself lives in scripts/validate_m6.py, network-fetching. The suite verifies the machinery, not the finding.",
+      "next_action": "Ripetere l'ablation con una fonte informativa NUOVA al posto del modello di gol. Ripeterla con un altro modello di gol e gia stato risposto."
     },
     {
       "id": "C-016",
@@ -206,7 +211,8 @@
         "test/fiorino/test_m6_ensemble.py::TestWeightRecoversWhatIsThere::test_the_in_sample_gain_is_never_negative"
       ],
       "evidence": "Three datasets gave a training weight of 17-21% and no out-of-sample gain; two of three got worse.",
-      "limits": "The suite proves only that an in-sample gain cannot be negative, which is arithmetic. The vanishing out-of-sample is measured by scripts/validate_m6.py, network-fetching and not automatic."
+      "limits": "The suite proves only that an in-sample gain cannot be negative, which is arithmetic. The vanishing out-of-sample is measured by scripts/validate_m6.py, network-fetching and not automatic.",
+      "next_action": "Nessuna. Il risultato serve come vincolo di progettazione: piu capacita nasconde questo fenomeno, non lo risolve."
     },
     {
       "id": "C-017",
@@ -230,7 +236,8 @@
         "test/fiorino/test_m7_hypothesis_scan.py::TestBenjaminiHochberg::test_a_strong_effect_survives"
       ],
       "evidence": "14 situations x 3 selections over 3,502 matches; 0 survive at q = 0.10 with replication in 7 of 10.",
-      "limits": "MINIMUM DETECTABLE EFFECT 0.039-0.072 probability points. This excludes coarse mispricing, NOT a 2-3 point bias that would be highly profitable."
+      "limits": "MINIMUM DETECTABLE EFFECT 0.039-0.072 probability points. This excludes coarse mispricing, NOT a 2-3 point bias that would be highly profitable.",
+      "next_action": "Aumentare il campione di un ordine di grandezza per scendere sotto i 2 punti di probabilita, oppure accettare che effetti piccoli restino invisibili."
     },
     {
       "id": "C-019",
@@ -241,7 +248,8 @@
         "test/fiorino/test_m7_hypothesis_scan.py::TestTheHypothesisFamily::test_the_longshot_control_is_evaluated_per_selection"
       ],
       "evidence": "The de-vigged price tracks realised frequency in every band from 3% to 85%, max |z| = 1.38. On raw prices the margin rises toward FAVOURITES, not longshots.",
-      "limits": "Pinnacle 1X2 only. Says nothing about other books or markets."
+      "limits": "Pinnacle 1X2 only. Says nothing about other books or markets.",
+      "next_action": "Ripetere su un book soft e su mercati diversi da 1X2, dove il bias favorito-longshot potrebbe essere presente anche se su Pinnacle non lo e."
     },
     {
       "id": "C-020",
@@ -289,7 +297,8 @@
       "status": "DATA_GAP",
       "verified_by": [],
       "evidence": null,
-      "limits": "No reachable source carries a lineup publication instant. published_at is NOT NULL with no default, so the schema refuses substitutes."
+      "limits": "No reachable source carries a lineup publication instant. published_at is NOT NULL with no default, so the schema refuses substitutes.",
+      "next_action": "Avviare una raccolta IN AVANTI delle formazioni con l'istante di pubblicazione su un campionato. Il dato non esiste retroattivamente."
     },
     {
       "id": "C-102",
@@ -298,7 +307,8 @@
       "status": "DATA_GAP",
       "verified_by": [],
       "evidence": "Ceiling measured: the whole prematch-to-close channel is worth 0.00099 Brier, about a tenth of the model's deficit.",
-      "limits": "Not one TIMESTAMPED row exists. odds_as_of() is written, tested and never exercised."
+      "limits": "Not one TIMESTAMPED row exists. odds_as_of() is written, tested and never exercised.",
+      "next_action": "Sbloccare una fonte di quote timestampate. La piu vicina e BeatTheBookie (~113.860 partite), ferma dietro Dropbox e Google Drive."
     },
     {
       "id": "C-103",
@@ -307,7 +317,8 @@
       "status": "UNTESTED",
       "verified_by": [],
       "evidence": null,
-      "limits": "Never tested. Nothing in M1-M6 bears on it: 'model A plus X gives nothing' does not imply 'any use of X gives nothing'."
+      "limits": "Never tested. Nothing in M1-M6 bears on it: 'model A plus X gives nothing' does not imply 'any use of X gives nothing'.",
+      "next_action": "Testare UNA feature alla volta con l'ablation MARKET / MARKET+X, partendo da quella con l'istante piu netto. Non aggiungerle tutte insieme."
     },
     {
       "id": "C-104",
@@ -318,7 +329,8 @@
         "test/fiorino/test_m5_models.py::TestUnseenTeams::test_a_promoted_side_is_priced_from_a_prior"
       ],
       "evidence": null,
-      "limits": "Covered by unit tests, but the validation never exercised it: with min_train = 60 every team has played by the first fit. Prior fraction was 0.0% in all 10 datasets."
+      "limits": "Covered by unit tests, but the validation never exercised it: with min_train = 60 every team has played by the first fit. Prior fraction was 0.0% in all 10 datasets.",
+      "next_action": "Quotare in cross-season, dove le neopromosse arrivano senza storico, e misurare la frazione di predizioni da prior."
     },
     {
       "id": "C-105",
@@ -329,7 +341,8 @@
         "test/fiorino/test_m5_models.py::TestMultiMarketPricing::test_markets_agree_with_each_other"
       ],
       "evidence": null,
-      "limits": "55 selections per fixture are priced and verified internally coherent, but no reference close exists for them in this data, so they are never measured against the market."
+      "limits": "55 selections per fixture are priced and verified internally coherent, but no reference close exists for them in this data, so they are never measured against the market.",
+      "next_action": "Acquisire una chiusura di riferimento per handicap e totals, oppure dichiarare che quei mercati restano non misurabili con questa fonte."
     },
     {
       "id": "C-200",
@@ -348,6 +361,31 @@
       "verified_by": [],
       "evidence": null,
       "limits": "Measured: THIS model does not beat it, and the close is barely better than the prematch price. Neither is a statement about efficiency."
+    },
+    {
+      "id": "C-024",
+      "milestone": "PR2",
+      "claim": "A fixture with no price is reported as a data gap, never as an absence of edge.",
+      "status": "PROVEN",
+      "verified_by": [
+        "test/fiorino/test_pr2_opportunities.py::TestNoOddsIsNeverScoredAsZero::test_the_score_is_none_not_zero",
+        "test/fiorino/test_pr2_opportunities.py::TestNoOddsIsNeverScoredAsZero::test_the_decision_is_data_gap_not_no_signal",
+        "test/fiorino/test_pr2_opportunities.py::TestTheStatesAreIndependent::test_an_upcoming_fixture_with_no_price_is_a_data_gap_not_a_verdict"
+      ],
+      "evidence": "score_signal() returns value=None with data_gap='NO_ODDS'; classify() returns DATA_GAP, which is not on the ladder.",
+      "limits": "The independence is enforced in the view, the score and the decision. A future caller could still collapse them when rendering, which no test can prevent."
+    },
+    {
+      "id": "C-025",
+      "milestone": "PR2",
+      "claim": "An unknown score component is excluded rather than counted as perfect.",
+      "status": "PROVEN",
+      "verified_by": [
+        "test/fiorino/test_signal_score.py::TestUnknownComponentsAreExcluded::test_an_unknown_component_is_not_scored_as_perfect",
+        "test/fiorino/test_signal_score.py::TestUnknownComponentsAreExcluded::test_weights_renormalise_over_what_is_known"
+      ],
+      "evidence": "Liquidity defaulted to 1.0 and added its full weight to every score: a worthless opportunity came out at 0.0502 instead of near zero.",
+      "limits": null
     }
   ]
 }

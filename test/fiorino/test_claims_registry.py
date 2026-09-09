@@ -124,6 +124,40 @@ class TestWeakerStatusesAreHonest:
         assert "MINIMUM DETECTABLE EFFECT" in claim["limits"].upper()
 
 
+class TestTheRegistryIsAlsoARoadmap:
+    """Every claim that is not PROVEN owes the single step that would change
+    its status. Without it the registry records where the project is and not
+    where it is going, and a status with no way out becomes permanent by
+    default."""
+
+    NEEDS_ACTION = {"TESTED_BUT_LIMITED", "UNTESTED", "DATA_GAP"}
+
+    def test_every_unfinished_claim_names_its_next_action(self, registry):
+        missing = [c["id"] for c in registry["claims"]
+                   if c["status"] in self.NEEDS_ACTION and not c.get("next_action")]
+        assert not missing, f"no next_action: {missing}"
+
+    def test_a_next_action_is_an_action(self, registry):
+        for claim in registry["claims"]:
+            action = claim.get("next_action")
+            if action and not action.lower().startswith("nessuna"):
+                assert len(action) > 40, claim["id"]
+
+    def test_a_proven_claim_needs_no_next_action(self, registry):
+        """A PROVEN claim with a pending step is not proven."""
+        for claim in registry["claims"]:
+            if claim["status"] == "PROVEN":
+                assert "next_action" not in claim, claim["id"]
+
+    def test_the_data_gaps_point_at_data_not_at_modelling(self, registry):
+        """The bottleneck is time, not the model. If a DATA_GAP's next action
+        talks about models, the diagnosis has drifted."""
+        for claim in registry["claims"]:
+            if claim["status"] == "DATA_GAP":
+                action = claim["next_action"].lower()
+                assert any(w in action for w in ("quot", "dat", "raccolt", "fonte")), claim["id"]
+
+
 class TestTheRegistryMatchesTheDocs:
     def test_the_data_gaps_agree_with_the_data_catalog(self, registry):
         catalog = (REPO / "docs/research/DATA_CATALOG.md").read_text().lower()

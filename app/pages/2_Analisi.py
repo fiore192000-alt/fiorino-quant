@@ -19,7 +19,7 @@ from fiorino.decision import classify, score_signal  # noqa: E402
 # "No module named 'penaltyblog.metrics.metrics'" — verificato in un venv
 # pulito, non ipotizzato. Il walk-forward gira offline, negli script.
 
-BADGE = {"NO_SIGNAL": "⚪", "WATCH": "🔵", "CANDIDATE": "🟡", "QUALIFIED": "🟢"}
+from app.lib import BADGE  # noqa: E402
 
 st.title("Analisi")
 label = st.session_state.get("dataset")

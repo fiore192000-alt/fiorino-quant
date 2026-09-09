@@ -77,11 +77,16 @@ class TestWeighting:
     def test_the_weights_are_a_proper_mixture(self):
         assert sum(GRADED_WEIGHTS.values()) == pytest.approx(1.0)
 
-    def test_an_empty_signal_scores_zero(self):
-        assert score_signal().value == pytest.approx(0.0, abs=0.06)
+    def test_an_empty_signal_is_not_scorable_rather_than_zero(self):
+        """It used to score ~0. That was wrong: zero asserts an assessment
+        that never happened. Nothing to assess is a data gap."""
+        score = score_signal()
+        assert score.value is None
+        assert not score.scorable
+        assert score.data_gap == "NO_ODDS"
 
     def test_the_score_stays_within_bounds(self):
-        for kwargs in ({}, STRONG, {**STRONG, "edge": 99.0},
+        for kwargs in (STRONG, {**STRONG, "edge": 99.0},
                        {**STRONG, "n_settled": 10**9}):
             assert 0.0 <= score_signal(**kwargs).value <= 1.0
 
@@ -96,3 +101,36 @@ class TestExplanation:
     def test_gates_and_grades_are_distinguishable(self):
         kinds = {r[2] for r in score_signal(**STRONG).explain()}
         assert kinds == {"gate", "graded"}
+
+
+class TestUnknownComponentsAreExcluded:
+    """An unknown component must not count as a perfect one.
+
+    Liquidity defaulted to 1.0 and therefore added its full weight to every
+    score, including scores for opportunities with essentially no edge. A
+    worthless signal came out at 0.0502 rather than near zero — inflated by the
+    weight of the one thing nobody measures.
+    """
+
+    def test_an_unknown_component_is_not_scored_as_perfect(self):
+        weak = score_signal(edge=0.0001)
+        assert weak.value < 0.01
+
+    def test_it_is_excluded_rather_than_imputed(self):
+        assert "liquidity" not in score_signal(edge=0.03).graded
+
+    def test_a_known_component_is_kept(self):
+        score = score_signal(edge=0.03, liquidity=0.5)
+        assert score.graded["liquidity"] == 0.5
+
+    def test_weights_renormalise_over_what_is_known(self):
+        """With liquidity absent, a perfect score on everything else must still
+        reach 1.0 — otherwise the missing weight would cap every signal."""
+        full = score_signal(edge=0.05, historical_clv=0.03, n_settled=500,
+                            replications=2, adversarial_passed=10)
+        assert full.value == pytest.approx(1.0)
+
+    def test_knowing_liquidity_can_only_move_the_score(self):
+        without = score_signal(**STRONG)
+        poor = score_signal(**STRONG, liquidity=0.0)
+        assert poor.value < without.value

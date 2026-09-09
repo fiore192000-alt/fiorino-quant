@@ -84,7 +84,8 @@ def system_status() -> dict:
     return status
 
 
-BADGE = {"NO_SIGNAL": "⚪", "WATCH": "🔵", "CANDIDATE": "🟡", "QUALIFIED": "🟢"}
+BADGE = {"DATA_GAP": "⬛", "NO_SIGNAL": "⚪", "WATCH": "🔵",
+         "CANDIDATE": "🟡", "QUALIFIED": "🟢"}
 
 
 def evidence_card(title: str, decision, score=None, *, facts=None):
@@ -100,9 +101,16 @@ def evidence_card(title: str, decision, score=None, *, facts=None):
         for key, value in (facts or {}).items():
             st.markdown(f"**{key}** {value}")
 
-        if score is not None:
+        if score is not None and score.scorable:
             st.progress(min(max(score.value, 0.0), 1.0),
                         text=f"qualita del segnale {score.value:.2f}")
+        elif score is not None:
+            # Deliberately not a zero bar. An empty bar would read as
+            # "assessed, found worthless", which is the falsification this
+            # whole distinction exists to prevent.
+            st.info(f"**non valutabile** — {score.data_gap}. Non è un "
+                    f"punteggio di zero: è l'assenza di ciò che serve per "
+                    f"calcolarne uno.")
             if score.failed_gate:
                 st.error(f"gate **{score.failed_gate}** fallito: il punteggio è "
                          f"zero indipendentemente dal resto")

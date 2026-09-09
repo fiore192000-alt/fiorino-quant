@@ -50,12 +50,24 @@ def _clamp(x: float) -> float:
 
 @dataclass
 class SignalScore:
-    value: float
+    #: None when the signal could not be scored at all.
+    #:
+    #: This is NOT zero, and the difference is the whole point. Zero means
+    #: "evaluated, and found no advantage". None means "could not evaluate".
+    #: Collapsing them turns a missing price into a measured absence of edge,
+    #: which is a falsification: the system would be claiming to have looked.
+    value: float | None
     gates: dict[str, float] = field(default_factory=dict)
     graded: dict[str, float] = field(default_factory=dict)
     #: Which gate, if any, collapsed the score. The most useful single field:
     #: a score of zero is not informative, the reason for it is.
     failed_gate: str | None = None
+    #: Why it could not be scored. Set exactly when value is None.
+    data_gap: str | None = None
+
+    @property
+    def scorable(self) -> bool:
+        return self.value is not None
 
     @property
     def weakest(self) -> str | None:
@@ -67,6 +79,8 @@ class SignalScore:
 
     def explain(self) -> list[tuple[str, float, str]]:
         """(component, value, kind), worst first — the order a reader needs."""
+        if not self.scorable:
+            return []
         rows = [(k, v, "gate") for k, v in self.gates.items()]
         rows += [(k, v, "graded") for k, v in self.graded.items()]
         return sorted(rows, key=lambda r: r[1])
@@ -74,6 +88,7 @@ class SignalScore:
 
 def score_signal(
     *,
+    price: float | None = None,
     edge: float | None = None,
     historical_clv: float | None = None,
     n_settled: int = 0,
@@ -89,11 +104,18 @@ def score_signal(
 ) -> SignalScore:
     """Score one opportunity in [0, 1].
 
+    Returns a score with ``value is None`` when there is no price to evaluate
+    against. That case is a DATA GAP and must never be rendered as zero: zero
+    says the opportunity was assessed and found worthless, which would be a
+    claim the system has not earned.
+
     Every component saturates. A CLV of +20% does not score twice a CLV of
     +10%: past a plausible ceiling, a larger number is more likely to be a
     small sample than a bigger edge, and letting it dominate would reward
     exactly the wrong thing.
     """
+    if price is None and edge is None:
+        return SignalScore(value=None, data_gap="NO_ODDS")
     gates = {
         "pit_confidence": 0.0 if pit_violations else 1.0,
         "freshness": 0.0 if (data_age is not None and data_age > stale_after) else 1.0,
@@ -114,15 +136,23 @@ def score_signal(
         "sample": _clamp(n_settled / 500.0),
         "replication": _clamp(replications / max(replications_required, 1)),
         "adversarial": _clamp(adversarial_passed / max(adversarial_total, 1)),
-        "liquidity": 1.0 if liquidity is None else _clamp(liquidity),
+        # None, not 1.0. An unknown component must not count as a perfect one:
+        # that silently inflates every score by the weight of whatever we
+        # happen not to measure, and liquidity is never measured today.
+        "liquidity": None if liquidity is None else _clamp(liquidity),
     }
 
     gate_product = 1.0
     for value in gates.values():
         gate_product *= value
 
-    total_weight = sum(GRADED_WEIGHTS.values())
-    weighted = sum(GRADED_WEIGHTS[k] * graded[k] for k in GRADED_WEIGHTS) / total_weight
+    # Unknown components are EXCLUDED and the weights renormalised over what
+    # is actually known. Imputing a value would be inventing a measurement.
+    known = {k: v for k, v in graded.items() if v is not None}
+    total_weight = sum(GRADED_WEIGHTS[k] for k in known)
+    if total_weight <= 0:
+        return SignalScore(value=None, data_gap="NO_COMPONENTS_KNOWN")
+    weighted = sum(GRADED_WEIGHTS[k] * known[k] for k in known) / total_weight
 
     return SignalScore(value=gate_product * weighted, gates=gates,
-                       graded=graded, failed_gate=failed)
+                       graded=known, failed_gate=failed)
