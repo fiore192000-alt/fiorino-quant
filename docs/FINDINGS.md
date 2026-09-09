@@ -302,6 +302,16 @@ e non sono state simulate su fixture per farle sembrare tali.
 
 ---
 
+## L'app
+
+[`architecture/webapp.md`](architecture/webapp.md) — dashboard Streamlit
+apribile da telefono. Mostra lo stato reale del laboratorio: **nessun edge
+validato**, e il vincolo è nel codice (`PROMOTED = {}`) con un test che
+fallisce se viene alzato senza una promozione registrata. Non esiste un livello
+`BET`.
+
+---
+
 ## Protocollo di ricerca
 
 Il laboratorio ha ora regole scritte, non solo consuetudini:

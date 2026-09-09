@@ -77,10 +77,17 @@ setup(
     name="penaltyblog",
     version="1.12.0",
     description="Library from http://pena.lt/y/blog for scraping and modelling football (soccer) data",
+    # Fiorino Quant lives beside penaltyblog and must be declared, or
+    # `pip install .` silently ships nineteen penaltyblog packages and none of
+    # fiorino's twenty-seven. That was true until this line changed, and the
+    # test suite could not see it: tests run from the repository root, where
+    # `import fiorino` resolves from the working directory rather than from
+    # anything that was installed.
     packages=find_packages(
-        include=["penaltyblog", "penaltyblog.*"],
-        exclude=["penaltyblog.test", "penaltyblog.docs"],
+        include=["penaltyblog", "penaltyblog.*", "fiorino", "fiorino.*"],
+        exclude=["penaltyblog.test", "penaltyblog.docs", "test", "test.*"],
     ),
+    package_data={"fiorino": ["data/db/migrations/*.sql"]},
     cmdclass={"build_py": build_py},
     ext_modules=cythonize(extensions, compiler_directives={"language_level": "3"}),
     install_requires=[

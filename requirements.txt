@@ -1,0 +1,14 @@
+# Streamlit Community Cloud installa da qui.
+#
+# Deliberatamente minimale: l'app ha bisogno del magazzino, del motore di
+# decisione e dell'adapter dei modelli, non dell'intero penaltyblog con le sue
+# estensioni Cython — che su Community Cloud allungherebbero il build senza
+# servire a nulla di ciò che la dashboard mostra.
+streamlit>=1.36
+duckdb>=1.0
+pyarrow
+numpy
+pandas
+requests
+scipy
+penaltyblog>=1.12

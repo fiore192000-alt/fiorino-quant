@@ -122,27 +122,155 @@ class TestViewContract:
 
 
 class TestNoRawTableAccessInConsumers:
-    """The structural guard: consumers must go through the PIT reader."""
+    """The structural guard: deciders must go through the PIT reader.
 
-    RAW_TABLES = ("matches", "match_results", "odds_snapshots", "team_aliases")
-    GUARDED = ("strategy", "backtest", "portfolio", "staking", "pricing")
+    The list of guarded packages used to live here, and everything not on it
+    was silently exempt. It now lives in fiorino.data.access.roles beside the
+    reader it protects, and a package on NEITHER list fails: the default is
+    "declare which you are", not "you are free".
+    """
 
-    def test_consumer_packages_never_name_a_raw_table(self):
+    def _root(self):
         from pathlib import Path
 
         import fiorino
 
-        root = Path(fiorino.__file__).parent
-        offenders = []
-        for package in self.GUARDED:
+        return Path(fiorino.__file__).parent
+
+    def test_every_package_declares_a_role(self):
+        """A package that declares nothing inherits no rule, and the guard
+        would say nothing about it forever."""
+        from fiorino.data.access.roles import DECIDERS, PRODUCERS
+
+        root = self._root()
+        declared = set(DECIDERS) | set(PRODUCERS)
+        found = {p.name for p in root.iterdir()
+                 if p.is_dir() and not p.name.startswith(("_", "."))}
+        assert found <= declared, (
+            f"undeclared packages: {sorted(found - declared)}. Add each to "
+            "DECIDERS or PRODUCERS in fiorino/data/access/roles.py with the "
+            "reason, so the guard covers it."
+        )
+
+    def _reads(self, packages, tables):
+        root = self._root()
+        found = []
+        for package in packages:
             for path in (root / package).rglob("*.py"):
                 text = path.read_text()
-                for table in self.RAW_TABLES:
-                    if f"FROM {table}" in text or f"from {table}" in text:
+                for table in tables:
+                    if f"FROM {table}" in text or f"JOIN {table}" in text:
+                        found.append((package, path.name, table))
+        return found
+
+    def test_deciders_never_name_external_history(self):
+        from fiorino.data.access.roles import (
+            BOUNDED_READS,
+            DECIDERS,
+            HISTORY_TABLES,
+        )
+
+        offenders = [r for r in self._reads(DECIDERS, HISTORY_TABLES)
+                     if r not in BOUNDED_READS]
+        assert not offenders, (
+            "these modules query external history directly and can therefore "
+            f"see the future; read through PointInTimeView instead: {offenders}"
+        )
+
+    def test_every_bounded_read_is_still_real(self):
+        """An exemption for a read that no longer exists is stale permission.
+        It would quietly re-authorise the next edit that reintroduces it."""
+        from fiorino.data.access.roles import (
+            BOUNDED_READS,
+            DECIDERS,
+            HISTORY_TABLES,
+        )
+
+        actual = set(self._reads(DECIDERS, HISTORY_TABLES))
+        stale = [k for k in BOUNDED_READS if k not in actual]
+        assert not stale, f"exemptions for reads that no longer happen: {stale}"
+
+    def test_every_bounded_read_states_why_it_is_safe(self):
+        from fiorino.data.access.roles import BOUNDED_READS
+
+        for key, reason in BOUNDED_READS.items():
+            assert len(reason) > 80, f"{key}: the reason must be a reason"
+
+    def test_no_decider_reaches_a_closing_price_by_another_spelling(self):
+        """A closing price is also reachable as fair_probabilities filtered to
+        capture_precision = 'CLOSING'. The table-name check walks past that;
+        this hole was found by widening the guard, not by review."""
+        from fiorino.data.access.roles import CLOSING_ALLOWED, DECIDERS
+
+        root = self._root()
+        offenders = []
+        for package in DECIDERS:
+            for path in (root / package).rglob("*.py"):
+                if (package, path.name) in CLOSING_ALLOWED:
+                    continue
+                if "'CLOSING'" in path.read_text():
+                    offenders.append(f"{path.relative_to(root)}")
+        assert not offenders, (
+            "a decider names the closing line without a declared reason: "
+            f"{offenders}"
+        )
+
+    def test_every_closing_exemption_states_why_it_cannot_be_bet(self):
+        from fiorino.data.access.roles import CLOSING_ALLOWED
+
+        for key, reason in CLOSING_ALLOWED.items():
+            assert len(reason) > 80, f"{key}: the reason must be a reason"
+
+    def test_a_decider_may_read_its_own_ledger(self):
+        """The distinction widening the guard forced. A backtest reading the
+        equity curve it just wrote is not the same act as a strategy reading
+        match results, and a guard that cannot tell them apart is useless."""
+        from fiorino.data.access.roles import DECIDERS, LEDGER_TABLES
+
+        assert self._reads(DECIDERS, LEDGER_TABLES), (
+            "no decider reads a ledger table: either the engine changed or "
+            "this distinction is no longer needed"
+        )
+
+    def test_every_guarded_table_exists(self):
+        """A guard naming a table that does not exist cannot fail, and gives
+        the same reassurance as one that can. The previous list contained
+        'odds_snapshots', which is in no migration."""
+        from fiorino.data.access.roles import (
+            HISTORY_TABLES,
+            LEDGER_TABLES,
+            ORACLE_TABLES,
+        )
+
+        migrations = self._root() / "data" / "db" / "migrations"
+        schema = " ".join(p.read_text() for p in migrations.glob("*.sql"))
+        missing = [t for t in HISTORY_TABLES + LEDGER_TABLES + ORACLE_TABLES
+                   if f"TABLE {t}" not in schema and f"VIEW {t}" not in schema]
+        assert not missing, f"guarded names absent from the schema: {missing}"
+
+    def test_only_the_declared_oracle_reads_a_closing_price(self):
+        """Reading the close inside a decider is the clairvoyance the system
+        exists to prevent. Exactly one file may, and it is named."""
+        from fiorino.data.access.roles import (
+            DECIDERS,
+            ORACLE_ALLOWED,
+            ORACLE_TABLES,
+        )
+
+        root = self._root()
+        offenders = []
+        for package in DECIDERS:
+            for path in (root / package).rglob("*.py"):
+                key = (package, path.name)
+                if key in ORACLE_ALLOWED:
+                    continue
+                text = path.read_text()
+                for table in ORACLE_TABLES:
+                    if f"FROM {table}" in text or f"JOIN {table}" in text:
                         offenders.append(f"{path.relative_to(root)} -> {table}")
         assert not offenders, (
-            "these modules query raw tables directly and can therefore see the "
-            f"future; read through PointInTimeView instead: {offenders}"
+            "a closing price reached a decision. Only the declared oracle may "
+            f"read one: {offenders}"
         )
 
 
