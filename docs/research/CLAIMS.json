@@ -16,7 +16,7 @@
     "next_action_kind: DATA_ACQUISITION | MEASUREMENT | ENGINEERING | NONE. Dichiarato invece di dedotto dal testo: un DATA_GAP deve avere DATA_ACQUISITION, e cercarlo per sottostringa era fragile."
   ],
   "generated_for": "PR #1 gate audit",
-  "suite_size": 620,
+  "suite_size": 640,
   "claims": [
     {
       "id": "C-001",
@@ -417,6 +417,39 @@
       ],
       "evidence": "BeatTheBookie ships two artefacts from one database: the SQL dump carries odds_datetime per observation, the .txt export resamples onto a 72-point hourly grid and anonymises the bookmaker. Only the first is PIT usable.",
       "limits": null
+    },
+    {
+      "id": "C-027",
+      "milestone": "PR3",
+      "claim": "The market path layer refuses to build a series from untimestamped prices.",
+      "status": "PROVEN",
+      "verified_by": [
+        "test/fiorino/test_pr3_market_path.py::TestThePathIgnoresUntimestampedPrices::test_a_prematch_and_a_closing_price_produce_no_path",
+        "test/fiorino/test_pr3_market_path.py::TestThePathIgnoresUntimestampedPrices::test_an_empty_path_means_no_data_not_no_movement",
+        "test/fiorino/test_pr3_market_path.py::TestTheAdapterRefusesToInventAnInstant::test_a_row_without_a_datetime_is_refused"
+      ],
+      "evidence": "Every path view filters capture_precision = 'TIMESTAMPED'. The BeatTheBookie adapter raises MissingInstant rather than defaulting.",
+      "limits": "The views are empty today and that is correct: no TIMESTAMPED row exists. Emptiness means no data, never no movement."
+    },
+    {
+      "id": "C-106",
+      "milestone": "PR3",
+      "claim": "Minor leagues are less efficiently priced than major ones.",
+      "status": "UNTESTED",
+      "verified_by": [],
+      "evidence": null,
+      "limits": "Widely believed and never measured here. The scan covered seven top divisions only, and its power floor was 4-7 probability points; nothing in this project bears on Serie C, youth, women's or Scandinavian football.",
+      "next_action": "Acquisire quote per almeno un campionato minore e ripetere la scansione di calibrazione per banda di prezzo, prima di qualunque strategia.",
+      "next_action_kind": "DATA_ACQUISITION"
+    },
+    {
+      "id": "C-107",
+      "milestone": "PR3",
+      "claim": "A season of forward collection is enough to value each type of absence.",
+      "status": "NOT_DEMONSTRATED",
+      "verified_by": [],
+      "evidence": "The power calculation says otherwise: an unexpected goalkeeper absence occurs in roughly 3-5% of matches, so the 31 events needed for a 2-point effect require 600-1000 matches.",
+      "limits": "One league-season gives ~380 matches and ~15 goalkeeper events. Two leagues collected in parallel for a season is the realistic floor for the category breakdown; the aggregate question needs far less."
     }
   ]
 }
