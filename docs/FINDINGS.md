@@ -278,6 +278,13 @@ dati e ingestione**, non modellazione. Lo schema per le quote timestampate e il
 suo lettore point-in-time sono già scritti e non sono mai stati esercitati —
 non esiste una riga `TIMESTAMPED` in nessuno dei 10 dataset.
 
+M6.5 ha confermato il vincolo con delle prove invece che con un'assunzione:
+otto sonde di rete, un solo host raggiungibile, e nessuna fonte pubblica di
+quote timestampate sul calcio. Vedi
+[`architecture/data-acquisition.md`](architecture/data-acquisition.md). L'audit
+della catena point-in-time end-to-end è costruito e testato; le due fonti no,
+e non sono state simulate su fixture per farle sembrare tali.
+
 ---
 
 ## Indice
