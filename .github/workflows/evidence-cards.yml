@@ -1,0 +1,20 @@
+# The evidence engine, run on demand. Read-only: it reads the market, prints
+# the cards, and writes nothing anywhere.
+name: evidence-cards
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  cards:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Cards
+        run: python scripts/evidence_cards.py
