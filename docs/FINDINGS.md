@@ -328,6 +328,8 @@ Il laboratorio ha ora regole scritte, non solo consuetudini:
 * [**Efficienza per campionato**](validation/league-efficiency.md) — le
   prime divisioni sono indistinguibili fra loro: la dispersione fra campionati
   è più piccola dell'incertezza dentro un campionato.
+* [**Piano di acquisizione dati**](research/DATA_ACQUISITION_MASTER_PLAN.md) —
+  il codice è congelato, il dato no. Le tre azioni fuori da questo ambiente.
 * [**Audit delle fonti**](research/FREE_SOURCES_AUDIT.md) e
   [`SOURCES.json`](research/SOURCES.json) — otto fonti verificate campo per
   campo. Una sola è PIT-usabile, e non è raggiungibile da qui.

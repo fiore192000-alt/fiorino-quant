@@ -38,6 +38,7 @@ timestampata.
 | `marcoblume/pinnacle.data` | sì (Pinnacle) | moneyline, totals | MLB 2016 | **UTC reale** | no | pacchetto R | sì | raggiungibile | sì, ma | **non è calcio** |
 | Betfair Historical Data | exchange, non book | molti | 2015→oggi | **millisecondo, dichiarato** | no | account + download | «Basic» gratuito | **bloccato** | **non verificato** | schema e licenza non ispezionati da qui |
 | the-odds-api | sì | molti | limitato nel piano free | dichiarato per snapshot | sì | REST, chiave | free tier | **bloccato** | **non verificato** | profondità storica del piano free non accertata |
+| **OddsPortal** (via OddsHarvester) | sì, per nome | 1X2, AH, O/U, BTTS… | molte stagioni, 100+ campionati | **non verificata**: `--odds-history` dichiara il movimento, i campi non sono ispezionabili da qui | sì | scraping Playwright | strumento gratuito | **bloccato** | **no** | termini d'uso di un aggregatore commerciale, non letti |
 | `api-sports.io`, `football-data.org`, SofaScore, FBref | — | — | — | — | — | REST | vario | **bloccati** | **non verificato** | nessuna proprietà accertabile da qui |
 
 ---
@@ -115,6 +116,27 @@ Servono per studiare la microstruttura storica, non per alimentare un terminale
 live.
 
 ---
+
+## OddsPortal — l'offerta più ampia, e la meno verificabile
+
+`OddsHarvester` (MIT, su PyPI) espone un flag `--odds-history`, documentato come
+*«Include historical odds movement per match»*. Se quel movimento porta istanti
+assoluti, sarebbe la fonte con la copertura più larga trovata: 100+ campionati,
+sette mercati, e anche le partite future.
+
+Due ragioni per cui resta `PROMISING_BUT_UNVERIFIED` e non sale:
+
+1. **La struttura dei campi non è ispezionabile da qui.** `oddsportal.com` è
+   bloccato. Che il movimento porti un istante assoluto è plausibile e non
+   verificato, e la regola dice che una qualità di timestamp sconosciuta non
+   viene trattata come timestampata.
+2. **I termini d'uso non sono stati letti.** Lo strumento stesso avverte:
+   *«ensure compliance with their terms of service»*. Lo scraping di un
+   aggregatore commerciale è tipicamente vietato dai suoi termini. Non è una
+   valutazione tecnica e non spetta a questo audit risolverla: va decisa
+   leggendoli.
+
+La seconda ragione non sparisce verificando la prima.
 
 ## Cosa NON è stato assunto
 

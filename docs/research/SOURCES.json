@@ -230,6 +230,38 @@
       "cost": "gratuito",
       "licence": "non dichiarata nel repository",
       "legal_note": "Licenza assente. Non blocca la lettura per ricerca, blocca una ridistribuzione."
+    },
+    {
+      "id": "oddsportal-via-scraper",
+      "name": "OddsPortal (via OddsHarvester)",
+      "bookmaker_identifiable": true,
+      "bookmakers": [
+        "decine, per nome sulla pagina"
+      ],
+      "markets": [
+        "1X2",
+        "BTTS",
+        "DOUBLE_CHANCE",
+        "DRAW_NO_BET",
+        "TOTALS",
+        "EUROPEAN_HANDICAP",
+        "ASIAN_HANDICAP"
+      ],
+      "historical_depth": "molte stagioni, 100+ campionati dichiarati",
+      "timestamp_quality": "UNKNOWN",
+      "timestamp_evidence": "Il flag --odds-history dichiara 'historical odds movement per match'. La struttura dei campi NON e ispezionabile da qui: oddsportal.com e bloccato e il README non la documenta. Il movimento esiste; che porti un istante assoluto e plausibile e non verificato.",
+      "future_fixtures": true,
+      "access_method": "scraping via Playwright (pacchetto oddsharvester su PyPI, MIT)",
+      "access_documented": true,
+      "free": true,
+      "accessible_here": false,
+      "inaccessibility_reason": "environment access limitation: oddsportal.com bloccato dalla policy di egress",
+      "pit_usable": false,
+      "status": "PROMISING_BUT_UNVERIFIED",
+      "cost": "gratuito lo strumento; il costo reale e tempo di scraping e rischio di blocco",
+      "licence": "OddsHarvester e MIT; i DATI restano soggetti ai termini di oddsportal.com, NON ispezionati",
+      "legal_note": "Lo strumento stesso avverte: 'ensure compliance with their terms of service'. Lo scraping di un aggregatore commerciale e tipicamente vietato dai suoi termini. Prima di raccogliere o conservare payload vanno letti, e la decisione non e tecnica.",
+      "main_limitation": "Copertura e mercati sono l'offerta piu ampia trovata, ma la qualita del timestamp non e verificata e i termini d'uso non sono stati letti. Le due cose insieme la tengono fuori da qualunque uso PIT."
     }
   ]
 }
