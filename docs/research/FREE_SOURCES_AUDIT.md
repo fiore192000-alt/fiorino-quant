@@ -263,6 +263,31 @@ una raccolta.
 
 ---
 
+### `fixtures.csv` — la fonte che chiude il blocco mercato, e nient'altro
+
+Football-Data pubblica anche un file delle **partite non ancora giocate**, con
+Pinnacle (`PSH/PSD/PSA`) accanto a bet365. Leggerlo a un istante che possiamo
+nominare rende `captured_at` un istante vero: sarebbero le **prime quote
+TIMESTAMPED del progetto**, quelle che le quattro viste `v_market_*` aspettano
+restituendo zero righe.
+
+È un file pubblicato per il download, non una pagina da scrapare, e **non
+richiede token né account**. È l'unica fonte dell'intero audit di cui si possa
+dire questo.
+
+Non è però un feed: le quote del weekend sono raccolte il venerdì, quelle
+infrasettimanali il martedì. Dà uno o due punti prematch per partita, non un
+percorso. Chiude il blocco 2 della scheda e parte del 3; mai il consenso fra
+book né la reazione a un'informazione.
+
+E non recupera niente all'indietro. Le partite del 7-9 settembre 2026 restano
+un `DATA_GAP`, perché il mirror `datasets/football-datasets` — che sembrava la
+via d'uscita, committando ogni giorno — **scarta tutte le colonne di quota**,
+verificato leggendo il suo `process.py`: `COLUMNS_ORDER` ne elenca 22 e nessuna
+è un prezzo.
+
+---
+
 ## Cosa NON è stato assunto
 
 Per esplicito requisito, nessuna di queste equivalenze è stata usata:

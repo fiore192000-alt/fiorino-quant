@@ -343,16 +343,12 @@
     {
       "id": "datahub-football-datasets",
       "name": "datasets/football-datasets (datahub.io)",
-      "bookmaker_identifiable": true,
-      "bookmakers": [
-        "i book delle colonne Football-Data.co.uk"
-      ],
-      "markets": [
-        "1X2"
-      ],
+      "bookmaker_identifiable": false,
+      "bookmakers": [],
+      "markets": [],
       "historical_depth": "1993-oggi, i cinque campionati maggiori europei",
       "timestamp_quality": "NONE",
-      "timestamp_evidence": "Letto il README: aggiornamento quotidiano via GitHub Actions da Football-Data.co.uk. Sembra promettere un timestamp e non lo fa: la storia dei commit datta il momento in cui lo scraper ha girato, mentre i file contengono partite gia giocate. L'istante del commit e quindi successivo all'esito, non anteriore alla quota.",
+      "timestamp_evidence": "Letto scripts/process.py del repository stesso. COLUMNS_ORDER elenca 22 colonne — data, squadre, gol, esito, arbitro, tiri, falli, corner, cartellini — e nessuna quota, e la riga scritta e esattamente [row.get(col) for col in COLUMNS_ORDER]. Il mirror scarta ogni colonna di quota. Il commit quotidiano riguarda inoltre partite gia giocate, quindi l'istante cade dopo l'esito.",
       "future_fixtures": false,
       "access_method": "raw.githubusercontent, oppure datahub.io",
       "access_documented": true,
@@ -361,7 +357,7 @@
       "inaccessibility_reason": "",
       "pit_usable": false,
       "status": "NOT_SUITABLE",
-      "main_limitation": "Registrata proprio perche sembra la soluzione e non lo e. Un repository che committa ogni giorno da' a ogni riga un istante attestato da git, che sarebbe un limite superiore di conoscibilita onesto e non inventato; ma qui il commit quotidiano riguarda partite gia concluse, quindi l'istante cade dopo l'esito e non vincola nulla. La costruzione funzionerebbe solo su un file di partite FUTURE con quota, committato prima del calcio d'inizio, che questo repository non pubblica.",
+      "main_limitation": "Sembra due volte la soluzione e non lo e nessuna delle due. Il commit quotidiano darebbe a ogni riga un istante attestato da git, ma riguarda partite gia concluse: l'istante cade dopo l'esito. E anche volendolo usare solo per valutare a posteriori le partite di ieri, non si puo: il suo process.py butta via tutte le colonne di quota, verificato nel sorgente. Registrata perche e il fallimento piu istruttivo del gruppo.",
       "cost": "gratuito",
       "licence": "PDDL 1.0 (public domain) per i dataset dei campionati, dichiarata nel README",
       "legal_note": "Dedicazione al pubblico dominio sulla compilazione. I dati a monte restano di Football-Data.co.uk, con la sua clausola d'uso non commerciale non riletta qui."
@@ -389,6 +385,38 @@
       "cost": "gratuito, piano free con registrazione",
       "licence": "NON ispezionati i termini del piano gratuito: sono l'unica cosa da leggere prima di conservare payload oltre l'undici e l'istante",
       "legal_note": "API ufficiale del fornitore, non scraping: l'uso rientra in un piano che il fornitore stesso offre, il che e una posizione diversa da quella di un endpoint non ufficiale. Resta da leggere cosa il piano gratuito consente di conservare e ridistribuire."
+    },
+    {
+      "id": "footballdata-fixtures",
+      "name": "football-data.co.uk — fixtures.csv (partite non giocate)",
+      "bookmaker_identifiable": true,
+      "bookmakers": [
+        "Pinnacle Sports",
+        "bet365",
+        "William Hill",
+        "massimo di mercato",
+        "media di mercato"
+      ],
+      "markets": [
+        "1X2"
+      ],
+      "historical_depth": "nessuna: contiene solo le partite in arrivo. E una fonte per la raccolta IN AVANTI, e il suo valore cresce solo col tempo che la si lascia girare.",
+      "timestamp_quality": "UNKNOWN",
+      "timestamp_evidence": "Non e la fonte a fornire l'istante. Lo fornisce il nostro poll: il file contiene partite NON ancora giocate, quindi leggerlo a un momento che possiamo nominare rende captured_at un istante vero, e queste sarebbero le prime quote TIMESTAMPED del progetto. Il file stesso non porta orari di rilevazione.",
+      "timestamp_quality_expected": "ABSOLUTE_PER_OBSERVATION",
+      "unverified_because": "Nessuna richiesta e mai partita: football-data.co.uk e bloccato dalla policy di egress. Le colonne dell'adapter vengono dalle note pubblicate dal sito e dal fatto che le sue librerie client leggono fixtures.csv con gli stessi nomi; e possibile che il file delle partite future ne porti meno di un file di stagione. La prima esecuzione di record_odds.py --verify stampa COLUMNS per intero ed e la verifica.",
+      "future_fixtures": true,
+      "access_method": "download diretto di https://www.football-data.co.uk/fixtures.csv, nessun token e nessun account; il workflow .github/workflows/record-odds.yml fa un poll ogni 30 minuti e committa l'osservazione",
+      "access_documented": true,
+      "free": true,
+      "accessible_here": false,
+      "inaccessibility_reason": "environment access limitation: football-data.co.uk e bloccato dalla policy di egress (403 dal proxy). Il collector non gira qui, gira sui runner di GitHub Actions.",
+      "pit_usable": false,
+      "status": "PROMISING_BUT_UNVERIFIED",
+      "main_limitation": "Non e un feed. Football-Data raccoglie le quote del weekend il venerdi e quelle infrasettimanali il martedi, quindi da uno o due punti prematch per partita e non un percorso: chiude il blocco mercato della scheda e parte del movimento, mai il consenso fra book ne la reazione a un'informazione. E non recupera niente all'indietro: le partite non registrate restano un DATA_GAP.",
+      "cost": "gratuito, nessuna registrazione",
+      "licence": "NON ispezionata in questa sessione: il sito consente l'uso gratuito con una clausola non commerciale che andrebbe riletta prima di qualunque uso oltre la ricerca interna",
+      "legal_note": "File pubblicato dal sito per il download, non scraping di una pagina: e una posizione diversa da quella di un aggregatore interrogato con l'automazione di un browser. Resta da rileggere la clausola non commerciale."
     }
   ]
 }

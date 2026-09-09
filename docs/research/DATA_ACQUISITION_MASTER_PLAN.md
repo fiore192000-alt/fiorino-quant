@@ -215,6 +215,27 @@ nulla.** Servono entrambi. A1 e A3 sono paralleli, non sequenziali.
 
 ---
 
+## Fase C — costruita anche questa. Manca solo il merge.
+
+Il registratore di quote prematch esiste ed è testato:
+[documentazione](../architecture/odds-recorder.md).
+
+- `fiorino/data/ingest/odds_feed/recorder.py` — solo un **cambio** diventa un
+  prezzo; ogni poll resta registrato perché è ciò che rende misurabile il gap
+- `sources/footballdata_fixtures.py` — `fixtures.csv`, con Pinnacle
+- `.github/workflows/record-odds.yml` — un poll ogni 30 minuti
+- **nessun token, nessun account, nessun secret**
+
+A differenza della Fase B qui non serve nemmeno una registrazione. L'unica cosa
+fra questo file e una raccolta attiva è il **merge sul branch di default**.
+
+Da quel momento le partite del giorno hanno un prezzo Pinnacle prematch con un
+istante vero. Le partite già giocate senza registrazione, no: un collector
+raccoglie in avanti, ed è precisamente per questo che la data di partenza è la
+variabile che conta.
+
+---
+
 ## Fase C — Market Observatory reale
 
 Le viste esistono e sono vuote: `v_market_path`, `v_market_moves`,

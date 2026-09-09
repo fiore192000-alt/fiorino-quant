@@ -1,0 +1,64 @@
+# The odds recorder.
+#
+# Needs no token and no account: football-data.co.uk publishes fixtures.csv for
+# download. The only thing between this file and a running collection is being
+# on the default branch, because GitHub lists workflow_dispatch and fires
+# schedule only for workflows present there.
+name: record-odds
+
+on:
+  schedule:
+    # Every 30 minutes. The source itself moves far more slowly — Football-Data
+    # collects weekend odds on Fridays and midweek odds on Tuesdays — so most
+    # polls read an unchanged file. That is not waste: an unchanged read is the
+    # evidence that makes the NEXT observation's gap measurable, and only a
+    # CHANGE is folded into a new price.
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+    inputs:
+      verify:
+        description: "Report what the file contains, write nothing"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: record-odds
+  cancel-in-progress: false
+
+jobs:
+  poll:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Poll
+        run: |
+          if [ "${{ inputs.verify }}" = "true" ]; then
+            python scripts/record_odds.py --verify
+          else
+            python scripts/record_odds.py
+          fi
+
+      - name: Commit the observation
+        if: ${{ inputs.verify != true }}
+        run: |
+          if [ -z "$(git status --porcelain archive/)" ]; then
+            echo "niente da committare"
+            exit 0
+          fi
+          git config user.name  "fiorino-odds-recorder"
+          git config user.email "noreply@github.com"
+          git add archive/
+          git commit -m "odds: poll $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          for i in 1 2 3 4 5; do
+            git pull --rebase --autostash origin "${GITHUB_REF_NAME}" && \
+            git push origin "HEAD:${GITHUB_REF_NAME}" && exit 0
+            sleep $((i * 5))
+          done
+          echo "push fallito dopo 5 tentativi"; exit 1
