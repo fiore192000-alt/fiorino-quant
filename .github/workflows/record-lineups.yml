@@ -10,12 +10,19 @@
 name: record-lineups
 
 on:
-  schedule:
-    # Every 10 minutes. GitHub delays scheduled runs under load, sometimes by a
-    # lot, so this is an intention and not a guarantee. Nothing downstream
-    # trusts it: the uncertainty on every sighting is computed from the actual
-    # gap between polls that happened, never from this line.
-    - cron: "*/10 * * * *"
+  # SCHEDULER DISATTIVATO FINCHE' IL PRIMO PAYLOAD REALE NON E' STATO VERIFICATO.
+  #
+  # Il merge sul branch di default e' cio' che rende un cron attivo, quindi
+  # mergiare con lo schedule acceso significherebbe far partire la raccolta
+  # PRIMA della verifica, che e' l'ordine opposto a quello deciso. Restano
+  # quindi solo le esecuzioni manuali.
+  #
+  # Per accendere, dopo che --verify ha mostrato un payload reale corretto e la
+  # prima osservazione e' finita nel layer TIMESTAMPED: togliere il commento
+  # alle due righe qui sotto.
+  #
+  # schedule:
+  #   - cron: "*/10 * * * *"
   workflow_dispatch:
     inputs:
       verify:

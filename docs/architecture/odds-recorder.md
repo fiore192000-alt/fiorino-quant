@@ -1,5 +1,7 @@
 # Il registratore di quote prematch
 
+Football-Data non e un **market feed**. E una **timestamped snapshot source**, ed e la descrizione onesta di cio che sa fare.
+
 Chiude il blocco 2 della scheda partita — e solo quello, con una parte del 3.
 Va detto subito perché la tentazione è di venderlo per di più.
 
@@ -35,6 +37,22 @@ nessun account, nessun secret**.
 L'unica cosa fra questo file e una raccolta attiva è il merge sul branch di
 default, perché GitHub elenca `workflow_dispatch` ed esegue `schedule` solo per
 i workflow presenti lì.
+
+## Tre parole che non sono sinonimi
+
+```
+poll         Fiorino ha guardato. Registrato comunque, anche a vuoto.
+observation  un prezzo e stato registrato, perche differiva dal precedente.
+movement     un'observation che non e la prima per quella coppia.
+```
+
+`is_first_sighting` separa la seconda dalla terza. Una prima osservazione non e
+un movimento: e il momento in cui siamo arrivati.
+
+E `captured_at` significa **quando Fiorino ha letto il file**. Non quando il
+book ha fissato il prezzo, e non quando Football-Data ha aggiornato il file:
+nessuno dei due e conoscibile da qui. E un'osservazione vera di Fiorino, e non
+e un `market_price_at`.
 
 ## Il file si muove più lentamente dei poll
 

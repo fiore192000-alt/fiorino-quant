@@ -36,6 +36,23 @@ Hence the split kept here and in the archive:
 That is the same shape as `fold_sightings`: the poll stream is the evidence,
 the folded result is the fact.
 
+THREE WORDS THAT ARE NOT SYNONYMS
+--------------------------------
+Kept apart deliberately, because collapsing any two of them is how a watched
+market becomes a measured one:
+
+    poll         Fiorino looked. Recorded whether or not anything came back.
+    observation  a price was recorded, because it differed from the one before.
+    movement     an observation that is not the first for that pair — the
+                 market changed, rather than us arriving.
+
+`is_first_sighting` is what separates the second from the third. A first
+sighting is not a move: it is the moment we showed up.
+
+And `observed_at` is when Fiorino READ the file. Not when the bookmaker set the
+price, and not when Football-Data refreshed the file — neither is knowable from
+here. It is a true observation of ours and it is not a `market_price_at`.
+
 WHAT THIS SOURCE CANNOT DO
 --------------------------
 It gives one or two prematch points per match, not a path. It cannot answer

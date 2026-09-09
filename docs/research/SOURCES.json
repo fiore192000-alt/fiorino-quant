@@ -388,7 +388,7 @@
     },
     {
       "id": "footballdata-fixtures",
-      "name": "football-data.co.uk — fixtures.csv (partite non giocate)",
+      "name": "football-data.co.uk — fixtures.csv (timestamped snapshot source)",
       "bookmaker_identifiable": true,
       "bookmakers": [
         "Pinnacle Sports",
@@ -413,7 +413,7 @@
       "inaccessibility_reason": "environment access limitation: football-data.co.uk e bloccato dalla policy di egress (403 dal proxy). Il collector non gira qui, gira sui runner di GitHub Actions.",
       "pit_usable": false,
       "status": "PROMISING_BUT_UNVERIFIED",
-      "main_limitation": "Non e un feed. Football-Data raccoglie le quote del weekend il venerdi e quelle infrasettimanali il martedi, quindi da uno o due punti prematch per partita e non un percorso: chiude il blocco mercato della scheda e parte del movimento, mai il consenso fra book ne la reazione a un'informazione. E non recupera niente all'indietro: le partite non registrate restano un DATA_GAP.",
+      "main_limitation": "NON e un market feed, ed e la descrizione onesta delle sue capacita: e una sorgente di istantanee timestampate. Football-Data raccoglie le quote del weekend il venerdi e quelle infrasettimanali il martedi, quindi da uno o due punti prematch per partita e non un percorso. captured_at significa quando Fiorino ha letto il file, non quando il prezzo e stato fissato ne quando Football-Data lo ha aggiornato: e un'osservazione vera di Fiorino, non un market_price_at. Chiude il blocco mercato della scheda e parte del movimento, mai il consenso fra book ne la reazione a un'informazione. E non recupera niente all'indietro.",
       "cost": "gratuito, nessuna registrazione",
       "licence": "NON ispezionata in questa sessione: il sito consente l'uso gratuito con una clausola non commerciale che andrebbe riletta prima di qualunque uso oltre la ricerca interna",
       "legal_note": "File pubblicato dal sito per il download, non scraping di una pagina: e una posizione diversa da quella di un aggregatore interrogato con l'automazione di un browser. Resta da rileggere la clausola non commerciale."

@@ -7,13 +7,19 @@
 name: record-odds
 
 on:
-  schedule:
-    # Every 30 minutes. The source itself moves far more slowly — Football-Data
-    # collects weekend odds on Fridays and midweek odds on Tuesdays — so most
-    # polls read an unchanged file. That is not waste: an unchanged read is the
-    # evidence that makes the NEXT observation's gap measurable, and only a
-    # CHANGE is folded into a new price.
-    - cron: "*/30 * * * *"
+  # SCHEDULER DISATTIVATO FINCHE' IL PRIMO PAYLOAD REALE NON E' STATO VERIFICATO.
+  #
+  # Il merge sul branch di default e' cio' che rende un cron attivo, quindi
+  # mergiare con lo schedule acceso significherebbe far partire la raccolta
+  # PRIMA della verifica, che e' l'ordine opposto a quello deciso. Restano
+  # quindi solo le esecuzioni manuali.
+  #
+  # Per accendere, dopo che --verify ha mostrato un payload reale corretto e la
+  # prima osservazione e' finita nel layer TIMESTAMPED: togliere il commento
+  # alle due righe qui sotto.
+  #
+  # schedule:
+  #   - cron: "*/30 * * * *"
   workflow_dispatch:
     inputs:
       verify:
