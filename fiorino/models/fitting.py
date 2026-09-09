@@ -20,7 +20,27 @@ from fiorino.models.adapters.penaltyblog import PenaltyblogModel
 from fiorino.pricing.grid import grid_from_lambdas
 from fiorino.pricing.markets import price_grid
 
-__all__ = ["FitWindow", "fit_and_price", "walk_forward"]
+__all__ = ["FitWindow", "fit_and_price", "walk_forward", "FallbackTooHigh",
+           "MAX_FALLBACK_RATE"]
+
+#: Above this share of priced fixtures falling back to the parameter path, the
+#: experiment is INVALID rather than merely noted.
+#:
+#: The fallback is honest and counted, but it is not the same model: it derives
+#: lambdas from the fitted parameters instead of the library's grid. A few
+#: fixtures taking that path is shielding a library bug; a large share of them
+#: means a materially different prediction distribution wearing the same name,
+#: and a result computed on it cannot be compared with one that was not.
+#:
+#: Measured: 82 fallbacks across 311 fits, with 44 concentrated in a single
+#: season. The rate is therefore not uniformly small, which is precisely why a
+#: threshold is needed rather than a footnote.
+MAX_FALLBACK_RATE = 0.25
+
+
+class FallbackTooHigh(RuntimeError):
+    """Raised when so many fixtures took the fallback path that the run is not
+    the model it claims to be."""
 
 
 @dataclass
@@ -118,6 +138,16 @@ def fit_and_price(
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
         rows,
     )
+    if upcoming:
+        rate = model.fallback_count / len(upcoming)
+        if rate > MAX_FALLBACK_RATE:
+            raise FallbackTooHigh(
+                f"{model.fallback_count} of {len(upcoming)} fixtures "
+                f"({rate:.0%}) fell back to the parameter path, above the "
+                f"{MAX_FALLBACK_RATE:.0%} limit. The run is not the model it "
+                f"claims to be; raising rather than recording it keeps the "
+                f"result out of a comparison it does not belong in."
+            )
     return FitWindow(as_of, model_run_id, fit.n_matches, len(upcoming), n_prior,
                      fit.fit_seconds)
 

@@ -1,0 +1,353 @@
+{
+  "$comment": [
+    "Machine-readable status of every claim Fiorino Quant makes.",
+    "",
+    "Validated by test/fiorino/test_claims_registry.py, which fails when a",
+    "claim marked PROVEN names a test that does not exist. A registry nobody",
+    "checks becomes a marketing document within one release.",
+    "",
+    "STATUS VOCABULARY",
+    "  PROVEN              a deterministic test verifies it, and the test can fail",
+    "  TESTED_BUT_LIMITED  measured on real data, with a stated limit on scope or power",
+    "  UNTESTED            the code path exists and no test exercises it",
+    "  DATA_GAP            cannot be tested: the required data does not exist here",
+    "  NOT_DEMONSTRATED    claimed nowhere; listed so nobody assumes it"
+  ],
+  "generated_for": "PR #1 gate audit",
+  "suite_size": 577,
+  "claims": [
+    {
+      "id": "C-001",
+      "milestone": "M1",
+      "claim": "Fuzzy matching can never enter the analytic dataset.",
+      "status": "PROVEN",
+      "verified_by": [
+        "test/fiorino/test_m1_identity.py::TestFuzzyIsQuarantined::test_schema_itself_rejects_a_fuzzy_alias",
+        "test/fiorino/test_m1_identity.py::TestFuzzyIsQuarantined::test_a_fuzzy_alias_can_never_be_written_directly",
+        "test/fiorino/test_m1_identity.py::TestFuzzyIsQuarantined::test_open_proposals_block_the_audit"
+      ],
+      "evidence": "On real names the matcher proposed merging Manchester United with Manchester City at 0.926.",
+      "limits": null
+    },
+    {
+      "id": "C-002",
+      "milestone": "M1",
+      "claim": "A reader cannot see a result before it settled.",
+      "status": "PROVEN",
+      "verified_by": [
+        "test/fiorino/test_m1_leakage.py::TestResultsAreNotVisibleEarly::test_a_match_never_sees_its_own_result",
+        "test/fiorino/test_m1_leakage.py::TestLeakageProperties::test_no_result_is_ever_visible_before_it_settles"
+      ],
+      "evidence": "Property-based over many clocks. Caught a real unbounded read in the M4 engine.",
+      "limits": null
+    },
+    {
+      "id": "C-003",
+      "milestone": "M1",
+      "claim": "A decision-making package cannot read external history directly.",
+      "status": "PROVEN",
+      "verified_by": [
+        "test/fiorino/test_m1_leakage.py::TestNoRawTableAccessInConsumers::test_deciders_never_name_external_history",
+        "test/fiorino/test_m1_leakage.py::TestNoRawTableAccessInConsumers::test_every_package_declares_a_role",
+        "test/fiorino/test_m1_leakage.py::TestNoRawTableAccessInConsumers::test_every_guarded_table_exists"
+      ],
+      "evidence": "A package absent from both role lists fails. The previous guard named odds_snapshots, a table in no migration.",
+      "limits": "Two BOUNDED_READS exemptions exist, each with a written reason; their safety lives in SQL a future edit could remove."
+    },
+    {
+      "id": "C-004",
+      "milestone": "M1",
+      "claim": "Only the declared oracle may read a closing price inside a decider.",
+      "status": "PROVEN",
+      "verified_by": [
+        "test/fiorino/test_m1_leakage.py::TestNoRawTableAccessInConsumers::test_only_the_declared_oracle_reads_a_closing_price",
+        "test/fiorino/test_m1_leakage.py::TestNoRawTableAccessInConsumers::test_no_decider_reaches_a_closing_price_by_another_spelling"
+      ],
+      "evidence": "The second test exists because the first had a hole: a closing price is also reachable as fair_probabilities filtered to CLOSING.",
+      "limits": null
+    },
+    {
+      "id": "C-005",
+      "milestone": "M2",
+      "claim": "No timestamp is ever invented for an observation that has none.",
+      "status": "PROVEN",
+      "verified_by": [
+        "test/fiorino/test_m1_footballdata.py::TestCapturePrecisionIsHonest::test_prematch_prices_are_not_claimed_to_have_a_timestamp"
+      ],
+      "evidence": "CHECK ((capture_precision = 'TIMESTAMPED') = (captured_at IS NOT NULL)). 37,482 observations, zero invented.",
+      "limits": null
+    },
+    {
+      "id": "C-006",
+      "milestone": "M2",
+      "claim": "The de-vig records the method actually applied, not the one requested.",
+      "status": "PROVEN",
+      "verified_by": [
+        "test/fiorino/test_m2_odds.py::TestDevigFallbackIsHonest::test_an_absent_penaltyblog_falls_back_and_says_so",
+        "test/fiorino/test_m2_odds.py::TestDevigFallbackIsHonest::test_the_solver_is_probed_once_not_per_call",
+        "test/fiorino/test_m2_odds.py::TestDevigFallbackIsHonest::test_the_method_is_stable_across_repeated_devigs"
+      ],
+      "evidence": "Probing per call was non-deterministic: one rebuild produced SHIN and MULTIPLICATIVE rows, the next only SHIN, from identical input.",
+      "limits": "In an environment without penaltyblog, every de-vig falls back to multiplicative. The data says so; the numbers differ."
+    },
+    {
+      "id": "C-007",
+      "milestone": "M3",
+      "claim": "The CLV calibration identity holds under multiplicative de-vig and not under Shin.",
+      "status": "PROVEN",
+      "verified_by": [
+        "test/fiorino/test_m3_clv_pipeline.py::TestCalibrationIdentity::test_multiplicative_devig_reproduces_the_closed_form",
+        "test/fiorino/test_m3_clv_pipeline.py::TestCalibrationIdentity::test_shin_deviates_from_it_by_design"
+      ],
+      "evidence": "Multiplicative reproduces -ov/(1+ov) to 6.2e-06.",
+      "limits": null
+    },
+    {
+      "id": "C-008",
+      "milestone": "M4",
+      "claim": "Simultaneous bets are sized against one equity snapshot, never compounded within a cohort.",
+      "status": "PROVEN",
+      "verified_by": [
+        "test/fiorino/test_m4_cohort_capital.py::TestCohortSizing::test_three_matches_at_same_kickoff_request_equal_stakes",
+        "test/fiorino/test_m4_cohort_capital.py::TestCohortSizing::test_sequential_compounding_sequence_is_never_produced",
+        "test/fiorino/test_m4_cohort_capital.py::TestCapitalConstraint::test_capital_invariant_holds_under_every_policy[scale_pro_rata]"
+      ],
+      "evidence": "Bankroll 100 gives [50, 50, 50], never [50, 75, 112.50].",
+      "limits": null
+    },
+    {
+      "id": "C-009",
+      "milestone": "M4",
+      "claim": "A two-state EV formula understates a push market's edge by exactly p_push.",
+      "status": "PROVEN",
+      "verified_by": [
+        "test/fiorino/test_m4_asian_handicap_ev.py::TestExpectedValue::test_two_state_formula_understates_the_edge_by_exactly_p_push",
+        "test/fiorino/test_m4_asian_handicap_ev.py::TestKellyWithPush::test_closed_form_matches_direct_optimisation"
+      ],
+      "evidence": "Kelly gives the right stake; the EV is what is wrong.",
+      "limits": null
+    },
+    {
+      "id": "C-010",
+      "milestone": "M4",
+      "claim": "Yield misleads where CLV does not.",
+      "status": "TESTED_BUT_LIMITED",
+      "verified_by": [
+        "test/fiorino/test_m3_clv.py::TestSignAgreement::test_beating_the_close_implies_positive_ev[0.4044-2.4-2.75]"
+      ],
+      "evidence": "Validation over 30 strategy-dataset pairs: CLV verdict correct 30/30, yield 23/30. Worst false positive +11.91% yield with CLV -0.0272, t=-11.5.",
+      "limits": "The 30/30 figure comes from scripts/validate_backtest.py, which fetches from the network and is NOT in the suite. Reproducible, not automatic."
+    },
+    {
+      "id": "C-011",
+      "milestone": "M5",
+      "claim": "The de-vigged Pinnacle close beats a walk-forward Dixon-Coles fit.",
+      "status": "TESTED_BUT_LIMITED",
+      "verified_by": [
+        "test/fiorino/test_m5_models.py::TestModelVersusMarket::test_the_market_beats_the_model",
+        "test/fiorino/test_m5_models.py::TestModelVersusMarket::test_the_model_still_reports_many_apparent_edges"
+      ],
+      "evidence": "10 datasets out of 10, both Brier and log-loss. Mean Brier edge -0.01012.",
+      "limits": "The suite test runs on ENG_PL 2017-18 only. The 10-dataset result is in scripts/validate_models.py, network-fetching."
+    },
+    {
+      "id": "C-012",
+      "milestone": "M5",
+      "claim": "A model worse than the market still claims edge on about a third of selections.",
+      "status": "TESTED_BUT_LIMITED",
+      "verified_by": [
+        "test/fiorino/test_m5_models.py::TestModelVersusMarket::test_the_model_still_reports_many_apparent_edges"
+      ],
+      "evidence": "1,037 of 2,940 selections above 5%, peak +521% EV, CLV negative 30 times out of 30.",
+      "limits": "The suite test runs on one league-season. The full count comes from scripts/validate_models.py, which fetches from the network and is not part of the automatic suite."
+    },
+    {
+      "id": "C-013",
+      "milestone": "M5",
+      "claim": "The penaltyblog rho bug is shielded, and counted rather than silenced.",
+      "status": "PROVEN",
+      "verified_by": [
+        "test/fiorino/test_m5_models.py::TestLibraryBugIsShielded::test_lambdas_can_be_derived_without_the_library_grid",
+        "test/fiorino/test_m5_models.py::TestGrid::test_an_out_of_range_rho_is_clamped_not_propagated"
+      ],
+      "evidence": "82 fallbacks across 311 fits, 44 in one season.",
+      "limits": "A high fallback rate changes the prediction distribution. Now gated: see C-021."
+    },
+    {
+      "id": "C-014",
+      "milestone": "M6",
+      "claim": "The blend weight cannot be estimated on matches after its boundary.",
+      "status": "PROVEN",
+      "verified_by": [
+        "test/fiorino/test_m6_ensemble.py::TestWeightFittingIsPointInTime::test_the_weight_ignores_matches_after_the_boundary",
+        "test/fiorino/test_m6_ensemble.py::TestWeightFittingIsPointInTime::test_the_test_period_alone_wants_the_opposite_weight",
+        "test/fiorino/test_m6_ensemble.py::TestArmsAgainstRealData::test_no_weight_trained_past_its_boundary"
+      ],
+      "evidence": "Training and test periods are built with opposite optima: a peeking fitter answers w > 0.9, a correct one w ~ 0.",
+      "limits": null
+    },
+    {
+      "id": "C-015",
+      "milestone": "M6",
+      "claim": "MARKET + MODEL does not beat MARKET.",
+      "status": "TESTED_BUT_LIMITED",
+      "verified_by": [
+        "test/fiorino/test_m6_ensemble.py::TestArmsAgainstRealData::test_the_arms_are_selected_separately_by_name"
+      ],
+      "evidence": "0 of 10 datasets. All 20 confidence intervals contain zero; 18 of 20 point estimates are worse. Unconstrained optimal weight negative in 5 of 10, to -0.51.",
+      "limits": "The ablation itself lives in scripts/validate_m6.py, network-fetching. The suite verifies the machinery, not the finding."
+    },
+    {
+      "id": "C-016",
+      "milestone": "M6",
+      "claim": "A single fitted parameter can improve in-sample and vanish out-of-sample.",
+      "status": "TESTED_BUT_LIMITED",
+      "verified_by": [
+        "test/fiorino/test_m6_ensemble.py::TestWeightRecoversWhatIsThere::test_the_in_sample_gain_is_never_negative"
+      ],
+      "evidence": "Three datasets gave a training weight of 17-21% and no out-of-sample gain; two of three got worse.",
+      "limits": "The suite proves only that an in-sample gain cannot be negative, which is arithmetic. The vanishing out-of-sample is measured by scripts/validate_m6.py, network-fetching and not automatic."
+    },
+    {
+      "id": "C-017",
+      "milestone": "SCAN",
+      "claim": "The scanner finds a planted bias and does not invent one that is absent.",
+      "status": "PROVEN",
+      "verified_by": [
+        "test/fiorino/test_m7_hypothesis_scan.py::TestScanFindsWhatIsThere::test_a_planted_bias_is_detected",
+        "test/fiorino/test_m7_hypothesis_scan.py::TestScanFindsWhatIsThere::test_an_unbiased_split_is_not_detected",
+        "test/fiorino/test_m7_hypothesis_scan.py::TestBenjaminiHochberg::test_nothing_survives_when_every_null_is_true"
+      ],
+      "evidence": "A planted 20-point bias is recovered; an arbitrary split is not.",
+      "limits": null
+    },
+    {
+      "id": "C-018",
+      "milestone": "SCAN",
+      "claim": "No situational mispricing survives correction for multiple testing.",
+      "status": "TESTED_BUT_LIMITED",
+      "verified_by": [
+        "test/fiorino/test_m7_hypothesis_scan.py::TestBenjaminiHochberg::test_a_strong_effect_survives"
+      ],
+      "evidence": "14 situations x 3 selections over 3,502 matches; 0 survive at q = 0.10 with replication in 7 of 10.",
+      "limits": "MINIMUM DETECTABLE EFFECT 0.039-0.072 probability points. This excludes coarse mispricing, NOT a 2-3 point bias that would be highly profitable."
+    },
+    {
+      "id": "C-019",
+      "milestone": "SCAN",
+      "claim": "The favourite-longshot bias is not present in this market.",
+      "status": "TESTED_BUT_LIMITED",
+      "verified_by": [
+        "test/fiorino/test_m7_hypothesis_scan.py::TestTheHypothesisFamily::test_the_longshot_control_is_evaluated_per_selection"
+      ],
+      "evidence": "The de-vigged price tracks realised frequency in every band from 3% to 85%, max |z| = 1.38. On raw prices the margin rises toward FAVOURITES, not longshots.",
+      "limits": "Pinnacle 1X2 only. Says nothing about other books or markets."
+    },
+    {
+      "id": "C-020",
+      "milestone": "M6.5",
+      "claim": "An event study refuses to run on data without timestamps.",
+      "status": "PROVEN",
+      "verified_by": [
+        "test/fiorino/test_m65_event_study.py::TestTheTimestampRule::test_an_event_study_on_untimestamped_prices_refuses_to_run",
+        "test/fiorino/test_m65_event_study.py::TestDifferenceInDifferences::test_a_planted_effect_is_found",
+        "test/fiorino/test_m65_event_study.py::TestDifferenceInDifferences::test_no_effect_is_not_invented"
+      ],
+      "evidence": "require_timestamped() raises. The difference-in-differences finds a planted effect and invents none.",
+      "limits": "Validated on synthetic data only. It has never seen a real information event."
+    },
+    {
+      "id": "C-022",
+      "milestone": "APP",
+      "claim": "No screen can show a level above WATCH while no strategy is promoted.",
+      "status": "PROVEN",
+      "verified_by": [
+        "test/fiorino/test_decision_engine.py::TestTheCeiling::test_nothing_can_exceed_watch_while_nothing_is_promoted",
+        "test/fiorino/test_decision_engine.py::TestTheCeiling::test_promoting_a_strategy_lifts_the_ceiling",
+        "test/fiorino/test_decision_engine.py::TestTheCeiling::test_there_is_no_bet_level"
+      ],
+      "evidence": "The ceiling is a mechanism, proved by lifting it with a fake promotion. There is no BET level in the code.",
+      "limits": null
+    },
+    {
+      "id": "C-023",
+      "milestone": "APP",
+      "claim": "A clean clone installs, migrates and serves the dashboard.",
+      "status": "PROVEN",
+      "verified_by": [
+        "test/fiorino/test_deploy_contract.py::TestTheAppDoesNotNeedPenaltyblog::test_the_app_imports_in_a_subprocess_without_it",
+        "test/fiorino/test_repo_hygiene.py::test_every_migration_is_tracked",
+        "test/fiorino/test_deploy_contract.py::TestRequirements::test_pytz_is_declared_explicitly"
+      ],
+      "evidence": "Verified in an empty virtualenv: 19s build, 575 MB peak, all six pages HTTP 200.",
+      "limits": "In that environment the de-vig is MULTIPLICATIVE, not SHIN. The System page says so."
+    },
+    {
+      "id": "C-101",
+      "milestone": "M6.5",
+      "claim": "Lineup publication moves the market beyond its normal movement.",
+      "status": "DATA_GAP",
+      "verified_by": [],
+      "evidence": null,
+      "limits": "No reachable source carries a lineup publication instant. published_at is NOT NULL with no default, so the schema refuses substitutes."
+    },
+    {
+      "id": "C-102",
+      "milestone": "M6.5",
+      "claim": "Market microstructure — speed, breadth, reversal, price discovery — carries exploitable information.",
+      "status": "DATA_GAP",
+      "verified_by": [],
+      "evidence": "Ceiling measured: the whole prematch-to-close channel is worth 0.00099 Brier, about a tenth of the model's deficit.",
+      "limits": "Not one TIMESTAMPED row exists. odds_as_of() is written, tested and never exercised."
+    },
+    {
+      "id": "C-103",
+      "milestone": "OPEN",
+      "claim": "xG, injuries, rest, congestion or weather add information to the market.",
+      "status": "UNTESTED",
+      "verified_by": [],
+      "evidence": null,
+      "limits": "Never tested. Nothing in M1-M6 bears on it: 'model A plus X gives nothing' does not imply 'any use of X gives nothing'."
+    },
+    {
+      "id": "C-104",
+      "milestone": "M5",
+      "claim": "The league prior for unseen teams behaves correctly on real data.",
+      "status": "UNTESTED",
+      "verified_by": [
+        "test/fiorino/test_m5_models.py::TestUnseenTeams::test_a_promoted_side_is_priced_from_a_prior"
+      ],
+      "evidence": null,
+      "limits": "Covered by unit tests, but the validation never exercised it: with min_train = 60 every team has played by the first fit. Prior fraction was 0.0% in all 10 datasets."
+    },
+    {
+      "id": "C-105",
+      "milestone": "OPEN",
+      "claim": "Asian handicap and totals are correctly priced against a reference close.",
+      "status": "UNTESTED",
+      "verified_by": [
+        "test/fiorino/test_m5_models.py::TestMultiMarketPricing::test_markets_agree_with_each_other"
+      ],
+      "evidence": null,
+      "limits": "55 selections per fixture are priced and verified internally coherent, but no reference close exists for them in this data, so they are never measured against the market."
+    },
+    {
+      "id": "C-200",
+      "milestone": "ALL",
+      "claim": "Fiorino Quant can make money.",
+      "status": "NOT_DEMONSTRATED",
+      "verified_by": [],
+      "evidence": "No strategy has ever produced a positive out-of-sample CLV that was not definitional.",
+      "limits": "Listed explicitly so that nobody has to infer it from silence."
+    },
+    {
+      "id": "C-201",
+      "milestone": "ALL",
+      "claim": "The betting market prices football matches efficiently.",
+      "status": "NOT_DEMONSTRATED",
+      "verified_by": [],
+      "evidence": null,
+      "limits": "Measured: THIS model does not beat it, and the close is barely better than the prematch price. Neither is a statement about efficiency."
+    }
+  ]
+}

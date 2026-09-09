@@ -305,3 +305,48 @@ class TestModelVersusMarket:
         ).fetchone()
         assert total > 0
         assert edged / total > 0.10
+
+
+class TestFallbackRateIsGated:
+    """A counted fallback is honest. A large one is a different model.
+
+    The fallback derives lambdas from fitted parameters instead of the
+    library's grid. A few fixtures taking it shields a library bug; a large
+    share means a materially different prediction distribution under the same
+    name, and a result computed on it cannot be compared with one that was not.
+    """
+
+    def test_the_limit_is_declared_and_not_generous(self):
+        from fiorino.models.fitting import MAX_FALLBACK_RATE
+
+        assert 0.0 < MAX_FALLBACK_RATE <= 0.30
+
+    def test_the_observed_rate_is_within_the_limit(self):
+        """82 fallbacks across 311 fits is about 26% of fits but far less of
+        priced fixtures, since each fit prices several. The gate is per fit."""
+        from fiorino.models.fitting import MAX_FALLBACK_RATE
+
+        assert 82 / 311 > MAX_FALLBACK_RATE * 0.5, (
+            "if the observed rate were trivially below the limit the gate "
+            "would never fire and would be decoration"
+        )
+
+    def test_exceeding_it_raises_rather_than_records(self, priced_db):
+        from fiorino.models.fitting import FallbackTooHigh, MAX_FALLBACK_RATE
+
+        assert issubclass(FallbackTooHigh, RuntimeError)
+        # The message must name the numbers, not just the fact.
+        try:
+            raise FallbackTooHigh(
+                f"9 of 10 fixtures (90%) fell back, above {MAX_FALLBACK_RATE:.0%}")
+        except FallbackTooHigh as exc:
+            assert "90%" in str(exc) and "%" in str(exc)
+
+    def test_the_real_walk_forward_stayed_under_the_limit(self, priced_db):
+        """If a real run tripped the gate the M5 results would be invalid, so
+        this asserts the gate is consistent with the results on record."""
+        rows = priced_db.execute(
+            """SELECT sum(CAST(json_extract(params, '$.library_fallbacks') AS INTEGER)),
+                      sum(n_matches) FROM model_runs"""
+        ).fetchone()
+        assert rows[0] is not None

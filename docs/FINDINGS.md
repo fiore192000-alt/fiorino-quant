@@ -326,6 +326,12 @@ Il laboratorio ha ora regole scritte, non solo consuetudini:
   cosa è raggiungibile.
 * [**Modulo dell'esperimento**](research/EXPERIMENT_TEMPLATE.md) — si compila
   prima di guardare i dati.
+* [**Stato dei claim**](research/CLAIMS.json) — machine-readable: ogni
+  affermazione con PROVEN / TESTED_BUT_LIMITED / UNTESTED / DATA_GAP /
+  NOT_DEMONSTRATED, e il test che la verifica. Validato dalla suite: un claim
+  marcato PROVEN che nomina un test inesistente fa fallire il build.
+* [**Gate Audit finale**](research/GATE_AUDIT.md) — clone pulito, mappa
+  claim→test, e i quattro difetti che solo un ambiente vuoto poteva rivelare.
 * [**Audit del PR #1**](research/PR1_AUDIT.md) — 4 MUST FIX, nessuno di natura
   statistica.
 
