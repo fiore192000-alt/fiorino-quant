@@ -1,16 +1,312 @@
-# Fiorino Quant — laboratorio v1.0
+# Fiorino Quant — Findings & Research Closure
 
-**Stato: nessun edge trovato. Nessun edge nascosto.**
+**Stato:** ricerca ex-post CHIUSA · fase point-in-time APERTA
+**Data:** 2026-09-09 · **Promozioni:** `PROMOTED = 0`
 
-Sei fasi, 10 campionati-stagione reali, 7 paesi, due epoche. Il laboratorio è
-completo e la risposta che produce, su questi dati, è negativa. Questo documento
-è il verbale.
-
-Chi arriva qui cercando una strategia profittevole non la troverà. Chi arriva
-cercando un'infrastruttura capace di **dire di no**, quella c'è, ed è
-l'unica cosa che il progetto rivendica.
+Questo documento è un registro scientifico, non un consuntivo. Dice cosa è
+stato testato, cosa è stato falsificato, cosa resta non misurato, e quali
+condizioni devono verificarsi prima che il sistema possa produrre un
+`PROMOTED`.
 
 ---
+
+## Conclusione esecutiva
+
+La ricerca ex-post non ha identificato alcun edge sfruttabile e statisticamente
+credibile contro il mercato.
+
+Da non leggere come:
+
+> «Non abbiamo ancora trovato il segnale.»
+
+La lettura corretta è:
+
+> Le famiglie di segnali finora testate non hanno prodotto evidenza sufficiente
+> di **informazione incrementale** rispetto al prezzo di mercato.
+
+La fase di ricerca storica è quindi **chiusa, non sospesa**. L'unica direzione
+non falsificata è la raccolta point-in-time di informazione che il mercato non
+aveva ancora incorporato nel prezzo al momento in cui il prezzo si è formato.
+
+---
+
+## 1. L'evidenza contro un edge ex-post
+
+| test | scala | esito |
+|---|---|---|
+| CLV su prezzi prematch | 369.662 oss., 4 stagioni, 21 divisioni | nessuna cella positiva sopravvive a Benjamini-Hochberg |
+| movimento delle quote | 125.594 oss., 5 stagioni | gradiente monotono, ogni direzione negativa |
+| partite in arrivo | 90 righe | 0 sopra la banda nulla |
+| ipotesi situazionali | 14 ipotesi | 0 sopravvivono alla correzione |
+| modello contro mercato | 10 dataset | il mercato vince 10 su 10 |
+
+**CLV medio su tutto: −0.0527.** È il margine, ed è il pavimento contro cui
+ogni regola sbatte. Il risultato è coerente con un prezzo di apertura che
+incorpora già l'informazione, poi ulteriormente raffinata fino alla chiusura.
+Nessuna sottopopolazione stabile trasforma quella dinamica in profitto.
+
+### L'unica cella positiva, e perché non conta
+
+`BETFAIR_EX` quotato più lungo del consenso degli altri book:
+**+0.0075 di CLV, t=+5.69**, sopravvive a BH su 7.414 osservazioni.
+
+Muore sulla commissione. Il prezzo dell'exchange è al lordo:
+
+| quota | commissione 2% | commissione 5% |
+|---:|---:|---:|
+| 2.00 | −0.0026 | −0.0177 |
+| 5.00 | −0.0086 | −0.0328 |
+
+Il 2% è la commissione **minima** esistente. Non è un edge: è l'exchange che
+è il prezzo più affilato del mercato, e la sua commissione se lo riprende.
+Questa singola riga è la giustificazione empirica del Gate 5.
+
+---
+
+## 2. Artefatto: la maledizione del vincitore
+
+Il motore aveva classificato **5 partite su 18 in classe A**, edge fino a
+**+5.74%**.
+
+Controllo costruito: tutti i bookmaker stimano la stessa probabilità, nessuna
+inefficienza reale, l'unica differenza è la dispersione dei prezzi. Calibrato
+sulla dispersione realmente osservata (0.024 punti di probabilità su 7 book):
+
+```
+edge mediano del massimo di sette prezzi   +4.0%
+casi sopra il +4%                          50%
+```
+
+**Il segnale apparente è generabile dalla sola selezione del prezzo estremo.**
+Un edge calcolato come *massimo prezzo osservato meno probabilità stimata* non
+dimostra alcuna inefficienza.
+
+Rimedio permanente: l'edge si valuta su un **book nominato** contro il consenso
+degli **altri** (`edge_leave_one_out`), e la soglia è la banda nulla calcolata
+sulla dispersione di quella singola partita (`null_edge`), non una costante.
+
+---
+
+## 3. Artefatto: il look-ahead
+
+Risultato apparente, il più convincente mai prodotto dal progetto:
+
+```
+CLV      +0.0440
+t        +45.8
+dose-risposta monotona sull'ampiezza del movimento
+controllo negativo che si comporta correttamente
+replica su due stagioni
+9 celle oltre Benjamini-Hochberg
+```
+
+Controllo negativo su mercato simulato **senza alcun segnale**: stessa
+selezione, **CLV +0.0702**. L'artefatto è più grande dell'effetto.
+
+La differenza era temporale:
+
+```
+cella circolare (usa la chiusura per selezionare)   +0.0440
+cella point-in-time onesta (solo l'apertura)        −0.0442
+```
+
+Il criterio selezionava le righe dove `movement = close_fair − consensus_open`
+era positivo e poi le segnava con `clv = close_fair × prezzo − 1`: la stessa
+chiusura da entrambe le parti. Al momento della scommessa quel movimento non è
+nemmeno conoscibile.
+
+**Principio architetturale che ne discende:** nessuna informazione successiva
+al timestamp decisionale può entrare nel dataset di previsione.
+
+Fissato da `test/fiorino/test_no_lookahead.py`, che fallisce se la simulazione
+smette di riprodurre l'artefatto. È la seconda volta che il progetto ci cade —
+in M6 il braccio MARKET mostrava +0.0234 per pura definizione.
+
+---
+
+## 4. Cosa è stato imparato davvero
+
+### 4.1 Mercati minori
+
+Misurato due volte, per strade indipendenti:
+
+```
+skill contro la climatologia   prime −  inferiori = −0.0451   6 paesi su 6
+CLV                            TOP −0.0449   LOWER −0.0594
+margine                        più alto nelle inferiori, 6 paesi su 6
+scarto di calibrazione         NON distinguibile (p = 0.31)
+```
+
+Meno affilato **non** significa più sbagliato. Il book fa pagare la propria
+ignoranza: il margine sale dove lo skill scende, con correlazione −0.83 sui sei
+paesi appaiati. *Mercato meno efficiente ≠ edge gratuito.*
+
+### 4.2 Dispersione dei prezzi ed execution
+
+```
+MARKET_MAX   −0.0176        ← miglior prezzo disponibile
+BETFAIR_EX   −0.0238
+BET365       −0.0630
+SKYBET       −0.0970        ← peggiore
+```
+
+**Otto punti percentuali** fra il miglior prezzo e il peggiore: più grande
+dell'effetto attribuibile a quasi tutte le caratteristiche analizzate. La
+catena che conta è `segnale → probabilità equa → prezzo ottenibile →
+commissioni → EV netto`, e i primi due anelli non bastano.
+
+### 4.3 Il mercato è il benchmark
+
+La baseline corretta è `MODELLO vs MERCATO`, mai `MODELLO vs random`. Un
+modello che batte il caso ma perde contro il prezzo non ha dimostrato niente di
+commerciabile — ed è esattamente il caso di questo.
+
+---
+
+## 5. Cosa resta non misurato
+
+L'unica famiglia non testata soddisfa una condizione diversa: **informazione
+disponibile al sistema prima che venga incorporata nel prezzo.**
+
+```
+formazione ufficiale
+      ↓  timestamp reale di pubblicazione
+quote immediatamente precedenti
+      ↓
+quote immediatamente successive
+      ↓
+movimento del mercato
+```
+
+Il problema non è la disponibilità della formazione: è il **timestamp**. Un
+archivio che contiene `lineup = X` non dice *quando il mercato poteva
+conoscere X*, e senza quello il rischio di look-ahead resta — come il §3
+dimostra costare 8,8 punti percentuali di illusione.
+
+Nessuna fonte pubblica, gratuita o a pagamento, porta quell'istante. È stato
+cercato: non esiste. Esiste solo se qualcuno lo registra mentre accade.
+
+---
+
+## 6. Raccolta point-in-time
+
+Il collector delle quote è **operativo** dal 2026-09-09 e ha prodotto il primo
+dato point-in-time del progetto. Quello delle formazioni è il prossimo
+componente necessario.
+
+L'obiettivo iniziale **non** è trovare un edge. È costruire un dataset in cui
+ogni osservazione permetta di ricostruire *cosa sapevamo esattamente in
+quell'istante e quale prezzo era disponibile*.
+
+`known_at` significa sempre e solo l'istante in cui **il nostro** poll ha visto
+il fatto: è un limite superiore, ed è sicuro solo se la sua **larghezza**
+viaggia con lui (`known_at_uncertainty_seconds`, calcolata dallo scarto reale
+fra poll avvenuti).
+
+---
+
+## 7. No-peeking policy
+
+Per i prossimi **sei mesi**: nessuna ottimizzazione basata sui risultati
+intermedi del collector. Niente modifiche a feature, soglie, finestre, target,
+modelli o criteri di selezione mentre il dataset si accumula.
+
+```
+COLLECT → FREEZE → ANALYZE
+```
+
+non
+
+```
+COLLECT → LOOK → MODIFY → LOOK AGAIN → MODIFY AGAIN
+```
+
+Lo scopo è impedire che il dataset venga trasformato progressivamente in
+risposta alla propria stessa evidenza. C'è anche una ragione di potenza: con
+l'orizzonte attuale ogni analisi avrebbe un effetto minimo rilevabile più
+grande di ciò che cerca — è già successo, con MDE 0.1068 su un effetto di 0.04.
+
+---
+
+## 8. Cancelli di promozione
+
+`PROMOTED = 0` finché tutti e sei non sono superati.
+
+| # | cancello | cosa richiede |
+|---|---|---|
+| 1 | integrità point-in-time | nessun look-ahead |
+| 2 | significatività | sopravvive alla correzione per confronti multipli |
+| 3 | replica out-of-sample | su dati non usati per la scoperta |
+| 4 | confronto col mercato | aggiunge informazione rispetto al benchmark |
+| 5 | economia netta | sopravvive a commissioni, spread, limiti, slippage, disponibilità del prezzo |
+| 6 | stabilità | non dipende da una stagione, una lega, pochi eventi, una soglia, un book |
+
+Il Gate 5 non è teorico: ha già ucciso l'unica cella positiva della ricerca
+(§1). Il Gate 1 ha già ucciso il risultato più convincente (§3). Il Gate 2 ha
+già ucciso 14 ipotesi su 14.
+
+---
+
+## 9. Posizione scientifica al 2026-09-09
+
+```
+ricerca ex-post storica
+        ↓
+     CHIUSA
+        ↓
+nessun edge robusto identificato
+        ↓
+raccolta point-in-time
+        ↓
+   NON ANCORA ANALIZZATA
+        ↓
+   PROMOTED = 0
+```
+
+Metodologicamente è una conclusione **positiva**. Il sistema non ha trovato ciò
+che voleva trovare, ma ha dimostrato di saper riconoscere e rifiutare:
+dispersione scambiata per edge, look-ahead, selezione post-hoc, risultati che
+evaporano dopo la correzione, e vantaggi troppo piccoli per coprire i costi.
+
+Lo stato macchina-leggibile di ogni affermazione è in
+[`CLAIMS.json`](research/CLAIMS.json); le fonti in
+[`SOURCES.json`](research/SOURCES.json).
+
+---
+
+## 10. Principio finale
+
+Il progetto non va costruito per trovare scommesse. Va costruito per
+**determinare se esiste evidenza sufficiente ad autorizzarne una**.
+
+```
+nessuna evidenza → NO BET
+```
+
+e non
+
+```
+nessuna evidenza → troviamo comunque qualcosa → BET
+```
+
+Non è una strategia che ha fallito. È un sistema di ricerca che ha eliminato
+diverse strategie false **prima** che diventassero decisioni finanziarie.
+
+La prossima domanda non è «quale altra feature aggiungiamo». È:
+
+> Possiamo dimostrare che un'informazione point-in-time, non ancora
+> incorporata nel prezzo, produce un vantaggio replicabile?
+
+Finché non è dimostrato empiricamente, la risposta operativa resta **NO BET**.
+
+---
+
+---
+
+# Registro della fase precedente — laboratorio v1.0
+
+Quanto segue è il verbale della fase M1–M6, conservato integralmente: è
+l'evidenza su cui poggia la chiusura dichiarata sopra.
 
 ## Il risultato, in tre righe
 

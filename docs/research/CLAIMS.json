@@ -469,6 +469,42 @@
       "limits": "Ten league-seasons, seven top divisions, one season each for most. The comparison is between leagues that are all major; it says nothing about minor ones.",
       "next_action": "Acquisire quote per un campionato minore e ripetere la stessa misura di calibrazione, non una ricerca di edge.",
       "next_action_kind": "DATA_ACQUISITION"
+    },
+    {
+      "id": "C-029",
+      "milestone": "CHIUSURA",
+      "claim": "Selecting the best price across N bookmakers manufactures an apparent edge from dispersion alone.",
+      "status": "PROVEN",
+      "verified_by": [
+        "test/fiorino/test_market_consensus.py::TestTheWinnersCurseIsNeutralised::test_a_named_book_in_an_agreeing_market_shows_no_excess",
+        "test/fiorino/test_market_consensus.py::TestTheWinnersCurseIsNeutralised::test_the_null_band_grows_with_disagreement"
+      ],
+      "evidence": "Il motore aveva classificato 5 partite su 18 in classe A con edge fino a +5.74%. Simulando mercati in cui ogni book stima la STESSA probabilita, calibrati sulla dispersione realmente osservata (0.024 punti su 7 book, zero inefficienza per costruzione), il massimo di sette prezzi mostra un edge mediano del +4.0% e supera il +4% nel 50% dei casi. Il +5.74% osservato sta dentro quella distribuzione.",
+      "limits": null
+    },
+    {
+      "id": "C-030",
+      "milestone": "CHIUSURA",
+      "claim": "A selection rule that touches the closing price produces an edge even when the future is pure noise.",
+      "status": "PROVEN",
+      "verified_by": [
+        "test/fiorino/test_no_lookahead.py::test_selecting_on_the_closing_price_manufactures_an_edge_from_nothing",
+        "test/fiorino/test_no_lookahead.py::test_selecting_only_on_what_is_known_at_bet_time_does_not",
+        "test/fiorino/test_no_lookahead.py::test_the_gap_between_the_two_is_the_whole_lesson"
+      ],
+      "evidence": "Condizionare su movement = close_fair - consensus_open e poi segnare con clv = close_fair * prezzo - 1 ha prodotto +0.0440 di CLV con t=+45.8, dose-risposta monotona, controllo negativo corretto, replica su due stagioni e 9 celle oltre BH. Su un mercato simulato senza alcun segnale la stessa selezione produce +0.0702: l'artefatto e PIU GRANDE dell'effetto. La stessa misura condizionata solo su cio che e noto all'apertura da -0.0442. Il divario, 8.8 punti percentuali, e tutta illusione.",
+      "limits": null
+    },
+    {
+      "id": "C-031",
+      "milestone": "CHIUSURA",
+      "claim": "No executable rule tested against historical prices produces a positive CLV net of costs.",
+      "status": "TESTED_BUT_LIMITED",
+      "verified_by": [],
+      "evidence": "369.662 osservazioni su 4 stagioni e 21 divisioni: nessuna cella positiva sopravvive a Benjamini-Hochberg, CLV medio complessivo -0.0527. 125.594 osservazioni sul movimento su 5 stagioni: gradiente monotono e ogni direzione negativa. L'unica cella positiva, BETFAIR_EX quotato piu lungo del consenso a +0.0075 con t=+5.69, diventa negativa gia alla commissione minima del 2%.",
+      "limits": "Copre solo cio che e ricavabile da prezzi storici, cioe informazione gia incorporata nel prezzo di apertura. Non dice niente su informazione point-in-time non ancora incorporata, che e l'unica famiglia rimasta non falsificata e che nessun archivio storico puo contenere: se fosse nei file, sarebbe gia nel prezzo di chiusura contro cui si misura. E il benchmark di chiusura e la media di mercato de-viggata, non un prezzo eseguibile.",
+      "next_action": "Accumulare sei mesi di raccolta point-in-time con formazioni timestampate e quote sincronizzate, senza analisi intermedie, poi rifare questa stessa misura condizionando sull'istante di pubblicazione.",
+      "next_action_kind": "DATA_ACQUISITION"
     }
   ]
 }
