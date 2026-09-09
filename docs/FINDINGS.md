@@ -91,19 +91,58 @@ Questo è il risultato che rende difficile auto-convincersi che
 Migliorerebbero il training. Non c'è alcuna evidenza che migliorino il deploy —
 e c'è una misura diretta che dice il contrario.
 
-### 4. Il divario non è «qualche feature»
+### 4. Il divario è grande rispetto a ciò che il mercato stesso impara
+
+Entrambi i numeri sono medie sugli **stessi 10 dataset**:
 
 ```
-  informazione che il mercato acquisisce fra prematch e chiusura   0.00083 Brier
-  quanto il modello è peggio della chiusura                        0.00979 Brier
+  informazione che il mercato acquisisce fra prematch e chiusura   0.00099 Brier
+  quanto il modello è peggio della chiusura                        0.01012 Brier
                                                                    ────────────
-                                                                          12x
+                                                                         10.2x
 ```
 
-Il modello dovrebbe recuperare **dodici volte** l'intera finestra in cui il
+Il modello dovrebbe recuperare **dieci volte** l'intera finestra in cui il
 mercato stesso impara qualcosa, solo per arrivare alla pari.
 
-Non manca una feature. Manca una classe di informazione.
+Questo dice quanto è **grande** il divario. Non dice di che cosa sia fatto —
+vedi la sezione seguente.
+
+---
+
+## Cosa questi risultati NON dimostrano
+
+Questa sezione esiste perché la tentazione opposta è forte quanto quella di
+sopravvalutare un edge: usare un risultato negativo per chiudere più domande di
+quante ne abbia effettivamente chiuse.
+
+Quello che è dimostrato:
+
+> Il modello **attuale** non estrae informazione incrementale da **ciò che
+> usa** — gol segnati e subiti, con decadimento temporale — su questi 10
+> campionati-stagione.
+
+Quello che **non** è dimostrato, e che sarebbe un'estrapolazione:
+
+* **Che una feature non testata sia esaurita dal mercato.** `MODELLO A + xG →
+  nessun valore` non implica `qualunque uso di xG → nessun valore`. Non abbiamo
+  mai testato xG. La rappresentazione, la granularità e il momento in cui una
+  feature entra nel modello cambiano il risultato, e nessuna delle tre è stata
+  variata.
+* **Che il mercato sia efficiente.** È stato misurato che **questo** modello non
+  lo batte, e che la chiusura è migliore della prematch di una quantità
+  minuscola. Nessuna delle due cose è un'affermazione sull'efficienza.
+* **Che i movimenti di quota siano inutili.** Il tetto misurato dice che sono
+  **piccoli**, non che siano zero — il segno è consistente in 10 dataset su 10.
+  Dice che è improbabile che bastino da soli come prima scommessa di ricerca.
+* **Che una classe di informazione manchi.** Il divario è dieci volte la
+  finestra prematch→chiusura. Questo ne misura la taglia, non la composizione:
+  potrebbe essere informazione assente, o la stessa informazione rappresentata
+  peggio.
+
+La differenza pratica: il peso dell'evidenza oggi sta dalla parte del mercato, e
+questo è sufficiente per **ordinare** le priorità di ricerca. Non è sufficiente
+per **eliminare** una direzione senza averla misurata.
 
 ---
 
@@ -226,9 +265,18 @@ Qui c'è il contrario: un'infrastruttura che ha misurato **+11.91% di yield e
 
 La domanda successiva non è «come aumentiamo il rendimento». È:
 
-> **quale nuova informazione testiamo per prima?**
+> **quale nuova informazione arriva abbastanza tardi, abbastanza concentrata e
+> abbastanza lentamente da non essere già riflessa nel prezzo?**
 
-E adesso esiste un modo di rispondere che non sia un'opinione.
+Le formazioni confermate sono una delle poche candidate che soddisfano tutte e
+tre le condizioni. Il disegno dell'esperimento, i criteri di arresto registrati
+in anticipo e il contratto dati minimo sono in
+[`architecture/next-experiment.md`](architecture/next-experiment.md).
+
+La conclusione scomoda di quel documento: il lavoro mancante è **acquisizione
+dati e ingestione**, non modellazione. Lo schema per le quote timestampate e il
+suo lettore point-in-time sono già scritti e non sono mai stati esercitati —
+non esiste una riga `TIMESTAMPED` in nessuno dei 10 dataset.
 
 ---
 
@@ -251,3 +299,6 @@ E adesso esiste un modo di rispondere che non sia un'opinione.
 [modelli M5](validation/model-validation.md) ·
 [informazione incrementale M6](validation/incremental-information.md) ·
 [canale di mercato](validation/market-channel.md)
+
+**Prossimo passo**
+[esperimento formazioni: disegno e contratto dati](architecture/next-experiment.md)
