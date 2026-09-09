@@ -1,0 +1,253 @@
+# Fiorino Quant — laboratorio v1.0
+
+**Stato: nessun edge trovato. Nessun edge nascosto.**
+
+Sei fasi, 10 campionati-stagione reali, 7 paesi, due epoche. Il laboratorio è
+completo e la risposta che produce, su questi dati, è negativa. Questo documento
+è il verbale.
+
+Chi arriva qui cercando una strategia profittevole non la troverà. Chi arriva
+cercando un'infrastruttura capace di **dire di no**, quella c'è, ed è
+l'unica cosa che il progetto rivendica.
+
+---
+
+## Il risultato, in tre righe
+
+```
+M5   MODELLO            <   MERCATO           in 10 dataset su 10
+M6   MERCATO + MODELLO  ≈   MERCATO           in 10 dataset su 10
+                        <   in 9 su 10, tutti i CI contengono lo zero
+```
+
+Non è «il modello non funziona». È l'affermazione più forte:
+
+> **Il modello non contiene informazione incrementale misurabile rispetto al
+> mercato.**
+
+E in metà dei campionati è peggio di neutro: il peso ottimale **non vincolato**
+è negativo in 5 dataset su 10, fino a **−0.51**. Dove è negativo, il miglior
+uso del modello sarebbe stato `mercato − α · modello` — cioè trattarne
+l'opinione come un indicatore di errore.
+
+---
+
+## Cosa è stato costruito
+
+| fase | cosa | verificato da |
+|---|---|---|
+| **M1** | data layer, identità squadra, point-in-time | 10 stagioni × 8 leghe; il fuzzy propone di fondere **Manchester United e City a 0.926** — regola 9 confermata sul campo |
+| **M2** | ricostruzione del mercato, chiusura de-viggata | `captured_at` nullable per progetto: nessun timestamp inventato |
+| **M3** | CLV contro la chiusura reale | identità di calibrazione riprodotta a **6.2e−06** |
+| **M4** | backtest walk-forward a coorti | tre partite simultanee → stake `[50, 50, 50]`, mai `[50, 75, 112.50]` |
+| **M5** | adapter modelli, pricing multi-mercato | 219.010 predizioni, **0 violazioni PIT** |
+| **M6** | informazione incrementale | 20 CI, **20 contengono lo zero** |
+
+453 test. Il CI ricostruisce l'intero schema da un clone pulito a ogni PR.
+
+---
+
+## I quattro numeri che contano
+
+### 1. Lo yield mente, il CLV no
+
+Validazione M4 su 30 combinazioni strategia × dataset:
+
+```
+  CLV corretto    30/30
+  yield corretto  23/30
+```
+
+Il falso positivo peggiore, `take_home` su ENG_PL 2019-20:
+
+> **+11.91% di yield, +287.1% di crescita** — con CLV −0.0272 e t = −11.5.
+
+E il falso negativo simmetrico, l'oracolo chiaroveggente su DEU_BL1 2024-25:
+−1.33% di yield con CLV +0.1010 e t = +32.7. Una strategia che vede il futuro
+sembrava in perdita.
+
+### 2. Un modello peggiore del mercato trova «value» ovunque
+
+Un terzo di tutte le selezioni con edge dichiarato sopra il 5%, con punte a
+**+521% di EV attesa** — da un modello che perde contro la chiusura in ogni
+singolo dataset. Il CLV di quelle scommesse è negativo **30 volte su 30**, ed è
+peggiore del controllo senza opinione in 7 dataset su 10.
+
+Kelly su quella confidenza punterebbe più forte proprio dove il modello sbaglia
+di più.
+
+### 3. Un solo parametro basta a produrre overfitting misurabile
+
+In tre dataset l'ottimizzatore M6 trova sul training un peso del **17–21%** per
+il modello. Fuori campione quel peso non produce alcun guadagno, e in due casi
+su tre peggiora le cose.
+
+Un numero. Vincolato a `[0, 1]`. Stimato su duecento partite. Il guadagno
+in-sample era **garantito non negativo** (`w = 0` è sempre ammissibile), ed è
+evaporato.
+
+Questo è il risultato che rende difficile auto-convincersi che
+`CatBoost + LightGBM + 40 feature + stacking` risolverebbe il problema.
+Migliorerebbero il training. Non c'è alcuna evidenza che migliorino il deploy —
+e c'è una misura diretta che dice il contrario.
+
+### 4. Il divario non è «qualche feature»
+
+```
+  informazione che il mercato acquisisce fra prematch e chiusura   0.00083 Brier
+  quanto il modello è peggio della chiusura                        0.00979 Brier
+                                                                   ────────────
+                                                                          12x
+```
+
+Il modello dovrebbe recuperare **dodici volte** l'intera finestra in cui il
+mercato stesso impara qualcosa, solo per arrivare alla pari.
+
+Non manca una feature. Manca una classe di informazione.
+
+---
+
+## Le due trappole evitate, e come
+
+Entrambe producono un risultato che **sembra** una scoperta.
+
+### La tautologia del CLV
+
+Il CLV si misura contro la chiusura. Quindi una previsione costruita **sulla**
+chiusura mostra CLV positivo per costruzione: scommette solo prezzi migliori
+della chiusura, perché quella è la definizione di entrambe le cose.
+
+Questa strategia esiste già nel repository come **controllo positivo
+chiaroveggente** (`TakeValueVsClose`, etichettata `oracle_beats_close`). Senza
+la separazione, sarebbe rientrata dalla finestra travestita da risultato di M6.
+
+La disciplina che lo impedisce:
+
+```
+  PREMATCH  →  decide e scommette
+  CLOSING   →  valuta, e nient'altro
+```
+
+Nel percorso deployable nessun componente legge un prezzo di chiusura.
+
+**La trappola si è comunque ripresentata**, attenuata, nel controllo. L'arm
+`MARKET` — line shopping puro, nessun modello — mostrava CLV **+0.0234**,
+positivo in 7 dataset su 8. Decomposto:
+
+| | edge alla scommessa (per costruzione) | CLV misurato | deriva reale |
+|---|---|---|---|
+| ENG_PL 2019-20 | **+0.0463** | +0.0445 | **−0.0017** |
+| PRT_L1 2024-25 | **+0.0586** | −0.0198 | **−0.0783** |
+
+Il CLV era la condizione d'ingresso riscritta. L'unica parte reale è negativa in
+entrambi.
+
+### Il leakage del peso
+
+`w` è l'unico parametro di tutto M6 stimato dagli esiti — quindi l'unica nuova
+via per cui il futuro può raggiungere il passato, e arriva da una porta che
+nessuno stava guardando: la disciplina PIT sorveglia le *previsioni*, non i
+*pesi*.
+
+Tre difese, ridondanti di proposito: il filtro sta dentro `fit_weight` e non nel
+chiamante; il fitter registra il massimo `settled_at` che ha **davvero**
+consumato, così `v_weight_leakage` può fallire invece di rileggere il confine
+dichiarato; e un test costruisce il caso in cui un fitter che sbircia
+risponderebbe `w > 0.9` invece di `w ≈ 0` — con il controllo che dimostra che
+quel test *può* fallire.
+
+Un audit che non può fallire non è un audit. La prima versione che avevo
+scritto era un `WHERE FALSE`.
+
+---
+
+## Cosa è stato ritirato
+
+Il laboratorio ha smentito anche le proprie affermazioni precedenti, e le
+smentite sono parte del verbale:
+
+* **L'asimmetria HOME/AWAY nel drift** (HOME −0.0043 / AWAY +0.0045), su una
+  stagione, sembrava un risultato solido. Su 10 dataset **non replica**: AWAY è
+  positivo in 4–5 su 10 e le medie sono quasi identiche. Ritirata.
+* **La «firma della miscalibrazione»** — l'ipotesi che lo yield decrescesse al
+  crescere della soglia — decresce in 4 dataset su 10. Solo le medie aggregate
+  sono monotone. Ritirata.
+* **Il baseline «−0.028, t −10.66»** non è una costante globale: varia da
+  −0.029 a −0.065 per dataset.
+
+---
+
+## Un bug che vale quanto un risultato
+
+Il `.gitignore` ereditato da penaltyblog conteneva `data/` non ancorata, che in
+questo albero corrisponde anche a `fiorino/data/`. **Sette migrazioni, il ledger
+di identità, il manifest del lake e entrambi gli script di validazione erano
+scritti, testati e mai committati.**
+
+I commit di M2, M3 e M4 sono arrivati nel repository senza lo schema su cui il
+loro stesso codice si appoggia. `git add -A` non ha segnalato nulla — saltare un
+file ignorato è il suo comportamento corretto. La suite non poteva accorgersene:
+legge l'albero di lavoro, e l'albero era completo.
+
+> Codice presente nell'albero di lavoro ≠ codice presente nel repository.
+
+È esattamente il tipo di problema che rende una ricerca quantitativa non
+riproducibile senza che nessuno se ne accorga. Da qui `test_repo_hygiene.py` e
+il CI clean-clone: ogni PR deve poter partire da zero.
+
+---
+
+## Limiti dichiarati
+
+* **Un solo modello.** Dixon-Coles, emivita 180 giorni. Gli altri cinque di
+  `MODELS` non sono validati.
+* **Un solo mercato nel confronto.** 1X2. Handicap asiatici e totals sono
+  quotati e verificati coerenti, ma senza una chiusura di riferimento con cui
+  misurarli.
+* **Nessun dato timestampato.** Football-Data dà due punti per partita. Ogni
+  segnale di microstruttura è quindi non verificabile per tradabilità, non solo
+  non implementato. Vedi [`market-channel`](validation/market-channel.md).
+* **Il prior di lega non è esercitato** dalla validazione: con `min_train = 60`,
+  al primo fit tutte le squadre hanno già giocato.
+* **Il fetch della stagione in corso non è mai stato eseguito.**
+  `www.football-data.co.uk` è fuori dall'allowlist di egress dell'ambiente. La
+  catena M2→M6 è validata su archivi Football-Data reali mirrorati altrove.
+
+---
+
+## Perché questo è il punto di partenza giusto
+
+Un repository che mostra ROI positivi su backtest è comune e quasi sempre
+sbagliato: leakage, overfitting, o fortuna su una stagione — e le tre cose sono
+indistinguibili senza CLV.
+
+Qui c'è il contrario: un'infrastruttura che ha misurato **+11.91% di yield e
++287% di crescita** e ha detto, con t = −11.5, che era rumore.
+
+La domanda successiva non è «come aumentiamo il rendimento». È:
+
+> **quale nuova informazione testiamo per prima?**
+
+E adesso esiste un modo di rispondere che non sia un'opinione.
+
+---
+
+## Indice
+
+**Architettura**
+[panoramica](architecture/fiorino-quant.md) ·
+[modello dati quote](architecture/odds-model.md) ·
+[CLV](architecture/clv.md) ·
+[backtest](architecture/backtest.md) ·
+[modelli e pricing](architecture/models.md) ·
+[ensemble](architecture/ensemble.md) ·
+[storage e versioning](architecture/storage-and-versioning.md)
+
+**Validazione**
+[metodologia CLV](validation/clv-methodology.md) ·
+[contratto dati di mercato](validation/market-data-contract.md) ·
+[review M1–M3](validation/validation-report.md) ·
+[motore M4](validation/backtest-validation.md) ·
+[modelli M5](validation/model-validation.md) ·
+[informazione incrementale M6](validation/incremental-information.md) ·
+[canale di mercato](validation/market-channel.md)

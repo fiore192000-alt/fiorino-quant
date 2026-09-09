@@ -380,7 +380,21 @@ I gate, in quest'ordine — il P&L è l'ultimo, non il primo:
 Un CI che contiene lo zero non è evidenza, e il report è tenuto a dirlo invece
 di citare la stima puntuale.
 
-### M7 — Staking e portfolio
+---
+
+**M1–M6 sono congelati come laboratorio v1.0.** Il verbale completo è in
+[`../FINDINGS.md`](../FINDINGS.md). Il risultato è negativo e documentato:
+nessuna evidenza di informazione incrementale rispetto al mercato.
+
+M7 resta specificato qui sotto ma **non è la fase successiva**. Kelly su
+nessun edge è nessun edge, spesso peggio: dimensionare un segnale inesistente
+converte una perdita lenta in una veloce. La fase successiva è trovare una
+fonte informativa, e il tetto del canale già disponibile — i movimenti di
+quota — è misurato in
+[`../validation/market-channel.md`](../validation/market-channel.md): vale un
+decimo del divario del modello.
+
+### M7 — Staking e portfolio *(rinviata: serve prima un segnale)*
 Kelly con push (forma chiusa a tre esiti, numerico a cinque), shrinkage per
 errore di stima, allocator di coorte con correlazione intra-match.
 
