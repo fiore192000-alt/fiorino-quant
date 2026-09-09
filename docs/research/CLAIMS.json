@@ -435,11 +435,15 @@
       "id": "C-106",
       "milestone": "PR3",
       "claim": "Minor leagues are less efficiently priced than major ones.",
-      "status": "UNTESTED",
-      "verified_by": [],
-      "evidence": "Misurato sulle prime divisioni disponibili: la dispersione del Brier fra campionati (0.02407) e PIU PICCOLA dell'ampiezza media del CI dentro un campionato (0.02507). Le dieci stagioni sono indistinguibili fra loro. L'ipotesi non e confutata, e delimitata: i mercati di cui parla non sono nel campione.",
-      "limits": "Dieci stagioni di sette PRIME divisioni. Serie C, settore giovanile, calcio femminile e campionati scandinavi non ci sono, e sono esattamente i mercati dell'ipotesi. Il margine varia da 2.1% a 3.7% fra campionati, ma un margine piu alto e un costo piu alto, non un mercato piu sbagliato.",
-      "next_action": "Acquisire quote per almeno un campionato minore e ripetere la scansione di calibrazione per banda di prezzo, prima di qualunque strategia.",
+      "status": "TESTED_BUT_LIMITED",
+      "verified_by": [
+        "test/fiorino/test_pr4_division_efficiency.py::TestTheEvidenceKeepsBothHalves::test_skill_separates_the_tiers",
+        "test/fiorino/test_pr4_division_efficiency.py::TestTheEvidenceKeepsBothHalves::test_calibration_does_not",
+        "test/fiorino/test_pr4_division_efficiency.py::TestTheEvidenceKeepsBothHalves::test_the_paired_comparison_survives_the_country_confound"
+      ],
+      "evidence": "235.806 partite, 38 divisioni, quota prematch bet365 (xgabora/Club-Football-Match-Data-2000-2025). Lo skill contro la climatologia della divisione e piu basso nelle serie inferiori: -0.0451, permutazione p=0.0001, e nell'appaiato dentro il paese 6/6 (Inghilterra, Francia, Germania, Italia, Scozia, Spagna), test dei segni p=0.031. Il margine e piu alto in 6/6, media +0.0127, e correla -0.83 con il calo di skill (n=6). Lo scarto di calibrazione NON distingue i due gruppi: -0.0013, p=0.31, e nell'appaiato va nella direzione opposta in 4 paesi su 6.",
+      "limits": "Meno affilato non e sinonimo di scalibrato, ed e la distinzione che decide se l'ipotesi vale qualcosa. Uno skill piu basso e ugualmente compatibile con serie inferiori intrinsecamente meno prevedibili: un previsore perfetto avrebbe anche li uno skill piu basso. Questa misura non separa 'mercato meno informato' da 'partita meno prevedibile', e la calibrazione, che sarebbe la firma del prezzo sbagliato, non si muove. Il benchmark e la quota prematch di un book soft, non la chiusura Pinnacle de-viggata: i valori assoluti non sono confrontabili con M5 e M6. La fonte non ha timestamp, quindi non dice nulla sulla microstruttura. E il margine piu alto e un costo in piu, non un mercato piu sbagliato: si paga 1.27 punti percentuali proprio dove si spererebbe il vantaggio.",
+      "next_action": "Acquisire quote timestampate per almeno una serie inferiore fra le sei appaiate, cosi la stessa domanda si puo porre sul percorso del prezzo e non solo sul prezzo finale. Il test che separerebbe davvero mercato-meno-informato da partita-meno-prevedibile e un modello che batte il mercato in quella serie, ed e fermo per il congelamento sui nuovi modelli.",
       "next_action_kind": "DATA_ACQUISITION"
     },
     {

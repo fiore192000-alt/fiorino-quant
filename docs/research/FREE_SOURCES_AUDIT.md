@@ -38,7 +38,11 @@ timestampata.
 | `marcoblume/pinnacle.data` | sì (Pinnacle) | moneyline, totals | MLB 2016 | **UTC reale** | no | pacchetto R | sì | raggiungibile | sì, ma | **non è calcio** |
 | Betfair Historical Data | exchange, non book | molti | 2015→oggi | **millisecondo, dichiarato** | no | account + download | «Basic» gratuito | **bloccato** | **non verificato** | schema e licenza non ispezionati da qui |
 | the-odds-api | sì | molti | limitato nel piano free | dichiarato per snapshot | sì | REST, chiave | free tier | **bloccato** | **non verificato** | profondità storica del piano free non accertata |
-| **OddsPortal** (via OddsHarvester) | sì, per nome | 1X2, AH, O/U, BTTS… | molte stagioni, 100+ campionati | **non verificata**: `--odds-history` dichiara il movimento, i campi non sono ispezionabili da qui | sì | scraping Playwright | strumento gratuito | **bloccato** | **no** | termini d'uso di un aggregatore commerciale, non letti |
+| **OddsPortal** (via OddsHarvester) | sì, per nome | 1X2, AH, O/U, BTTS… | molte stagioni, 100+ campionati | **non verificata, ma ora documentata**: il tooltip porta data e ora per variazione (`%d %b, %H:%M`), senza anno | sì | scraping Playwright | strumento gratuito | **bloccato** | **no** | termini d'uso di un aggregatore commerciale, non letti |
+| **xgabora/Club-Football-Match-Data-2000-2025** | sì: bet365, più un massimo su ~17 book | 1X2, O/U 2.5, AH | 2000→2026, 238.858 partite, 211.067 con quota, **38 divisioni** | **nessuno**: un prezzo per partita | no | un CSV da 44 MB su raw.githubusercontent | sì (MIT) | **raggiungibile, scaricato** | **no** | nessun istante; ma è l'unica fonte qui che copra le serie inferiori |
+| `eatpizzanot/soccer-dataset` | non verificato | 1X2 | dichiarate 673.966 partite, 186.813 con quota | **non verificata**: dichiara `known_at`, nessuna riga ispezionata | no | Hugging Face (completo), campioni su GitHub | sì | **bloccato** | **no** | letta solo la documentazione; avviso importante sull'xG di API-Football |
+| `salimt/football-datasets` — infortuni | — | — | 143.195 storie di infortunio | **nessuno**: `from_date` è retrodatata, non è una pubblicazione | no | CSV nel repo, copia su Kaggle | sì | percorso non risolto | **no** | trappola di leakage: attribuirebbe conoscenza che il mercato non aveva |
+| `datasets/football-datasets` (datahub) | sì | 1X2 | 1993→oggi, top 5 | **nessuno**: i commit quotidiani datano lo scraper, su partite già giocate | no | raw.githubusercontent / datahub.io | sì (PDDL) | **raggiungibile** | **no** | sembra la soluzione e non lo è: l'istante cade dopo l'esito |
 | `api-sports.io`, `football-data.org`, SofaScore, FBref | — | — | — | — | — | REST | vario | **bloccati** | **non verificato** | nessuna proprietà accertabile da qui |
 
 ---
@@ -137,6 +141,101 @@ Due ragioni per cui resta `PROMISING_BUT_UNVERIFIED` e non sale:
    leggendoli.
 
 La seconda ragione non sparisce verificando la prima.
+
+## Aggiornamento — ricerca su GitHub, settembre 2026
+
+Quattro fonti nuove, tutte verificate per quanto questo ambiente permette. La
+domanda dell'audit non cambia risposta: **nessuna delle quattro porta un
+istante di osservazione.** Cambiano altre due cose.
+
+### `xgabora/Club-Football-Match-Data-2000-2025` — l'unica che sblocca qualcosa
+
+Scaricato il CSV vero, 44 MB: 238.858 partite, 211.067 con quota, 38 divisioni
+in 27 paesi. Le colonne `OddHome/Draw/Away` sono la quota prematch di bet365 e
+le `Max*` il massimo su circa 17 book, come dichiara il README. MIT. Nessun
+timestamp: `MatchDate` e `MatchTime` sono il calcio d'inizio.
+
+Non serve all'event study, e non è il punto. Contiene **Inghilterra fino alla
+quinta serie, Scozia fino alla quarta, e le seconde divisioni di Germania,
+Francia, Italia e Spagna**, cioè esattamente i mercati per cui C-106 è rimasta
+`UNTESTED` in quattro milestone: non perché fosse difficile, ma perché il
+campione era fatto di sole prime divisioni. Il risultato è in
+[`docs/validation/division-efficiency.md`](../validation/division-efficiency.md).
+
+Una cautela sulle colonne derivate: Elo, forma e i cluster `C_*` sono calcolati
+dall'autore, e non è stato verificato che usino solo informazione anteriore
+alla partita. Un cluster stimato sull'intero dataset conterrebbe l'esito. Per
+C-106 sono state usate soltanto le colonne di quota.
+
+### OddsPortal — l'evidenza si è irrobustita, la classificazione no
+
+Leggendo `docs/agentic-gotchas.md` di `jordantete/OddsHarvester` (MIT) è emerso
+il dettaglio che mancava: il tooltip **"Odds movement"** di OddsPortal contiene
+le variazioni di prezzo **con data e ora**, parsate come `"%d %b, %H:%M"`, e da
+lì si ricava anche la quota di apertura; la chiusura viene dalla riga
+principale. Il documento precisa che quelle date **non sono localizzate** —
+il bundle le rende con array di mesi inglesi fissi — e che l'orario è reso nel
+fuso del browser, impostabile con `--timezone`.
+
+Perché conta: il percorso del prezzo è sulla pagina di una partita **già
+giocata**. In linea di principio consente un recupero *retrospettivo*, non solo
+una raccolta in avanti. È la differenza fra una fonte storica e uno scraper che
+si limita a marcare l'ora in cui ha girato, ed è la ragione per cui OddsPortal
+resta il candidato più forte dopo BeatTheBookie.
+
+Restano due buchi, ed è per questo che la classificazione **non cambia**:
+il formato non porta l'anno, che andrebbe dedotto dal calcio d'inizio con un
+rischio reale a cavallo di dicembre; e l'evidenza è la documentazione di terzi,
+non un output osservato. Nel registro questo è scritto in
+`timestamp_quality_expected`, un campo separato da `timestamp_quality` proprio
+perché un'aspettativa non pesi quanto una verifica: un test impedisce che
+possa sollevare `pit_usable`.
+
+Una precisazione che evita un equivoco facile, perché è il tipo di campo che
+si legge di sfuggita e si promuove per sbaglio: lo strumento espone un
+`scraped_at_utc`, ma **solo nella modalità `live`**, cioè a partita in corso,
+dove la copertura scende a 2–4 book e `--odds-history` è rifiutato. Non è un
+timestamp sulle quote prematch, e non va confuso con le date del tooltip, che
+sono l'unica evidenza qui rilevante.
+
+E prima ancora della domanda tecnica resta quella legale: **i termini di
+servizio di OddsPortal non sono stati letti.**
+
+### Due fonti che sembrano utili e non lo sono
+
+**`datasets/football-datasets`** committa ogni giorno via GitHub Actions. Un
+repository che committa quotidianamente darebbe a ogni riga un istante
+attestato da git — un limite superiore di conoscibilità onesto, mai inventato,
+e nella direzione sicura, perché un fatto datato più tardi di quando era noto
+non fa mai leakage. Ma i commit riguardano **partite già giocate**: l'istante
+cade dopo l'esito e non vincola niente. La costruzione funzionerebbe solo su un
+file di partite **future** con quota, committato prima del calcio d'inizio, che
+questo repository non pubblica. Registrata proprio per questo: è il fallimento
+più istruttivo del gruppo.
+
+**`salimt/football-datasets`** porta 143.195 storie di infortunio da
+Transfermarkt, e sarebbe la terza priorità della lista di ricerca. Lo schema,
+letto nell'anteprima pubblicata dal manutentore, è
+`player_id, season, injury_reason, from_date, end_date, days_missed, games_missed`.
+`from_date` è la data a cui l'infortunio viene **fatto risalire**, compilata
+retroattivamente, spesso giorni dopo. Non è grossolana: è una trappola nella
+direzione pericolosa. Usarla come "noto da `from_date`" attribuirebbe al
+modello una conoscenza che il mercato non aveva. Un infortunio annunciato 90
+minuti prima del fischio d'inizio e uno registrato tre giorni dopo qui sono la
+stessa riga. Per l'ipotesi degli infortuni dell'ultimo minuto **nessuna
+trasformazione la rende utile.**
+
+### Cosa non è stato trovato, dopo aver cercato
+
+Nessun dataset pubblico, gratuito o a pagamento, che porti **l'istante di
+pubblicazione di una formazione**. Le ricerche su archivi di formazioni con
+snapshot temporizzati non hanno prodotto nulla, e i dataset di formazioni che
+esistono (StatsBomb, schochastics, i vari scraper di WhoScored e SofaScore)
+portano la formazione della partita, non il momento in cui è diventata
+pubblica. Resta la conclusione già registrata: quell'istante **esiste solo se
+lo si registra in avanti**, e nessuno lo ha registrato per noi.
+
+---
 
 ## Cosa NON è stato assunto
 

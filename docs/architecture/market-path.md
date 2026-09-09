@@ -110,13 +110,17 @@ tempo invece che al prezzo.
 
 Registrate come tali invece di essere adottate:
 
-**«Nei campionati minori nascono gli edge»** — `C-106`, `UNTESTED`. È
-largamente creduto e qui non è mai stato misurato: la scansione ha coperto sette
-prime divisioni, con una soglia di rilevabilità di 4–7 punti di probabilità.
-Niente in questo progetto riguarda Serie C, settore giovanile, calcio femminile
-o Scandinavia. Va misurato, non assunto — che è la stessa disciplina applicata
-al bias favorito-longshot, che si è rivelato **assente** dove la letteratura lo
-dava per presente.
+**«Nei campionati minori nascono gli edge»** — `C-106`, ora
+`TESTED_BUT_LIMITED`. Era largamente creduto e non misurato: la scansione
+copriva sette prime divisioni. Con
+`xgabora/Club-Football-Match-Data-2000-2025` sono arrivate le serie inferiori e
+la misura è stata fatta su 38 divisioni
+([efficienza fra divisioni](../validation/division-efficiency.md)). Il mercato
+è misurabilmente **meno affilato** lì, in 6 paesi su 6 — ma **non più
+scalibrato**, e il margine è più alto proprio dove lo skill è più basso. Cioè
+la credenza è per metà vera e per la metà che conta non dimostrata, che è la
+stessa disciplina applicata al bias favorito-longshot, rivelatosi **assente**
+dove la letteratura lo dava per presente.
 
 **«Dopo un anno puoi stimare il valore di ogni assenza»** — `C-107`,
 `NOT_DEMONSTRATED`. Il calcolo di potenza dice altro: un portiere fuori a

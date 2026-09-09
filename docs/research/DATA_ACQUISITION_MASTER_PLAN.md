@@ -50,13 +50,41 @@ Vocabolario di acquisizione, derivato dallo stato tecnico in
 | **Football-Data** (mirror) | gratis | uso personale; mirror senza licenza | 1993→oggi, 8 leghe | **nessuno** | sì | **`PARTIAL`** |
 | **BeatTheBookie — dump SQL** | gratis | GPL-3.0 sul codice; dati a corredo del paper | 2005-2016, ~113.860 partite | **assoluto per osservazione** | **32, per nome** | **`BLOCKED`** |
 | BeatTheBookie — export `.txt` | gratis | idem | idem | griglia oraria, relativa | anonimo | **`PARTIAL`** |
-| **OddsPortal** (via OddsHarvester) | strumento gratis | MIT lo strumento; **termini dei dati non letti** | 100+ campionati, 7 mercati | **non verificato** | sì | **`UNVERIFIED`** |
+| **OddsPortal** (via OddsHarvester) | strumento gratis | MIT lo strumento; **termini dei dati non letti** | 100+ campionati, 7 mercati | **atteso** assoluto per osservazione (tooltip con data e ora, senza anno); non ispezionato | sì | **`UNVERIFIED`** |
 | Betfair Historical | piano Basic gratis | **termini non letti** | 2015→oggi | dichiarato al ms, **non verificato** | exchange | **`UNVERIFIED`** |
 | the-odds-api | free tier a quota | **termini non letti** | ignota nel free tier | non verificato | sì | **`UNVERIFIED`** |
 | statsbomb/open-data | gratis | licenza propria | molte competizioni | **nessuno** (referto post-partita) | — | **`PARTIAL`** |
 | iredchuk/soccer-odds | gratis | non dichiarata | 2005-2019, 5 leghe | nessuno | **no**, media fra book | **`PARTIAL`** |
 | marcoblume/pinnacle.data | gratis | CRAN | MLB 2016 | assoluto | sì | **`PARTIAL`** (non è calcio) |
+| **xgabora/Club-Football-Match-Data** | gratis | MIT | 2000→2026, **38 divisioni**, 211.067 con quota | **nessuno** | sì (bet365) | **`READY`** per l'efficienza fra campionati, `PARTIAL` per tutto il resto |
+| eatpizzanot/soccer-dataset | gratis | **non ispezionata** | dichiarate 673.966 partite | dichiara `known_at`, **non ispezionato** | non verificato | **`UNVERIFIED`** |
+| salimt/football-datasets — infortuni | gratis | **non ispezionata** | 143.195 infortuni | **nessuno**, e `from_date` è retrodatata | — | **`PARTIAL`**, e da non usare: leakage |
+| datasets/football-datasets (datahub) | gratis | PDDL | 1993→oggi, top 5 | **nessuno**: commit dopo l'esito | sì | **`PARTIAL`** |
 | Formazioni con istante di pubblicazione | — | — | — | — | — | **nessuna fonte esiste** |
+
+### Aggiornamento settembre 2026 — cosa ha cambiato la ricerca su GitHub
+
+Quattro fonti nuove, nessuna con un istante di osservazione. Il collo di
+bottiglia resta identico e la Fase A non si sposta di un passo.
+
+Due effetti reali però ci sono:
+
+1. **C-106 non è più `UNTESTED`.** `xgabora/Club-Football-Match-Data` porta le
+   serie inferiori che mancavano, e la misura è fatta: il mercato è meno
+   affilato lì (6 paesi su 6), ma **non più scalibrato**, e il margine è più
+   alto proprio dove lo skill è più basso. Cioè: la direzione "andare sui
+   mercati minori" resta aperta come ricerca e **non** ha ricevuto la conferma
+   che sembrava avere.
+
+2. **OddsPortal si è irrobustito come candidato senza cambiare stato.** Il
+   percorso del prezzo esiste sulla pagina di una partita già giocata, quindi
+   in linea di principio è recuperabile all'indietro e non solo in avanti.
+   Questo alza il valore atteso di **A2** (leggere i termini), che era la meno
+   urgente delle tre azioni e ora è la seconda.
+
+E una conferma che vale quanto una scoperta: **le formazioni con istante di
+pubblicazione continuano a non esistere in nessuna fonte pubblica.** La riga
+qui sotto non è un buco nella ricerca, è il risultato della ricerca.
 
 **Una sola fonte è PIT-usabile** (`beatthebookie-sql`) e non è raggiungibile da
 qui. Un test lo asserisce, così aggiungerne una seconda diventa un atto

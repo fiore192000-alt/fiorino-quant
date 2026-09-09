@@ -47,7 +47,7 @@ l'opinione come un indicatore di errore.
 
 ---
 
-## I quattro numeri che contano
+## I cinque numeri che contano
 
 ### 1. Lo yield mente, il CLV no
 
@@ -107,6 +107,38 @@ mercato stesso impara qualcosa, solo per arrivare alla pari.
 
 Questo dice quanto è **grande** il divario. Non dice di che cosa sia fatto —
 vedi la sezione seguente.
+
+### 5. Il mercato è meno affilato nelle serie inferiori, e costa di più
+
+Il primo risultato del progetto in cui due gruppi di mercati si distinguono
+davvero, replicato paese per paese. 235.806 partite, 38 divisioni, quota
+prematch bet365.
+
+```
+  skill del mercato contro la climatologia della divisione
+    prime divisioni        +0.0879
+    divisioni inferiori    +0.0428      permutazione p = 0.0001
+
+  appaiato dentro il paese, 6 paesi con entrambe le serie
+    skill più basso nella serie inferiore     6/6      test dei segni p = 0.031
+    margine più alto nella serie inferiore    6/6      media +0.0127
+    scarto di calibrazione più alto           2/6      nessuna direzione
+```
+
+Il Brier grezzo delle serie inferiori è più alto, ma il Brier grezzo non misura
+l'efficienza: misura anche quanto è incerto il campionato. Lo skill contro la
+climatologia toglie quell'entropia, ed è su quello che il risultato regge.
+
+**E resta un risultato che non autorizza a scommettere.** Meno affilato non è
+scalibrato: la calibrazione, che sarebbe la firma del prezzo sbagliato, non si
+muove. Uno skill più basso è ugualmente compatibile con serie inferiori
+semplicemente meno prevedibili — un previsore perfetto avrebbe anche lì uno
+skill più basso. E il margine è più alto proprio dove lo skill è più basso
+(correlazione −0.83 sui sei paesi): **il book fa pagare la propria ignoranza**,
+e si pagano 1.27 punti percentuali in più esattamente dove si spererebbe di
+trovare il vantaggio.
+
+Dettagli in [efficienza fra divisioni](validation/division-efficiency.md).
 
 ---
 
@@ -366,7 +398,8 @@ Il laboratorio ha ora regole scritte, non solo consuetudini:
 [motore M4](validation/backtest-validation.md) ·
 [modelli M5](validation/model-validation.md) ·
 [informazione incrementale M6](validation/incremental-information.md) ·
-[canale di mercato](validation/market-channel.md)
+[canale di mercato](validation/market-channel.md) ·
+[efficienza fra divisioni](validation/division-efficiency.md)
 
 **Prossimo passo**
 [esperimento formazioni: disegno e contratto dati](architecture/next-experiment.md)

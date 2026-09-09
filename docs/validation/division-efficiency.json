@@ -1,0 +1,787 @@
+{
+  "source": "xgabora/Club-Football-Match-Data-2000-2025",
+  "benchmark": "bet365 prematch 1X2, de-vig SHIN",
+  "timestamps": null,
+  "divisions": [
+    {
+      "division": "ARG",
+      "tier": "TOP",
+      "name": "ARG",
+      "n": 5329,
+      "brier": 0.20785039160066085,
+      "brier_ci": [
+        0.20617257128700356,
+        0.21003304214792734
+      ],
+      "brier_climatology": 0.21700722003639675,
+      "brier_skill": 0.04219596211683696,
+      "calibration_gap": 0.0032767516748144704,
+      "worst_band_gap": 0.01675858445577172,
+      "mean_overround": 0.07100669255630683,
+      "refused_rows": 1,
+      "refused_fraction": 0.0001876172607879925
+    },
+    {
+      "division": "AUT",
+      "tier": "TOP",
+      "name": "AUT",
+      "n": 2306,
+      "brier": 0.19743740027403453,
+      "brier_ci": [
+        0.19314980254561365,
+        0.2018048148085161
+      ],
+      "brier_climatology": 0.21722948568372544,
+      "brier_skill": 0.09111141310948523,
+      "calibration_gap": 0.012076160238861931,
+      "worst_band_gap": 0.04066629928663912,
+      "mean_overround": 0.06752775962774538,
+      "refused_rows": 0,
+      "refused_fraction": 0.0
+    },
+    {
+      "division": "B1",
+      "tier": "TOP",
+      "name": "B1",
+      "n": 6812,
+      "brier": 0.194701149323823,
+      "brier_ci": [
+        0.19239836347257416,
+        0.1974503621218224
+      ],
+      "brier_climatology": 0.21385155633037234,
+      "brier_skill": 0.08955000064140062,
+      "calibration_gap": 0.004468166141101079,
+      "worst_band_gap": 0.018722592946798233,
+      "mean_overround": 0.0829877315249853,
+      "refused_rows": 0,
+      "refused_fraction": 0.0
+    },
+    {
+      "division": "BRA",
+      "tier": "TOP",
+      "name": "BRA",
+      "n": 4849,
+      "brier": 0.19902681327385574,
+      "brier_ci": [
+        0.1964704920984742,
+        0.20173927630715568
+      ],
+      "brier_climatology": 0.2105666044069727,
+      "brier_skill": 0.05480352008152922,
+      "calibration_gap": 0.008390025006405979,
+      "worst_band_gap": 0.013541782859109674,
+      "mean_overround": 0.06788118885271036,
+      "refused_rows": 0,
+      "refused_fraction": 0.0
+    },
+    {
+      "division": "CHN",
+      "tier": "TOP",
+      "name": "CHN",
+      "n": 2538,
+      "brier": 0.18364308625668102,
+      "brier_ci": [
+        0.17901469749856036,
+        0.188398127156424
+      ],
+      "brier_climatology": 0.21487076500238447,
+      "brier_skill": 0.14533237569734958,
+      "calibration_gap": 0.014389044895125125,
+      "worst_band_gap": 0.028962226438721483,
+      "mean_overround": 0.07919811829194971,
+      "refused_rows": 0,
+      "refused_fraction": 0.0
+    },
+    {
+      "division": "D1",
+      "tier": "TOP",
+      "name": "D1",
+      "n": 7762,
+      "brier": 0.1971025237499773,
+      "brier_ci": [
+        0.19474723882209813,
+        0.19921566551611297
+      ],
+      "brier_climatology": 0.2142242072701105,
+      "brier_skill": 0.07992413060277936,
+      "calibration_gap": 0.003846186726144116,
+      "worst_band_gap": 0.0237551474097788,
+      "mean_overround": 0.06834375347546238,
+      "refused_rows": 0,
+      "refused_fraction": 0.0
+    },
+    {
+      "division": "D2",
+      "tier": "LOWER",
+      "name": "Germany 2",
+      "n": 7408,
+      "brier": 0.20807767022480397,
+      "brier_ci": [
+        0.20601647399969827,
+        0.21005409892654672
+      ],
+      "brier_climatology": 0.21559999687067793,
+      "brier_skill": 0.03489019830731277,
+      "calibration_gap": 0.0012306446676159347,
+      "worst_band_gap": 0.008011366482553406,
+      "mean_overround": 0.07784796701995453,
+      "refused_rows": 0,
+      "refused_fraction": 0.0
+    },
+    {
+      "division": "DEN",
+      "tier": "TOP",
+      "name": "DEN",
+      "n": 2634,
+      "brier": 0.20135800137484958,
+      "brier_ci": [
+        0.1977929260055957,
+        0.20538438790469274
+      ],
+      "brier_climatology": 0.2172575515516867,
+      "brier_skill": 0.07318295756939219,
+      "calibration_gap": 0.004695006162638755,
+      "worst_band_gap": 0.02128587233087864,
+      "mean_overround": 0.06327056508232243,
+      "refused_rows": 0,
+      "refused_fraction": 0.0
+    },
+    {
+      "division": "E0",
+      "tier": "TOP",
+      "name": "E0",
+      "n": 9727,
+      "brier": 0.19091673056102687,
+      "brier_ci": [
+        0.18866836958177474,
+        0.19335631176672874
+      ],
+      "brier_climatology": 0.21410963919363768,
+      "brier_skill": 0.10832258052443622,
+      "calibration_gap": 0.0034864144727652425,
+      "worst_band_gap": 0.01802398280347539,
+      "mean_overround": 0.0560256785456355,
+      "refused_rows": 0,
+      "refused_fraction": 0.0
+    },
+    {
+      "division": "E1",
+      "tier": "LOWER",
+      "name": "England 2",
+      "n": 14036,
+      "brier": 0.20892091464994816,
+      "brier_ci": [
+        0.20747224780892642,
+        0.21040170066029362
+      ],
+      "brier_climatology": 0.2168494763144246,
+      "brier_skill": 0.036562512389839874,
+      "calibration_gap": 0.004680770682797195,
+      "worst_band_gap": 0.008118322745020695,
+      "mean_overround": 0.06568532923693161,
+      "refused_rows": 0,
+      "refused_fraction": 0.0
+    },
+    {
+      "division": "E2",
+      "tier": "LOWER",
+      "name": "England 3",
+      "n": 13604,
+      "brier": 0.20745561192362838,
+      "brier_ci": [
+        0.20619793740215298,
+        0.2090929179105579
+      ],
+      "brier_climatology": 0.21666131298244629,
+      "brier_skill": 0.042488900912198146,
+      "calibration_gap": 0.0027054654589845645,
+      "worst_band_gap": 0.007649155676729302,
+      "mean_overround": 0.0692415729818409,
+      "refused_rows": 0,
+      "refused_fraction": 0.0
+    },
+    {
+      "division": "E3",
+      "tier": "LOWER",
+      "name": "England 4",
+      "n": 13208,
+      "brier": 0.2117024142309888,
+      "brier_ci": [
+        0.21048480275076337,
+        0.21296051573167182
+      ],
+      "brier_climatology": 0.217894578663923,
+      "brier_skill": 0.028418166578090487,
+      "calibration_gap": 0.005098815042503207,
+      "worst_band_gap": 0.006990499089325086,
+      "mean_overround": 0.06757228019353807,
+      "refused_rows": 0,
+      "refused_fraction": 0.0
+    },
+    {
+      "division": "EC",
+      "tier": "LOWER",
+      "name": "England 5",
+      "n": 7696,
+      "brier": 0.20481264595249185,
+      "brier_ci": [
+        0.20294878288132706,
+        0.20643072455456513
+      ],
+      "brier_climatology": 0.2168918266079063,
+      "brier_skill": 0.055692189255480806,
+      "calibration_gap": 0.003754635200509178,
+      "worst_band_gap": 0.02002999370604775,
+      "mean_overround": 0.07451884958636673,
+      "refused_rows": 0,
+      "refused_fraction": 0.0
+    },
+    {
+      "division": "F1",
+      "tier": "TOP",
+      "name": "F1",
+      "n": 8994,
+      "brier": 0.20038260895820242,
+      "brier_ci": [
+        0.19809943371923072,
+        0.20214392965190917
+      ],
+      "brier_climatology": 0.21537921648223066,
+      "brier_skill": 0.06962885170150801,
+      "calibration_gap": 0.005536658954466606,
+      "worst_band_gap": 0.011663245129097943,
+      "mean_overround": 0.07047667609687802,
+      "refused_rows": 0,
+      "refused_fraction": 0.0
+    },
+    {
+      "division": "F2",
+      "tier": "LOWER",
+      "name": "France 2",
+      "n": 8646,
+      "brier": 0.20876810856839237,
+      "brier_ci": [
+        0.20738384565410797,
+        0.2101447259150452
+      ],
+      "brier_climatology": 0.21604114525165474,
+      "brier_skill": 0.0336650533618974,
+      "calibration_gap": 0.0036722752216962204,
+      "worst_band_gap": 0.01671136956671404,
+      "mean_overround": 0.08223895993147044,
+      "refused_rows": 0,
+      "refused_fraction": 0.0
+    },
+    {
+      "division": "FIN",
+      "tier": "TOP",
+      "name": "FIN",
+      "n": 2353,
+      "brier": 0.1996820568199765,
+      "brier_ci": [
+        0.19581277452689427,
+        0.20363226823071276
+      ],
+      "brier_climatology": 0.2161315707863859,
+      "brier_skill": 0.0761087975558522,
+      "calibration_gap": 0.007674914506820591,
+      "worst_band_gap": 0.012360566612256985,
+      "mean_overround": 0.07043622100596697,
+      "refused_rows": 1,
+      "refused_fraction": 0.0004248088360237893
+    },
+    {
+      "division": "G1",
+      "tier": "TOP",
+      "name": "G1",
+      "n": 4288,
+      "brier": 0.18284937310263064,
+      "brier_ci": [
+        0.17910981677047869,
+        0.1861243860324836
+      ],
+      "brier_climatology": 0.21246902149699498,
+      "brier_skill": 0.13940690358374552,
+      "calibration_gap": 0.012329326892699291,
+      "worst_band_gap": 0.07788380563155295,
+      "mean_overround": 0.07980768707666268,
+      "refused_rows": 0,
+      "refused_fraction": 0.0
+    },
+    {
+      "division": "I1",
+      "tier": "TOP",
+      "name": "I1",
+      "n": 9293,
+      "brier": 0.19054151677750908,
+      "brier_ci": [
+        0.1885898076608792,
+        0.1930766056378761
+      ],
+      "brier_climatology": 0.21605456952571925,
+      "brier_skill": 0.11808615205045725,
+      "calibration_gap": 0.010544118087637432,
+      "worst_band_gap": 0.022869945906805134,
+      "mean_overround": 0.06691946415201207,
+      "refused_rows": 0,
+      "refused_fraction": 0.0
+    },
+    {
+      "division": "I2",
+      "tier": "LOWER",
+      "name": "Italy 2",
+      "n": 10003,
+      "brier": 0.20757609316114964,
+      "brier_ci": [
+        0.20609516867301395,
+        0.20916260292450356
+      ],
+      "brier_climatology": 0.21639774187902835,
+      "brier_skill": 0.0407659000564351,
+      "calibration_gap": 0.007623396525622438,
+      "worst_band_gap": 0.025386083661119496,
+      "mean_overround": 0.08199172385235594,
+      "refused_rows": 0,
+      "refused_fraction": 0.0
+    },
+    {
+      "division": "IRL",
+      "tier": "TOP",
+      "name": "IRL",
+      "n": 2367,
+      "brier": 0.19006074199009462,
+      "brier_ci": [
+        0.18540063361360504,
+        0.1953006623159894
+      ],
+      "brier_climatology": 0.21604863902553842,
+      "brier_skill": 0.12028725176265442,
+      "calibration_gap": 0.0026620428346989617,
+      "worst_band_gap": 0.008885986229895448,
+      "mean_overround": 0.07509728201986948,
+      "refused_rows": 0,
+      "refused_fraction": 0.0
+    },
+    {
+      "division": "JAP",
+      "tier": "TOP",
+      "name": "JAP",
+      "n": 4089,
+      "brier": 0.20675448332489593,
+      "brier_ci": [
+        0.20446821991332714,
+        0.20993747508529848
+      ],
+      "brier_climatology": 0.2179199291671282,
+      "brier_skill": 0.05123646049677821,
+      "calibration_gap": 0.005031158367962323,
+      "worst_band_gap": 0.008210015781884572,
+      "mean_overround": 0.07038730483660324,
+      "refused_rows": 0,
+      "refused_fraction": 0.0
+    },
+    {
+      "division": "MEX",
+      "tier": "TOP",
+      "name": "MEX",
+      "n": 4080,
+      "brier": 0.20595927952719434,
+      "brier_ci": [
+        0.20343304391393732,
+        0.20860226635139253
+      ],
+      "brier_climatology": 0.21621439670637926,
+      "brier_skill": 0.04743031609089121,
+      "calibration_gap": 0.002652489927438897,
+      "worst_band_gap": 0.008898983544261774,
+      "mean_overround": 0.07431833009211253,
+      "refused_rows": 0,
+      "refused_fraction": 0.0
+    },
+    {
+      "division": "N1",
+      "tier": "TOP",
+      "name": "N1",
+      "n": 7543,
+      "brier": 0.18583512565045507,
+      "brier_ci": [
+        0.18310713952113067,
+        0.1884826845061488
+      ],
+      "brier_climatology": 0.21242834261935584,
+      "brier_skill": 0.12518676482145497,
+      "calibration_gap": 0.00302777559595644,
+      "worst_band_gap": 0.020792719357303535,
+      "mean_overround": 0.07881151986899566,
+      "refused_rows": 0,
+      "refused_fraction": 0.0
+    },
+    {
+      "division": "NOR",
+      "tier": "TOP",
+      "name": "NOR",
+      "n": 3092,
+      "brier": 0.19699718364453017,
+      "brier_ci": [
+        0.1936418476165526,
+        0.2003399443900385
+      ],
+      "brier_climatology": 0.2125343846630606,
+      "brier_skill": 0.0731044110493565,
+      "calibration_gap": 0.004978189768669342,
+      "worst_band_gap": 0.010292035431849644,
+      "mean_overround": 0.06446181154810526,
+      "refused_rows": 0,
+      "refused_fraction": 0.0
+    },
+    {
+      "division": "P1",
+      "tier": "TOP",
+      "name": "P1",
+      "n": 6872,
+      "brier": 0.1859644721653682,
+      "brier_ci": [
+        0.1837000304616697,
+        0.18860204473770548
+      ],
+      "brier_climatology": 0.2151606960788339,
+      "brier_skill": 0.13569496867015307,
+      "calibration_gap": 0.009981280691390787,
+      "worst_band_gap": 0.04583842250462489,
+      "mean_overround": 0.08121613301016632,
+      "refused_rows": 0,
+      "refused_fraction": 0.0
+    },
+    {
+      "division": "POL",
+      "tier": "TOP",
+      "name": "POL",
+      "n": 3567,
+      "brier": 0.20821026528478917,
+      "brier_ci": [
+        0.20564296384354808,
+        0.2109180907630257
+      ],
+      "brier_climatology": 0.21663722374683206,
+      "brier_skill": 0.03889894043274322,
+      "calibration_gap": 0.003376080016371658,
+      "worst_band_gap": 0.005989349222918272,
+      "mean_overround": 0.07096677531854988,
+      "refused_rows": 0,
+      "refused_fraction": 0.0
+    },
+    {
+      "division": "ROM",
+      "tier": "TOP",
+      "name": "ROM",
+      "n": 3640,
+      "brier": 0.1984252498960147,
+      "brier_ci": [
+        0.1950407364519741,
+        0.20147395337191643
+      ],
+      "brier_climatology": 0.21776702692911462,
+      "brier_skill": 0.08881866692975449,
+      "calibration_gap": 0.00396293446138858,
+      "worst_band_gap": 0.02256000426302554,
+      "mean_overround": 0.08307228412552525,
+      "refused_rows": 0,
+      "refused_fraction": 0.0
+    },
+    {
+      "division": "RUS",
+      "tier": "TOP",
+      "name": "RUS",
+      "n": 3005,
+      "brier": 0.1951642346615852,
+      "brier_ci": [
+        0.1917673243812886,
+        0.19869185560698982
+      ],
+      "brier_climatology": 0.2161630043475297,
+      "brier_skill": 0.09714321721854102,
+      "calibration_gap": 0.008235988032978186,
+      "worst_band_gap": 0.011969089760229312,
+      "mean_overround": 0.06499217633881235,
+      "refused_rows": 0,
+      "refused_fraction": 0.0
+    },
+    {
+      "division": "SC0",
+      "tier": "TOP",
+      "name": "SC0",
+      "n": 5320,
+      "brier": 0.18864589625463396,
+      "brier_ci": [
+        0.18556938931168165,
+        0.1914902397655722
+      ],
+      "brier_climatology": 0.2159198984302727,
+      "brier_skill": 0.12631537145913574,
+      "calibration_gap": 0.007677949040993326,
+      "worst_band_gap": 0.03799699803355994,
+      "mean_overround": 0.07501105832629724,
+      "refused_rows": 0,
+      "refused_fraction": 0.0
+    },
+    {
+      "division": "SC1",
+      "tier": "LOWER",
+      "name": "Scotland 2",
+      "n": 4241,
+      "brier": 0.20716195132432427,
+      "brier_ci": [
+        0.20463887683582227,
+        0.2093350002639158
+      ],
+      "brier_climatology": 0.2187401839604077,
+      "brier_skill": 0.05293143868882866,
+      "calibration_gap": 0.01236794140600447,
+      "worst_band_gap": 0.03828693682591189,
+      "mean_overround": 0.08679686575340077,
+      "refused_rows": 0,
+      "refused_fraction": 0.0
+    },
+    {
+      "division": "SC2",
+      "tier": "LOWER",
+      "name": "Scotland 3",
+      "n": 4243,
+      "brier": 0.20175642337472172,
+      "brier_ci": [
+        0.19934818449188815,
+        0.20470934742392083
+      ],
+      "brier_climatology": 0.21520673155603529,
+      "brier_skill": 0.06249947705660586,
+      "calibration_gap": 0.005559008243492349,
+      "worst_band_gap": 0.02993867847981535,
+      "mean_overround": 0.08896429390891586,
+      "refused_rows": 0,
+      "refused_fraction": 0.0
+    },
+    {
+      "division": "SC3",
+      "tier": "LOWER",
+      "name": "Scotland 4",
+      "n": 4159,
+      "brier": 0.20283162530891297,
+      "brier_ci": [
+        0.19992442819413897,
+        0.20573733217073417
+      ],
+      "brier_climatology": 0.21443458849592437,
+      "brier_skill": 0.05410956911567433,
+      "calibration_gap": 0.007524638401309845,
+      "worst_band_gap": 0.018899683558921992,
+      "mean_overround": 0.08901803056358967,
+      "refused_rows": 0,
+      "refused_fraction": 0.0
+    },
+    {
+      "division": "SP1",
+      "tier": "TOP",
+      "name": "SP1",
+      "n": 9329,
+      "brier": 0.19185472789215993,
+      "brier_ci": [
+        0.18947438831291769,
+        0.19370264319796987
+      ],
+      "brier_climatology": 0.2124233575315587,
+      "brier_skill": 0.09682847441267362,
+      "calibration_gap": 0.0067653302702768954,
+      "worst_band_gap": 0.017571834649849682,
+      "mean_overround": 0.06786157579625936,
+      "refused_rows": 0,
+      "refused_fraction": 0.0
+    },
+    {
+      "division": "SP2",
+      "tier": "LOWER",
+      "name": "Spain 2",
+      "n": 10619,
+      "brier": 0.209313392824288,
+      "brier_ci": [
+        0.2080713703288862,
+        0.21092851174033866
+      ],
+      "brier_climatology": 0.21544676279527297,
+      "brier_skill": 0.028468146336518174,
+      "calibration_gap": 0.002757776285103256,
+      "worst_band_gap": 0.014040121898398428,
+      "mean_overround": 0.08139499731872622,
+      "refused_rows": 0,
+      "refused_fraction": 0.0
+    },
+    {
+      "division": "SUI",
+      "tier": "TOP",
+      "name": "SUI",
+      "n": 2272,
+      "brier": 0.2017084653029577,
+      "brier_ci": [
+        0.1977931077198981,
+        0.2059393241883406
+      ],
+      "brier_climatology": 0.21660353848444264,
+      "brier_skill": 0.06876652748013523,
+      "calibration_gap": 0.0013402726235666848,
+      "worst_band_gap": 0.0024348139730653307,
+      "mean_overround": 0.0694390202738023,
+      "refused_rows": 0,
+      "refused_fraction": 0.0
+    },
+    {
+      "division": "SWE",
+      "tier": "TOP",
+      "name": "SWE",
+      "n": 3110,
+      "brier": 0.19520621337312052,
+      "brier_ci": [
+        0.19184388747557046,
+        0.19897898553399934
+      ],
+      "brier_climatology": 0.21620475387971005,
+      "brier_skill": 0.09712339867546349,
+      "calibration_gap": 0.010409567222125925,
+      "worst_band_gap": 0.03343143578974011,
+      "mean_overround": 0.0631946354363874,
+      "refused_rows": 0,
+      "refused_fraction": 0.0
+    },
+    {
+      "division": "T1",
+      "tier": "TOP",
+      "name": "T1",
+      "n": 7537,
+      "brier": 0.19546760653384895,
+      "brier_ci": [
+        0.19330456083026032,
+        0.19829397653760922
+      ],
+      "brier_climatology": 0.2138679907529168,
+      "brier_skill": 0.08603617658860385,
+      "calibration_gap": 0.01006416236005936,
+      "worst_band_gap": 0.02094291168937712,
+      "mean_overround": 0.08165468223113123,
+      "refused_rows": 0,
+      "refused_fraction": 0.0
+    },
+    {
+      "division": "USA",
+      "tier": "TOP",
+      "name": "USA",
+      "n": 5232,
+      "brier": 0.20135403914329272,
+      "brier_ci": [
+        0.19908942839241864,
+        0.2042794043230178
+      ],
+      "brier_climatology": 0.20813803727237606,
+      "brier_skill": 0.03259374508372814,
+      "calibration_gap": 0.0030745526576150444,
+      "worst_band_gap": 0.0127395937037581,
+      "mean_overround": 0.06509046365791195,
+      "refused_rows": 1,
+      "refused_fraction": 0.00019109497420217848
+    }
+  ],
+  "summary": {
+    "calibration_gap": {
+      "delta_lower_minus_top": -0.0012631081187826918,
+      "p_permutation": 0.3079846007699615
+    },
+    "brier_skill": {
+      "delta_lower_minus_top": -0.04512131244069168,
+      "p_permutation": 0.00014999250037498125
+    },
+    "brier": {
+      "delta_lower_minus_top": 0.011084441036291887,
+      "p_permutation": 9.99950002499875e-05
+    },
+    "mean_overround": {
+      "delta_lower_minus_top": 0.0071996330589582935,
+      "p_permutation": 0.01134943252837358
+    },
+    "mean_brier_ci_width": 0.005380660300257529,
+    "brier_spread": 0.028853041128358153,
+    "brier_skill_spread": 0.1169142091192591,
+    "paired_within_country": [
+      {
+        "country": "England",
+        "top": "E0",
+        "lower": [
+          "E1",
+          "E2",
+          "E3",
+          "EC"
+        ],
+        "delta_skill": -0.06753213824053389,
+        "delta_calibration_gap": 0.0005735071234332935,
+        "delta_overround": 0.013228829454033829
+      },
+      {
+        "country": "France",
+        "top": "F1",
+        "lower": [
+          "F2"
+        ],
+        "delta_skill": -0.03596379833961061,
+        "delta_calibration_gap": -0.0018643837327703859,
+        "delta_overround": 0.011762283834592421
+      },
+      {
+        "country": "Germany",
+        "top": "D1",
+        "lower": [
+          "D2"
+        ],
+        "delta_skill": -0.045033932295466594,
+        "delta_calibration_gap": -0.002615542058528181,
+        "delta_overround": 0.009504213544492143
+      },
+      {
+        "country": "Italy",
+        "top": "I1",
+        "lower": [
+          "I2"
+        ],
+        "delta_skill": -0.07732025199402215,
+        "delta_calibration_gap": -0.002920721562014994,
+        "delta_overround": 0.01507225970034387
+      },
+      {
+        "country": "Scotland",
+        "top": "SC0",
+        "lower": [
+          "SC1",
+          "SC2",
+          "SC3"
+        ],
+        "delta_skill": -0.06980187650543279,
+        "delta_calibration_gap": 0.0008059136426088959,
+        "delta_overround": 0.013248671749004862
+      },
+      {
+        "country": "Spain",
+        "top": "SP1",
+        "lower": [
+          "SP2"
+        ],
+        "delta_skill": -0.06836032807615544,
+        "delta_calibration_gap": -0.004007553985173639,
+        "delta_overround": 0.013533421522466865
+      }
+    ],
+    "paired_skill_negative": [
+      6,
+      6
+    ],
+    "paired_gap_positive": [
+      2,
+      6
+    ]
+  }
+}

@@ -249,7 +249,7 @@
       ],
       "historical_depth": "molte stagioni, 100+ campionati dichiarati",
       "timestamp_quality": "UNKNOWN",
-      "timestamp_evidence": "Il flag --odds-history dichiara 'historical odds movement per match'. La struttura dei campi NON e ispezionabile da qui: oddsportal.com e bloccato e il README non la documenta. Il movimento esiste; che porti un istante assoluto e plausibile e non verificato.",
+      "timestamp_evidence": "timestamp_quality resta UNKNOWN perche non e stata ispezionata una riga di output vera. E pero emersa un'evidenza secondaria precisa, letta in docs/agentic-gotchas.md di jordantete/OddsHarvester: il tooltip 'Odds movement' di OddsPortal contiene le variazioni di prezzo con data e ora, parsate come '%d %b, %H:%M', e da li si ricava anche la quota di apertura; la chiusura viene invece dalla riga principale. Il documento specifica che quelle date NON sono localizzate perche il bundle le rende con array di mesi inglesi fissi, e che l'orario e reso nel fuso del browser, impostabile con --timezone. Restano due buchi: il formato non porta l'anno, che andrebbe dedotto dal calcio d'inizio con un rischio reale a cavallo di dicembre, e l'evidenza e la documentazione di terzi, non un output osservato.",
       "future_fixtures": true,
       "access_method": "scraping via Playwright (pacchetto oddsharvester su PyPI, MIT)",
       "access_documented": true,
@@ -261,7 +261,110 @@
       "cost": "gratuito lo strumento; il costo reale e tempo di scraping e rischio di blocco",
       "licence": "OddsHarvester e MIT; i DATI restano soggetti ai termini di oddsportal.com, NON ispezionati",
       "legal_note": "Lo strumento stesso avverte: 'ensure compliance with their terms of service'. Lo scraping di un aggregatore commerciale e tipicamente vietato dai suoi termini. Prima di raccogliere o conservare payload vanno letti, e la decisione non e tecnica.",
-      "main_limitation": "Copertura e mercati sono l'offerta piu ampia trovata, ma la qualita del timestamp non e verificata e i termini d'uso non sono stati letti. Le due cose insieme la tengono fuori da qualunque uso PIT."
+      "main_limitation": "E oggi il candidato piu forte per quote storiche con istante reale, ed e anche quello su cui non e stato verificato nulla in prima persona. Il percorso del prezzo esiste sulla pagina di una partita gia giocata, quindi in linea di principio consente un recupero retrospettivo e non solo una raccolta in avanti: e la differenza che conta rispetto a uno scraper che si limita a marcare l'ora in cui ha girato. Ma finche i termini non sono letti e una riga vera non e ispezionata, resta un candidato. Strumento: jordantete/OddsHarvester, MIT, Playwright.",
+      "timestamp_quality_expected": "ABSOLUTE_PER_OBSERVATION",
+      "unverified_because": "Mai eseguito: OddsPortal e i suoi mirror sono bloccati dalla policy di egress e lo strumento richiede l'automazione di un browser. E i termini di servizio di OddsPortal non sono stati letti, il che e una domanda aperta prima ancora di quella tecnica. Una precisazione che evita un equivoco facile: il campo scraped_at_utc esiste solo nella modalita 'live' (in gioco), dove la copertura dei book scende a 2-4 e --odds-history e rifiutato. NON e un timestamp sulle quote prematch, e non e da confondere con le date del tooltip, che sono l'unica evidenza qui rilevante."
+    },
+    {
+      "id": "xgabora-club-football",
+      "name": "xgabora/Club-Football-Match-Data (già Club-Football-Match-Data-2000-2025)",
+      "bookmaker_identifiable": true,
+      "bookmakers": [
+        "bet365",
+        "massimo fra ~17 book europei (identita del book vincente non riportata)"
+      ],
+      "markets": [
+        "1X2",
+        "Over/Under 2.5",
+        "handicap asiatico"
+      ],
+      "historical_depth": "2000-2026, 238.858 partite, 211.067 con quota; 38 divisioni in 27 paesi, fra cui Inghilterra fino alla quinta serie e Scozia fino alla quarta",
+      "timestamp_quality": "NONE",
+      "timestamp_evidence": "Scaricato il CSV da 44 MB e ispezionata l'intestazione: nessuna colonna temporale oltre a MatchDate e MatchTime, che sono il calcio d'inizio, non l'istante di rilevazione della quota. Il README dichiara OddHome/Draw/Away come quota bet365 prematch e Max* come massimo fra ~17 book.",
+      "future_fixtures": false,
+      "access_method": "curl -L su https://raw.githubusercontent.com/xgabora/Club-Football-Match-Data/main/data/Matches.csv — un solo file da 45.370.018 byte, verificato scaricandolo. Il vecchio nome con il suffisso -2000-2025 funziona su github.com per il redirect di rinomina ma NON su raw.githubusercontent, dove restituisce 404.",
+      "access_documented": true,
+      "free": true,
+      "accessible_here": true,
+      "inaccessibility_reason": "",
+      "pit_usable": false,
+      "status": "USABLE_NOW",
+      "main_limitation": "Nessun timestamp: una quota per partita, non un percorso. Non serve all'event study ne a niente che riguardi la microstruttura. In compenso e l'unica fonte raggiungibile qui che copra le serie inferiori, ed e quella che ha reso misurabile C-106 dopo quattro milestone da UNTESTED. Attenzione alle colonne derivate (Elo, forma, cluster C_*): non e stato verificato se siano calcolate solo su informazione precedente alla partita, e un cluster stimato sull'intero dataset conterrebbe l'esito. Per C-106 sono state usate solo le colonne di quota.",
+      "cost": "gratuito",
+      "licence": "MIT (file LICENSE nel repository, letto). I dati di partita derivano da Football-Data.co.uk e gli Elo da ClubElo: la licenza MIT copre la compilazione, non vincola le fonti a monte.",
+      "legal_note": "Ridistribuzione di dati Football-Data.co.uk, che consente l'uso gratuito per scopi non commerciali; il termine non e stato riletto in questa sessione perche il sito e bloccato dalla policy di egress. Per uso di ricerca interno non emergono restrizioni."
+    },
+    {
+      "id": "eatpizzanot-soccer-dataset",
+      "name": "eatpizzanot/soccer-dataset",
+      "bookmaker_identifiable": false,
+      "bookmakers": [],
+      "markets": [
+        "1X2"
+      ],
+      "historical_depth": "dichiarati 673.966 incontri, 271 campionati, 186.813 con quota, 128.746 con xG (2012-2026). Non verificato: i dati completi non sono raggiungibili da qui.",
+      "timestamp_quality": "UNKNOWN",
+      "timestamp_evidence": "Letto solo il README. Dichiara un campo known_at come guardia contro il leakage, il che e promettente, ma non e stato possibile ispezionare una riga reale: i file completi stanno su Hugging Face e i campioni sul repository non si sono risolti ai percorsi provati. Un campo che si chiama known_at non e una verifica di cosa contenga.",
+      "future_fixtures": false,
+      "access_method": "dataset completo su Hugging Face; sul repository GitHub solo campioni da ~1k righe",
+      "access_documented": true,
+      "free": true,
+      "accessible_here": false,
+      "inaccessibility_reason": "environment access limitation: huggingface.co e bloccato dalla policy di egress, e i percorsi dei campioni su raw.githubusercontent hanno restituito 404",
+      "pit_usable": false,
+      "status": "PROMISING_BUT_UNVERIFIED",
+      "main_limitation": "Nulla e stato verificato sui dati veri, solo la documentazione. Il README porta pero un avviso che vale da solo la lettura ed e rilevante per C-103: l'xG di API-Football e una formula deterministica sui tiri per zona (circa 0.115*tiri_in_area + 0.035*tiri_fuori + 0.648*rigori, R2 vicino a 1) e correla circa 0.4 con i gol. Non e un xG basato su modello di tiro: chi lo trattasse come tale misurerebbe i tiri credendo di misurare la qualita.",
+      "cost": "gratuito",
+      "licence": "NON ispezionata: la pagina della licenza non e raggiungibile da questo ambiente",
+      "legal_note": "Aggregazione dichiarata da API-Football. La ridistribuzione di dati di un fornitore commerciale sotto licenza aperta e un punto da chiarire prima di conservarne il payload, e non e stato chiarito qui."
+    },
+    {
+      "id": "salimt-transfermarkt-injuries",
+      "name": "salimt/football-datasets — player_injury_histories",
+      "bookmaker_identifiable": false,
+      "bookmakers": [],
+      "markets": [],
+      "historical_depth": "143.195 storie di infortunio su 92.671 giocatori, da Transfermarkt",
+      "timestamp_quality": "NONE",
+      "timestamp_evidence": "Letto lo schema con l'anteprima di righe reali pubblicata dal manutentore: player_id, season, injury_reason, from_date, end_date, days_missed, games_missed. Le date sono al giorno e sono la finestra dell'infortunio, non l'istante in cui la notizia e diventata pubblica.",
+      "future_fixtures": false,
+      "access_method": "file CSV nel repository sotto datalake/transfermarkt/raw/; i percorsi provati non si sono risolti, esiste anche una copia su Kaggle",
+      "access_documented": true,
+      "free": true,
+      "accessible_here": false,
+      "inaccessibility_reason": "environment access limitation: senza API di listing del repository non e stato possibile risolvere il percorso esatto dei CSV; e stata letta solo la documentazione con l'anteprima dei dati",
+      "pit_usable": false,
+      "status": "NOT_SUITABLE",
+      "main_limitation": "Non e semplicemente troppo grossolana: e una trappola di leakage nella direzione pericolosa. from_date e la data a cui l'infortunio viene fatto risalire, compilata retroattivamente dai redattori di Transfermarkt, spesso giorni dopo. Usarla come 'noto da from_date' attribuirebbe al modello una conoscenza che il mercato non aveva, cioe esattamente l'invenzione di timestamp che il progetto vieta. Un infortunio annunciato 90 minuti prima del calcio d'inizio e uno registrato tre giorni dopo qui sono la stessa riga. Per l'ipotesi degli infortuni dell'ultimo minuto non serve, e nessuna trasformazione la rende utile.",
+      "cost": "gratuito",
+      "licence": "NON ispezionata: il file di licenza non e stato letto",
+      "legal_note": "Dati raccolti da Transfermarkt, i cui termini vietano lo scraping automatizzato. Chi ridistribuisce non trasferisce un diritto che non ha: prima di conservarne il payload andrebbero letti i termini a monte, e non sono stati letti."
+    },
+    {
+      "id": "datahub-football-datasets",
+      "name": "datasets/football-datasets (datahub.io)",
+      "bookmaker_identifiable": true,
+      "bookmakers": [
+        "i book delle colonne Football-Data.co.uk"
+      ],
+      "markets": [
+        "1X2"
+      ],
+      "historical_depth": "1993-oggi, i cinque campionati maggiori europei",
+      "timestamp_quality": "NONE",
+      "timestamp_evidence": "Letto il README: aggiornamento quotidiano via GitHub Actions da Football-Data.co.uk. Sembra promettere un timestamp e non lo fa: la storia dei commit datta il momento in cui lo scraper ha girato, mentre i file contengono partite gia giocate. L'istante del commit e quindi successivo all'esito, non anteriore alla quota.",
+      "future_fixtures": false,
+      "access_method": "raw.githubusercontent, oppure datahub.io",
+      "access_documented": true,
+      "free": true,
+      "accessible_here": true,
+      "inaccessibility_reason": "",
+      "pit_usable": false,
+      "status": "NOT_SUITABLE",
+      "main_limitation": "Registrata proprio perche sembra la soluzione e non lo e. Un repository che committa ogni giorno da' a ogni riga un istante attestato da git, che sarebbe un limite superiore di conoscibilita onesto e non inventato; ma qui il commit quotidiano riguarda partite gia concluse, quindi l'istante cade dopo l'esito e non vincola nulla. La costruzione funzionerebbe solo su un file di partite FUTURE con quota, committato prima del calcio d'inizio, che questo repository non pubblica.",
+      "cost": "gratuito",
+      "licence": "PDDL 1.0 (public domain) per i dataset dei campionati, dichiarata nel README",
+      "legal_note": "Dedicazione al pubblico dominio sulla compilazione. I dati a monte restano di Football-Data.co.uk, con la sua clausola d'uso non commerciale non riletta qui."
     }
   ]
 }

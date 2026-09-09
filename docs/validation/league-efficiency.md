@@ -82,6 +82,15 @@ C-106 resta `UNTESTED`, con la prossima azione invariata: acquisire quote per
 almeno un campionato minore e ripetere questa stessa misura. Non cercare edge —
 misurare calibrazione.
 
+> **Aggiornamento, settembre 2026.** I dati sono arrivati e la misura è stata
+> rifatta su 38 divisioni, comprese le serie inferiori che qui mancavano:
+> [efficienza fra divisioni](division-efficiency.md). C-106 è ora
+> `TESTED_BUT_LIMITED`. La risposta è più interessante di un sì o di un no —
+> il mercato è meno affilato nelle serie inferiori (6 paesi su 6) ma non più
+> scalibrato, e il margine sale insieme all'ignoranza del book. Questa pagina
+> resta come la misura sulle sole prime divisioni, che è ancora corretta per
+> ciò che copre.
+
 ---
 
 ## Una nota sul metodo

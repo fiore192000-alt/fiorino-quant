@@ -127,6 +127,27 @@ class TestTheEvidenceIsRecorded:
         txt = next(s for s in sources if s["id"] == "beatthebookie-txt")
         assert sql["pit_usable"] and not txt["pit_usable"]
 
+    def test_an_expected_quality_is_never_treated_as_a_verified_one(self, sources):
+        """`timestamp_quality_expected` records what a source is documented to
+        carry when no row of it has been inspected. It exists because throwing
+        that evidence away to satisfy the vocabulary would make the registry
+        less informative, and keeping it in `timestamp_quality` would make a
+        third party's bug report weigh the same as a query we read ourselves.
+
+        So it may inform the next step and nothing else: it can never lift
+        pit_usable, and it never substitutes for the verified field.
+        """
+        for s in sources:
+            if "timestamp_quality_expected" in s:
+                assert s["timestamp_quality_expected"] in ALL_QUALITY, s["id"]
+                assert not s["pit_usable"], (
+                    f"{s['id']}: expected is not verified"
+                )
+                assert s["timestamp_quality"] == "UNKNOWN", s["id"]
+                assert len(s.get("unverified_because", "")) > 40, (
+                    f"{s['id']}: an expectation owes the reason it is still one"
+                )
+
     def test_at_most_one_source_is_pit_usable_today(self, sources):
         """Asserted so that adding a second one is a deliberate act with
         evidence, not an edit."""
