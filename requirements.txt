@@ -7,8 +7,16 @@
 streamlit>=1.36
 duckdb>=1.0
 pyarrow
+# Richiesto da DuckDB per le funzioni di fuso orario. Era una dipendenza
+# transitiva di pandas fino alla 3.0, che l'ha rimossa: senza questa riga
+# l'ingestione delle quote muore con "Required module 'pytz' failed to import".
+# Trovato in un venv pulito, non in sviluppo.
+pytz
 numpy
 pandas
 requests
 scipy
-penaltyblog>=1.12
+
+# penaltyblog NON e qui, di proposito. Il repository contiene una directory
+# penaltyblog/ non compilata che oscurerebbe il pacchetto installato, e l'app
+# non ne ha bisogno: non addestra modelli. Verificato in un venv pulito.

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import subprocess
+import tempfile
 from pathlib import Path
 
 import streamlit as st
@@ -43,7 +44,11 @@ def build_warehouse(label: str):
     con = connect()
     migrate(con)
     bootstrap_reference(con)
-    root = Path("/tmp/fiorino-app-lake") / label.replace(" ", "_")
+    # Una directory nuova a ogni costruzione. Il bronze e immutabile per
+    # progetto — riscrivere lo stesso run id solleva FileExistsError — e un
+    # percorso fisso faceva schiantare l'app al secondo caricamento. La cache
+    # rende questo raro, ma "raro" non e "mai": un riavvio del container basta.
+    root = Path(tempfile.mkdtemp(prefix="fiorino-app-"))
     rows = FootballData().parse(fetch(url), competition_id, season_id)
     write_bronze(con, [r.as_row() for r in rows],
                  bronze_path(root, "footballdata", competition_id, season_id, "app"))

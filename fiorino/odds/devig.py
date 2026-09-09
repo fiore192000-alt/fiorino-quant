@@ -30,8 +30,16 @@ class DevigResult:
     fair_probs: tuple[float, ...]
     raw_implied: tuple[float, ...]
     overround: float
+    #: What was actually applied.
     method: str
+    #: What the caller asked for. Differs from `method` when the solver failed
+    #: to converge, or when penaltyblog is not importable.
+    requested_method: str
     n_selections: int
+
+    @property
+    def fell_back(self) -> bool:
+        return self.method != self.requested_method
 
     def as_map(self) -> dict[str, float]:
         return dict(zip(self.selections, self.fair_probs))
@@ -72,7 +80,7 @@ def devig(selections: Sequence[str], prices: Sequence[float], method: str = DEFA
         )
 
     raw = tuple(1.0 / p for p in prices)
-    fair = _apply(method, list(prices))
+    fair, method_used = _apply(method, list(prices))
 
     total = sum(fair)
     if abs(total - 1.0) > 1e-6:
@@ -83,14 +91,68 @@ def devig(selections: Sequence[str], prices: Sequence[float], method: str = DEFA
         fair_probs=tuple(fair),
         raw_implied=raw,
         overround=book_margin,
-        method=method,
+        # The method ACTUALLY applied, which is not always the one requested.
+        # Recording the request instead would be a lie with consequences: M3
+        # established that the CLV calibration identity holds under
+        # multiplicative de-vig and NOT under Shin, so a multiplicative result
+        # wearing a SHIN label would quietly invalidate every check built on it.
+        method=method_used,
+        requested_method=method,
         n_selections=len(prices),
     )
 
 
-def _apply(method: str, prices: list[float]) -> list[float]:
-    """Delegate to penaltyblog, which is a dependency and not the core."""
-    from penaltyblog.implied import ImpliedMethod, calculate_implied
+def _multiplicative(prices: list[float]) -> list[float]:
+    probs = [1.0 / p for p in prices]
+    total = sum(probs)
+    return [p / total for p in probs]
+
+
+#: Resolved once per process, not per call.
+#:
+#: Probing on every call is not merely wasteful, it is NON-DETERMINISTIC. A
+#: failed `import penaltyblog` can leave successfully-imported submodules in
+#: sys.modules, so a second attempt succeeds where the first failed — and the
+#: de-vig method then depends on import history rather than on configuration.
+#: Observed directly: one rebuild produced rows tagged SHIN and MULTIPLICATIVE,
+#: the next produced only SHIN, from identical input.
+#:
+#: Rule A of the M1 decisions requires rebuilds to be SEMANTICALLY identical.
+#: A de-vig that flips method between runs breaks that, and it breaks it
+#: quietly: both runs look successful and their fair probabilities differ.
+_SOLVER: dict | None = None
+
+
+def _solver():
+    global _SOLVER
+    if _SOLVER is None:
+        try:
+            from penaltyblog.implied import ImpliedMethod, calculate_implied
+
+            _SOLVER = {"calculate": calculate_implied, "methods": ImpliedMethod}
+        except Exception:
+            _SOLVER = {}
+    return _SOLVER
+
+
+def _apply(method: str, prices: list[float]) -> tuple[list[float], str]:
+    """Delegate to penaltyblog, and report which method actually ran.
+
+    penaltyblog is a dependency and not the core, which has a consequence this
+    function has to own: it can be absent. In this repository the package
+    directory shadows any installed copy and its Cython extensions are not
+    built in a fresh clone, so `import penaltyblog` fails there — verified in a
+    clean virtualenv, not assumed.
+
+    Falling back to multiplicative is defensible; failing the whole ingest is
+    not; and silently labelling the fallback as the requested method is worse
+    than either.
+    """
+    solver = _solver()
+    if not solver:
+        return _multiplicative(prices), "MULTIPLICATIVE"
+    ImpliedMethod = solver["methods"]
+    calculate_implied = solver["calculate"]
 
     mapping = {
         "SHIN": ImpliedMethod.SHIN,
@@ -104,18 +166,12 @@ def _apply(method: str, prices: list[float]) -> list[float]:
         result = calculate_implied(prices, method=mapping[method])
         probs = list(result.probabilities)
     except Exception:
-        # A solver can fail to converge on a degenerate market. Falling back to
-        # multiplicative is defensible; failing the whole ingest is not. The
-        # method actually used is recorded per row, so the fallback is visible.
-        probs = [1.0 / p for p in prices]
-        total = sum(probs)
-        probs = [p / total for p in probs]
+        # A solver can fail to converge on a degenerate market.
+        return _multiplicative(prices), "MULTIPLICATIVE"
 
     if any(p <= 0.0 or p >= 1.0 for p in probs) or not all(map(_finite, probs)):
-        probs = [1.0 / p for p in prices]
-        total = sum(probs)
-        probs = [p / total for p in probs]
-    return probs
+        return _multiplicative(prices), "MULTIPLICATIVE"
+    return probs, method
 
 
 def _finite(x: float) -> bool:

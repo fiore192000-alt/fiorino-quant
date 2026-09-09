@@ -57,6 +57,13 @@ Ogni esperimento di microstruttura è quindi bloccato — non «non implementato
 | `statsbomb/open-data` | **no** | sì | sì | **referto post-partita**, non l'XI pubblicato |
 | formazioni con istante di pubblicazione | — | — | — | **nessuna fonte pubblica trovata** |
 
+### Fixture future: sbloccato
+
+`openfootball/football.json` porta la stagione **2026-27** con 350 partite
+future rispetto al 09/09/2026. Non è un feed live — è un repository aggiornato
+a commit — e non porta quote. Vedi
+[`FREE_SOURCES_AUDIT.md`](FREE_SOURCES_AUDIT.md).
+
 ### La singola azione che sblocca di più
 
 **BeatTheBookie** (Kaunitz, Zhong, Kreiner — arXiv:1710.02824) contiene serie

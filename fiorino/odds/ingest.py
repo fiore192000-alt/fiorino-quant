@@ -163,8 +163,17 @@ def compute_fair_probabilities(con, method: str = DEFAULT_METHOD) -> tuple[int, 
     never normalised, because normalising two thirds of a market produces a
     confident number that nothing downstream could tell apart from a real one.
     """
-    con.execute("DELETE FROM fair_probabilities WHERE devig_method = ?", [method])
-
+    # The delete happens AFTER the compute, below, not here.
+    #
+    # It used to delete by the REQUESTED method while the insert tagged rows
+    # with the APPLIED one. Those are the same string until a de-vig falls
+    # back, and then they are not: computing SHIN, getting MULTIPLICATIVE, and
+    # deleting only SHIN leaves whatever a previous MULTIPLICATIVE pass wrote,
+    # and the insert collides on the primary key.
+    #
+    # It surfaced only in a clean environment, where penaltyblog is not
+    # importable and every de-vig falls back — which is exactly the environment
+    # the app deploys into.
     markets = con.execute(
         """SELECT match_id, bookmaker_id, market_type, line, capture_precision,
                   list(selection ORDER BY selection)      AS selections,
@@ -193,6 +202,14 @@ def compute_fair_probabilities(con, method: str = DEFAULT_METHOD) -> tuple[int, 
             ])
 
     if payload:
+        # Clear both what was asked for and what was actually produced, so the
+        # operation is idempotent under fallback as well as without it.
+        applied = sorted({row[6] for row in payload} | {method})
+        con.execute(
+            "DELETE FROM fair_probabilities WHERE devig_method IN "
+            f"({', '.join('?' for _ in applied)})",
+            applied,
+        )
         con.executemany(
             """INSERT INTO fair_probabilities
                (match_id, bookmaker_id, market_type, line, selection, capture_precision,
@@ -200,6 +217,8 @@ def compute_fair_probabilities(con, method: str = DEFAULT_METHOD) -> tuple[int, 
                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             payload,
         )
+    else:
+        con.execute("DELETE FROM fair_probabilities WHERE devig_method = ?", [method])
     return len(payload), skipped
 
 

@@ -248,3 +248,107 @@ class TestReferenceMarket:
             "FROM v_odds_coverage"
         ).fetchone()
         assert row[0] > 0 and row[1] == row[0] and row[2] == pytest.approx(1.0)
+
+
+class TestDevigFallbackIsHonest:
+    """The de-vig may fall back. It must never lie about having done so.
+
+    M3 established that the CLV calibration identity holds under multiplicative
+    de-vig and NOT under Shin. A multiplicative result wearing a SHIN label
+    would quietly invalidate every check built on that identity, which is a
+    worse failure than refusing to compute.
+    """
+
+    PRICES = [2.10, 3.40, 3.60]
+
+    def test_a_successful_devig_reports_what_was_asked(self):
+        from fiorino.odds.devig import devig
+
+        result = devig(["HOME", "DRAW", "AWAY"], self.PRICES, method="SHIN")
+        assert result.method == result.requested_method
+        assert not result.fell_back
+
+    def test_an_absent_penaltyblog_falls_back_and_says_so(self, monkeypatch):
+        """The clean-clone case: the repository's own penaltyblog directory
+        shadows any installed copy and its Cython extensions are not built."""
+        import builtins
+
+        from fiorino.odds.devig import devig
+
+        real_import = builtins.__import__
+
+        def blocked(name, *args, **kwargs):
+            if name.startswith("penaltyblog"):
+                raise ModuleNotFoundError("No module named 'penaltyblog.metrics.metrics'")
+            return real_import(name, *args, **kwargs)
+
+        import importlib
+
+        # fiorino.odds re-exports devig as a FUNCTION, which shadows the
+        # module of the same name.
+        devig_module = importlib.import_module("fiorino.odds.devig")
+
+        monkeypatch.setattr(devig_module, "_SOLVER", None)
+        monkeypatch.setattr(builtins, "__import__", blocked)
+        result = devig(["HOME", "DRAW", "AWAY"], self.PRICES, method="SHIN")
+
+        assert result.fell_back
+        assert result.method == "MULTIPLICATIVE"
+        assert result.requested_method == "SHIN"
+        assert sum(result.fair_probs) == pytest.approx(1.0)
+
+    def test_the_solver_is_probed_once_not_per_call(self, monkeypatch):
+        """Probing per call is non-deterministic: a failed `import penaltyblog`
+        can leave submodules in sys.modules so the SECOND attempt succeeds. One
+        rebuild then tags rows SHIN and MULTIPLICATIVE and the next tags only
+        SHIN, from identical input — which breaks rule A, semantic determinism
+        of rebuilds, and breaks it quietly."""
+        import builtins
+
+        import importlib
+
+        # fiorino.odds re-exports devig as a FUNCTION, which shadows the
+        # module of the same name.
+        devig_module = importlib.import_module("fiorino.odds.devig")
+
+        monkeypatch.setattr(devig_module, "_SOLVER", None)
+        attempts = []
+        real_import = builtins.__import__
+
+        def counting(name, *args, **kwargs):
+            if name.startswith("penaltyblog"):
+                attempts.append(name)
+            return real_import(name, *args, **kwargs)
+
+        monkeypatch.setattr(builtins, "__import__", counting)
+        for _ in range(5):
+            devig_module.devig(["HOME", "DRAW", "AWAY"], self.PRICES, method="SHIN")
+        assert len(attempts) <= 1, f"probed {len(attempts)} times: {attempts}"
+
+    def test_the_method_is_stable_across_repeated_devigs(self, monkeypatch):
+        from fiorino.odds.devig import devig
+
+        methods = {devig(["HOME", "DRAW", "AWAY"], self.PRICES, method="SHIN").method
+                   for _ in range(10)}
+        assert len(methods) == 1, f"the de-vig method drifted: {methods}"
+
+    def test_the_fallback_still_produces_a_distribution(self, monkeypatch):
+        import builtins
+
+        from fiorino.odds.devig import devig
+
+        import importlib
+
+        # fiorino.odds re-exports devig as a FUNCTION, which shadows the
+        # module of the same name.
+        devig_module = importlib.import_module("fiorino.odds.devig")
+
+        real_import = builtins.__import__
+        monkeypatch.setattr(devig_module, "_SOLVER", None)
+        monkeypatch.setattr(
+            builtins, "__import__",
+            lambda n, *a, **k: (_ for _ in ()).throw(ImportError())
+            if n.startswith("penaltyblog") else real_import(n, *a, **k))
+        result = devig(["HOME", "DRAW", "AWAY"], self.PRICES, method="SHIN")
+        assert all(0 < p < 1 for p in result.fair_probs)
+        assert sum(result.fair_probs) == pytest.approx(1.0)

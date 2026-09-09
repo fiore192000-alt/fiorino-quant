@@ -9,7 +9,15 @@ import streamlit as st
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from app.lib import build_warehouse  # noqa: E402
 from fiorino.decision import classify  # noqa: E402
-from fiorino.models.fitting import walk_forward  # noqa: E402
+
+# NB: nessun import di fiorino.models qui, e nessun fit.
+#
+# L'app non addestra. E la separazione research/production del brief, e in
+# questo repository e anche un requisito di deploy: la directory penaltyblog/
+# del repo oscura il pacchetto installato da PyPI, e nel clone le estensioni
+# Cython non sono compilate. Un `import penaltyblog` dentro l'app fallisce con
+# "No module named 'penaltyblog.metrics.metrics'" — verificato in un venv
+# pulito, non ipotizzato. Il walk-forward gira offline, negli script.
 
 BADGE = {"NO_SIGNAL": "⚪", "WATCH": "🔵", "CANDIDATE": "🟡", "QUALIFIED": "🟢"}
 
@@ -22,17 +30,7 @@ if not (label and mid):
 
 con = build_warehouse(label)
 
-if not con.execute("SELECT count(*) FROM predictions").fetchone()[0]:
-    st.warning("Il modello non è ancora stato addestrato su questo dataset.")
-    if st.button("Esegui il walk-forward (~50 s)", type="primary"):
-        comp, seas = con.execute(
-            "SELECT competition_id, season_id FROM v_analytic_matches LIMIT 1"
-        ).fetchone()
-        with st.spinner("Fit settimanale, quotazione a otto giorni…"):
-            walk_forward(con, competition_id=comp, season_id=seas,
-                         step=timedelta(days=7))
-        st.rerun()
-    st.stop()
+HAS_MODEL = bool(con.execute("SELECT count(*) FROM predictions").fetchone()[0])
 
 home, away, ko = con.execute("""
     SELECT th.canonical_name, ta.canonical_name, m.kickoff_utc
@@ -42,6 +40,30 @@ home, away, ko = con.execute("""
     WHERE m.match_id = ?""", [mid]).fetchone()
 st.header(f"{home} – {away}")
 st.caption(f"{ko:%d/%m/%Y %H:%M} UTC")
+
+if not HAS_MODEL:
+    st.info(
+        "**Nessuna previsione nel magazzino.** L'app non addestra modelli: il "
+        "walk-forward gira offline (`scripts/validate_models.py`) e i suoi "
+        "risultati vengono caricati. Qui sotto trovi il mercato, che è il "
+        "benchmark contro cui tutto il resto va misurato."
+    )
+    market = con.execute("""
+        SELECT selection, fair_prob, price_decimal FROM fair_probabilities f
+        JOIN odds_observations o USING (match_id, market_type, line, selection,
+                                        bookmaker_id, capture_precision)
+        WHERE f.match_id = ? AND f.market_type = 'ONE_X_TWO'
+          AND f.capture_precision = 'PREMATCH'
+          AND f.bookmaker_id IN (SELECT bookmaker_id FROM bookmakers WHERE is_reference)
+        ORDER BY selection""", [mid]).fetchall()
+    for selection, prob, price in market:
+        c1, c2 = st.columns(2)
+        c1.metric(selection, f"{prob:.1%}", help="de-viggata, Shin")
+        c2.metric("quota", f"{price:.2f}")
+        decision = classify(edge=None, data_age=timedelta(minutes=1))
+        st.markdown(f"{BADGE[decision.level]} **{decision.level}** — "
+                    f"{decision.reasons[0].detail}")
+    st.stop()
 
 rows = con.execute("""
     WITH freshest AS (

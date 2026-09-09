@@ -25,6 +25,7 @@ dependencies = [
     # fiorino/ runs at all, and it was undeclared until this line.
     "duckdb>=1.0",
     "pyarrow",
+    "pytz",
     "beautifulsoup4",
     "cssselect",
     "cython",

@@ -42,6 +42,23 @@ if label:
         if f.severity != "BLOCKING":
             st.warning(f"**{f.check_name}** — {f.detail}")
 
+    st.subheader("Metodo di de-vig effettivamente usato")
+    methods = [r[0] for r in con.execute(
+        "SELECT DISTINCT devig_method FROM fair_probabilities").fetchall()]
+    if methods == ["SHIN"]:
+        st.success("SHIN — il metodo previsto.")
+    else:
+        st.warning(
+            f"**{', '.join(methods)}** invece di SHIN. penaltyblog non e "
+            "importabile in questo ambiente (la directory del repository "
+            "oscura il pacchetto installato e le estensioni Cython non sono "
+            "compilate), quindi il de-vig ricade sul moltiplicativo.\n\n"
+            "Non e un dettaglio: le probabilita eque differiscono, e in M3 e "
+            "stato stabilito che l'identita di calibrazione del CLV regge "
+            "sotto moltiplicativo e **non** sotto Shin. Il dato registra il "
+            "metodo applicato, non quello richiesto."
+        )
+
     st.subheader("Copertura del mercato")
     cov = con.execute("""
         SELECT capture_precision, bookmaker_id, count(*)
