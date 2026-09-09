@@ -79,6 +79,103 @@ razionalizzazione:
 
 ---
 
+## Quanto deve essere grande il pilot
+
+La domanda va risposta **prima** di raccogliere, non dopo. La dispersione dei
+movimenti di prezzo è misurabile oggi sui dati che ci sono: su 10.506 selezioni,
+il movimento prematch→chiusura in log-odds ha **deviazione standard 0.1414**.
+
+È un limite superiore per la finestra dell'event study, che è un
+sotto-intervallo di quella: la stima che segue è quindi **conservativa**.
+
+Dimensione richiesta per gruppo (evento contro controllo, test a due code,
+α = 0.05, potenza 0.80):
+
+| effetto (log-odds) | in probabilità a p = 0.30 | n per gruppo |
+|---|---|---|
+| 0.02 | +0.42 punti | **784** |
+| 0.05 | +1.06 punti | **125** |
+| 0.10 | **+2.14 punti** | **31** |
+| 0.15 | +3.24 punti | 14 |
+| 0.20 | +4.36 punti | 8 |
+| 0.30 | +6.65 punti | 3 |
+
+### Il pilot da 100–200 partite è dimensionato per una domanda sola
+
+Questo cambia il disegno, ed è la ragione per cui vale la pena fare il conto
+prima:
+
+* **Domanda aggregata** — «il mercato si muove di più dopo le formazioni che in
+  una finestra di controllo?» Ogni partita ha una formazione, quindi 200
+  partite danno 200 eventi: sufficienti per rilevare **~1 punto di
+  probabilità**. Il pilot è dimensionato correttamente per questo.
+
+* **Ripartizione per categoria** — «portiere fuori», «attaccante fuori»,
+  «3+ assenze». Qui il pilot è **troppo piccolo di un ordine di grandezza**. Un
+  portiere titolare fuori a sorpresa capita nel 3–5% delle partite: i 31 eventi
+  necessari per un effetto di 2 punti richiedono **600–1.000 partite**, non 200.
+
+Il pilot resta la cosa giusta da fare per prima — se l'effetto aggregato non
+c'è, non c'è nulla da ripartire e si sono risparmiati mesi. Ma va presentato per
+quello che può decidere, e la ripartizione A–E è una fase successiva con un
+requisito di raccolta molto diverso.
+
+---
+
+## Il disegno della misura: doppia differenza
+
+Due elementi rendono inutile un semplice «quanto si è mosso il prezzo dopo le
+formazioni»: i prezzi si muovono comunque, e si muovono **più in fretta**
+avvicinandosi al kickoff — quindi qualunque finestra più vicina all'inizio mostra
+più movimento, qualunque cosa vi accada dentro.
+
+```
+  ┌──────────── pre ────────────┬──────────── post ────────────┐
+  │                             │                              │
+T_pub − w                    T_pub                        T_pub + w
+                                ▲
+                        formazione pubblicata
+
+  dentro la partita   post − pre        elimina la volatilità della partita
+  fra le partite      trattate − controllo   elimina l'accelerazione verso
+                                              il kickoff, perché entrambi i
+                                              gruppi sono misurati nella
+                                              stessa finestra RELATIVA alla
+                                              pubblicazione
+```
+
+Il controllo è una partita la cui formazione è uscita come prevista: ha anch'essa
+un istante di pubblicazione, quindi ha entrambe le finestre — semplicemente non
+ha shock.
+
+I prezzi sono convertiti in log-odds prima di differenziare: un movimento da
+1.10 a 1.12 e uno da 5.00 a 5.10 non sono lo stesso evento su scala di
+probabilità, e mediarli lì lascerebbe dominare le quote lunghe per aritmetica
+invece che per informazione.
+
+## Il punteggio di shock, prima di qualunque modello
+
+```
+  shock = Σ  peso_posizione × max(quota_di_titolarità − quota_del_sostituto, 0)
+```
+
+Un righello, non un modello. Tre proprietà deliberate:
+
+* **Uno scambio alla pari non è uno shock.** Un sostituto che gioca quasi
+  sempre non è una notizia.
+* **Un upgrade non conta negativo.** Un sostituto migliore è un evento diverso;
+  lasciarlo andare sotto zero annullerebbe segnale vero nella media.
+* **I pesi sono grossolani apposta.** Un portiere pesa più di un centrocampista;
+  fingere di conoscere il rapporto a due decimali sarebbe un modello travestito
+  da costante.
+
+Costruire CatBoost prima di sapere se questa versione elementare si muove
+insieme al mercato nasconderebbe la risposta invece di trovarla: se il segnale
+non esiste in una forma così semplice, un modello complesso impara soprattutto
+a fittare rumore.
+
+---
+
 ## Fase 2 — solo se la fase 1 passa
 
 Ablation identica a M6, perché il metro deve restare lo stesso:
@@ -180,9 +277,17 @@ vale la pena averla scritta prima di iniziare.
 
 ## Il blocco operativo
 
-Nulla di tutto questo è raggiungibile dall'ambiente attuale: la policy di egress
-blocca già `www.football-data.co.uk`, e un feed di quote timestampate o di
-formazioni richiede fonti che non possiamo contattare da qui.
+Nulla di tutto questo è raggiungibile dall'ambiente attuale. La ricerca delle
+fonti è documentata in [`data-acquisition.md`](data-acquisition.md), con un
+risultato che vale la pena isolare:
+
+> Il dataset di **BeatTheBookie** (Kaunitz et al., 2017) contiene serie continue
+> di quote per ~113.860 partite. È ospitato su Dropbox e Google Drive, **entrambi
+> bloccati**. Una regola di allowlist separa questo esperimento dai suoi dati.
+
+Per le formazioni non esiste invece **nessuna** fonte pubblica con istante di
+pubblicazione: quel fatto va raccolto in avanti, e resta il vero collo di
+bottiglia.
 
 La fase successiva non inizia con una riga di codice. Inizia con la decisione su
 **quale fonte** e **con quale accesso**.

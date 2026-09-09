@@ -1,47 +1,85 @@
 # M6.5 — acquisizione dati
 
-**Stato: 1 di 3 deliverable completato. Gli altri due sono bloccati sull'accesso
-di rete, con prove.**
+**Stato: 2 deliverable completati (audit PIT, event study). L'acquisizione
+delle due fonti resta bloccata sull'accesso di rete, con prove — ma una delle
+due è a una regola di allowlist di distanza.**
 
 ---
 
-## Cosa è raggiungibile da qui
+## La superficie raggiungibile
 
-Otto sonde, una risposta:
+Venti sonde. Raggiungibili solo tre famiglie di host:
 
-| host | esito |
+| raggiungibile | bloccato |
 |---|---|
-| `raw.githubusercontent.com` | **200** |
-| `api.football-data.org` | irraggiungibile |
-| `api.the-odds-api.com` | irraggiungibile |
-| `www.football-data.co.uk` | irraggiungibile |
-| `fbref.com` | irraggiungibile |
-| `api.sofascore.com` | irraggiungibile |
-| `v3.football.api-sports.io` | irraggiungibile |
-| `site.api.espn.com` | irraggiungibile |
+| `raw.githubusercontent.com`, `github.com`, `objects.githubusercontent.com` | `football-data.co.uk`, `fbref.com`, `api.football-data.org` |
+| `gitlab.com` | `api.the-odds-api.com`, `api-sports.io`, `api.sofascore.com`, ESPN |
+| `pypi.org` | `kaggle.com`, `huggingface.co`, `zenodo.org`, `figshare.com`, `arxiv.org` |
+| | **`dropbox.com`**, **`drive.google.com`**, `historicdata.betfair.com`, `data.world` |
 
-Solo contenuti statici su GitHub. Nessun feed live, nessuna API.
+Il blocco vale anche per `WebFetch`, non solo per `curl`: è la policy di egress
+dell'ambiente, non un dettaglio del client.
 
-### E su GitHub non c'è il dato che serve
+## Il dato giusto esiste, ed è a una regola di distanza
 
-Due candidati verificati, entrambi inutilizzabili per M6.5:
+Questa è la scoperta più azionabile della ricerca.
 
-| repository | ha i timestamp? | è calcio? |
-|---|---|---|
-| `marcoblume/pinnacle.data` | **sì**, UTC reali da Pinnacle | **no** — MLB 2016 e elezioni USA, in formato R |
-| `iredchuk/soccer-bookmaker-odds` | **no** — un valore per partita | sì, 5 leghe 2005-2019 |
+**`Lisandro79/BeatTheBookie`** — il dataset del paper di Kaunitz, Zhong e
+Kreiner, *«Beating the bookies with their own numbers»* (arXiv:1710.02824) —
+contiene esattamente ciò che manca:
 
-Il primo ha esattamente la forma giusta e lo sport sbagliato. Forzare quote di
-baseball nel magazzino calcistico richiederebbe di inventare partite, squadre e
-competizioni per contenerle: un test verde che non dimostra niente, cioè
-precisamente il tipo di cosa che questo progetto esiste per non produrre.
+> **serie continue di quote con i movimenti**, per **31.074 partite** da
+> settembre 2015 a marzo 2016 su 553 campionati, più **82.786 partite** da marzo
+> a novembre 2016 su 658 campionati. Circa **113.860 partite** con la storia del
+> prezzo, non due punti.
 
-Il secondo ha la stessa forma di Football-Data — quote medie, nessun istante —
-quindi non aggiunge nulla a ciò che è già stato validato in M2.
+Il repository GitHub è raggiungibile e contiene il codice. **I dati no**: sono
+ospitati su Dropbox e Google Drive, entrambi bloccati. Il clone (15 MB) porta
+solo lo script di export SQL.
 
-> **Conclusione, basata su prove e non su assunzioni: non esiste una fonte
-> raggiungibile di quote timestampate sul calcio, né di formazioni con istante
-> di pubblicazione.**
+> **Se `dropbox.com` o `drive.google.com` entrassero nell'allowlist, il
+> Deliverable 1 si sbloccherebbe immediatamente** — con un ordine di grandezza
+> più partite di quante ne servano.
+
+Resta da verificare, una volta accessibile, con quale granularità temporale le
+serie sono campionate e se gli istanti sono assoluti o relativi al kickoff. Il
+paper parla di serie continue; la forma esatta va guardata prima di
+promettere qualcosa.
+
+### Le altre fonti esaminate
+
+| fonte | timestamp? | calcio? | verdetto |
+|---|---|---|---|
+| `Lisandro79/BeatTheBookie` | **sì**, serie continue | **sì**, 113k partite | **dati su Dropbox/Drive, bloccati** |
+| `marcoblume/pinnacle.data` | sì, UTC reali | no — MLB 2016, formato R | sport sbagliato |
+| `iredchuk/soccer-bookmaker-odds` | no, un valore per partita | sì, 5 leghe | come Football-Data |
+| `statsbomb/open-data` | **no** | sì, formazioni reali | vedi sotto |
+| formazioni con istante di pubblicazione | — | — | **nessuna fonte pubblica trovata** |
+
+Forzare le quote di baseball di `pinnacle.data` nel magazzino calcistico
+richiederebbe di inventare partite e squadre per contenerle: un test verde che
+non dimostra nulla.
+
+Sulle formazioni la ricerca non ha trovato **nessuna** fonte pubblica con
+istante di pubblicazione. È prevedibile: «quando questo è diventato noto» è un
+fatto effimero che nessuno archivia gratuitamente, e i dataset di formazioni
+disponibili sono referti post-partita.
+
+### StatsBomb: raggiungibile, ma è un referto
+
+`statsbomb/open-data` è accessibile e porta formazioni reali con `player_id`
+stabili e nomi realmente sporchi — *Martin Braithwaite Christensen*,
+*Sergio Busquets i Burgos*. Ma le posizioni riportano i minuti di sostituzione:
+**è il referto della partita, non l'undici pubblicato prima**. Non ha un
+`published_at` e non può entrare nell'event study.
+
+Il vincolo `published_at NOT NULL` della migrazione 0014 lo rifiuta
+automaticamente, che è il comportamento corretto. Resta utilizzabile per una
+cosa sola: validare l'**identità giocatore** su nomi veri.
+
+> **Conclusione, basata su prove: non esiste una fonte raggiungibile di quote
+> timestampate né di formazioni con istante di pubblicazione. La prima esiste
+> ma è dietro un host bloccato.**
 
 ---
 
@@ -150,6 +188,29 @@ produrre, quindi lo dice ad alta voce:
 WARNING  no_timestamped_odds: 0 of N odds observations are TIMESTAMPED:
          the price-before-decision link is untested, not proven
 ```
+## Deliverable 4 — l'event study, costruito e validato ✅
+
+`fiorino/research/event_study.py`, 15 test. Non eseguibile sui dati reali —
+non ce ne sono — ma validato come lo scanner di ipotesi: piantando un effetto
+noto in dati sintetici e verificando che venga trovato, e piantandone nessuno e
+verificando che non venga inventato.
+
+La regola che avete dato è **applicata, non raccomandata**:
+
+```python
+def require_timestamped(con) -> None:
+    # Refuse to run on data that cannot answer the question.
+    ...
+```
+
+Solleva invece di avvisare. È l'unico punto del sistema in cui rifiutare di
+calcolare è il comportamento corretto: ogni altro audit riporta e prosegue,
+perché un rapporto su dati incompleti è comunque informativo. Qui no — un event
+study su prezzi senza istanti misura nulla, e un numero prodotto ugualmente
+sarebbe indistinguibile da uno vero.
+
+Il disegno (doppia differenza), il punteggio di shock e il dimensionamento del
+pilot sono in [`next-experiment.md`](next-experiment.md).
 
 ---
 
