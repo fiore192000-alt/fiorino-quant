@@ -22,6 +22,7 @@ worth noticeably less than one a third party dated.
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import pathlib
 import sys
@@ -38,6 +39,75 @@ TOKEN_VAR = "SPORTMONKS_TOKEN"
 def archive_path(when: datetime) -> pathlib.Path:
     when = when.astimezone(timezone.utc)
     return ARCHIVE / f"{when:%Y}" / f"{when:%m}" / f"{when:%d}.jsonl"
+
+
+def verify(token: str, date: str) -> int:
+    """Diagnostics only. Writes nothing, archives nothing, and shares no code
+    path with the collection: what is printed here can never become a record.
+
+    The output is machine-greppable KEY=VALUE on purpose, so it can be pasted
+    whole and read without interpretation.
+    """
+    from fiorino.data.ingest.lineups.sources import sportmonks
+
+    result = sportmonks.probe(token, date)
+    body = result["body"] or {}
+    fixtures = body.get("data") or []
+
+    print("VERIFY — nessuna scrittura, nessun archivio.")
+    # The endpoint takes a DATE, not a list of fixtures. There is no
+    # "requested" count to print, and printing one would invent it.
+    print(f"REQUEST=fixtures/date/{date}?include=lineups")
+    print(f"HTTP_STATUS={result['status']}")
+
+    if result["error"]:
+        print(f"ERROR={sportmonks.redact(str(result['error']), token)}")
+        print("NOTA=una chiamata fallita non dice che la fonte sia inadatta, "
+              "dice che la richiesta non e riuscita. Sono fatti diversi.")
+        return 1
+
+    mapped = {}
+    for fixture in fixtures:
+        lineups = sportmonks._lineups_from_fixture(fixture)
+        if lineups:
+            mapped[str(fixture.get("id"))] = lineups
+
+    confirmed = sum(len(v) for v in mapped.values())
+    print(f"FIXTURES_FOUND={len(fixtures)}")
+    print(f"FIXTURES_WITHOUT_CONFIRMED_LINEUP={len(fixtures) - len(mapped)}")
+    print(f"CONFIRMED={confirmed}")
+    # Never 0. Zero would claim the adapter looked and found none; it does not
+    # look. Absence of evidence is not evidence of absence, which is the same
+    # rule SOURCES.json enforces on timestamp quality.
+    print("PREDICTED=UNSUPPORTED_BY_ADAPTER")
+    # Not simulated, on purpose. The first sighting of all has no previous
+    # successful poll to measure back to, so None is the true value and any
+    # number here would be invented. It becomes real on the second poll.
+    print("KNOWN_AT_UNCERTAINTY_SECONDS=None  # richiede due poll riusciti")
+
+    first = next(iter(mapped.values()), None)
+    if first:
+        print(f"FIRST_TEAM_ID={first[0].team}")
+        print(f"FIRST_PLAYER_IDS={list(first[0].players)[:11]}")
+    else:
+        print("FIRST_TEAM_ID=  # nessun undici confermato mappato")
+        print("FIRST_PLAYER_IDS=[]")
+
+    # The point of the whole exercise: the payload as it really is, so the
+    # mapping above can be checked against it instead of trusted.
+    if fixtures:
+        raw = json.dumps(fixtures[0], indent=2, ensure_ascii=False, sort_keys=True)
+        raw = sportmonks.redact(raw, token)
+        truncated = len(raw) > 6000
+        print("FIRST_RAW_FIXTURE_PAYLOAD=" + raw[:6000])
+        if truncated:
+            print(f"# payload troncato a 6000 caratteri su {len(raw)}")
+    else:
+        print("FIRST_RAW_FIXTURE_PAYLOAD={}")
+        print("# nessuna fixture per questa data: puo essere fuori stagione, "
+              "oppure il piano non copre nessuna competizione oggi. "
+              "Non e la stessa cosa di una fonte che non funziona.")
+    return 0
 
 
 def main() -> int:
@@ -59,31 +129,14 @@ def main() -> int:
     from fiorino.data.ingest.lineups.sources import sportmonks
 
     date = args.date or f"{datetime.now(timezone.utc):%Y-%m-%d}"
-    poll = sportmonks.fetch(token, date)
-
-    confirmed = len(poll.lineups)
-    print(f"poll {poll.observed_at.isoformat()}  data={date}  "
-          f"fixture={len(poll.scope)}  undici confermati={confirmed}  "
-          f"errore={poll.error or 'nessuno'}")
 
     if args.verify:
-        # The run that does the job this environment could not: it reports the
-        # shape the API really returned, so the adapter stops being a guess.
-        print("\nVERIFICA — nessuna scrittura.")
-        if poll.error:
-            print(f"  la chiamata e fallita: {poll.error}")
-            print("  questo non dice che la fonte sia inadatta, dice che la")
-            print("  richiesta non e riuscita. Vanno distinte.")
-            return 1
-        print(f"  fixture nella risposta : {len(poll.scope)}")
-        print(f"  undici con >= 11 titolari: {confirmed}")
-        for lineup in poll.lineups[:4]:
-            print(f"    {lineup.match_key} {lineup.team}: "
-                  f"{len(lineup.players)} titolari")
-        if not poll.scope:
-            print("  nessuna fixture per questa data: normale fuori stagione,")
-            print("  oppure il piano non copre alcuna competizione oggi.")
-        return 0
+        return verify(token, date)
+
+    poll = sportmonks.fetch(token, date)
+    print(f"poll {poll.observed_at.isoformat()}  data={date}  "
+          f"fixture={len(poll.scope)}  undici confermati={len(poll.lineups)}  "
+          f"errore={poll.error or 'nessuno'}")
 
     path = archive_path(poll.observed_at)
     path.parent.mkdir(parents=True, exist_ok=True)

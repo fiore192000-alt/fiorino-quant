@@ -35,6 +35,7 @@ the next gap measurable.
 from __future__ import annotations
 
 import json
+import urllib.error
 import urllib.parse
 import urllib.request
 
@@ -58,6 +59,40 @@ def _get(path: str, token: str, **params) -> dict:
     request = urllib.request.Request(url, headers={"Accept": "application/json"})
     with urllib.request.urlopen(request, timeout=TIMEOUT) as response:
         return json.loads(response.read().decode())
+
+
+def probe(token: str, date: str) -> dict:
+    """A raw request whose ONLY purpose is to be looked at.
+
+    Deliberately separate from `fetch`. The collection path is not touched by
+    diagnostics: `fetch` keeps returning a Poll and nothing here can change
+    what gets archived, what `known_at` means, or how the uncertainty is
+    computed. This function exists so the first real payload can be audited
+    field by field before anyone trusts the mapping above.
+
+    Returns the HTTP status and the decoded body. The token is never part of
+    what comes back, because this output is meant to be pasted into a
+    conversation.
+    """
+    params = urllib.parse.urlencode({"include": "lineups", "api_token": token})
+    url = f"{BASE}/fixtures/date/{date}?{params}"
+    request = urllib.request.Request(url, headers={"Accept": "application/json"})
+    try:
+        with urllib.request.urlopen(request, timeout=TIMEOUT) as response:
+            body = json.loads(response.read().decode())
+            return {"status": response.status, "body": body, "error": None}
+    except urllib.error.HTTPError as exc:
+        # A 4xx carries a body that usually says exactly what is wrong with the
+        # plan or the token, and throwing it away is throwing away the answer.
+        detail = exc.read().decode(errors="replace")[:2000]
+        return {"status": exc.code, "body": None, "error": detail}
+    except Exception as exc:  # noqa: BLE001
+        return {"status": None, "body": None, "error": f"{type(exc).__name__}: {exc}"}
+
+
+def redact(text: str, token: str) -> str:
+    """The verify output is written to be pasted somewhere. The token is not."""
+    return text.replace(token, "***REDACTED***") if token else text
 
 
 def _lineups_from_fixture(fixture: dict) -> list[Lineup]:
@@ -118,4 +153,4 @@ def fetch(token: str, date: str) -> Poll:
                 scope=scope, lineups=tuple(lineups))
 
 
-__all__ = ["fetch", "SourceError", "PREDICTED"]
+__all__ = ["fetch", "probe", "redact", "SourceError", "PREDICTED"]

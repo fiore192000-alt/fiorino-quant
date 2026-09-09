@@ -119,3 +119,48 @@ class TestTheAdapterDoesNotInventFacts:
         poll = sportmonks.fetch("not-a-real-token", "2026-09-10")
         assert not poll.succeeded
         assert poll.lineups == ()
+
+
+class TestTheVerifyIsDiagnosticsOnly:
+    """The verify exists to be pasted into a conversation and read. What it
+    must never do is write, invent, or leak."""
+
+    def test_predicted_is_never_reported_as_a_count(self):
+        """0 PREDICTED and PREDICTED not asked for are different facts. The
+        adapter reads only starter rows, so a zero here would claim it looked."""
+        source = (REPO / "scripts/record_lineups.py").read_text()
+        assert "PREDICTED=UNSUPPORTED_BY_ADAPTER" in source
+        assert "PREDICTED={" not in source
+        assert "PREDICTED=0" not in source
+
+    def test_the_uncertainty_is_not_simulated(self):
+        """It is None at the first sighting because there is no previous poll
+        to measure back to. A number here would be invented, and it is the one
+        number the whole method rests on."""
+        source = (REPO / "scripts/record_lineups.py").read_text()
+        assert "KNOWN_AT_UNCERTAINTY_SECONDS=None" in source
+
+    def test_the_token_is_redacted(self):
+        """The error body is where a token leaks: providers echo the request
+        back. The verify output is meant to be pasted somewhere."""
+        from fiorino.data.ingest.lineups.sources.sportmonks import redact
+
+        leaked = "GET /v3/football/fixtures?api_token=s3cr3t failed"
+        assert "s3cr3t" not in redact(leaked, "s3cr3t")
+        assert "***REDACTED***" in redact(leaked, "s3cr3t")
+
+    def test_redaction_is_safe_when_there_is_no_token(self):
+        from fiorino.data.ingest.lineups.sources.sportmonks import redact
+
+        assert redact("qualcosa", "") == "qualcosa"
+
+    def test_the_probe_never_touches_the_collection_path(self):
+        """Diagnostics and collection share no code. Nothing printed by verify
+        can become an archived record."""
+        import inspect
+
+        from fiorino.data.ingest.lineups.sources import sportmonks
+
+        body = inspect.getsource(sportmonks.probe)
+        assert "Poll(" not in body
+        assert "fetch(" not in body

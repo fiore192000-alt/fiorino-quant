@@ -106,6 +106,46 @@ Una cosa sola, e non posso farla io:
 3. *Actions* → `record-lineups` → *Run workflow* con **verify** spuntato, e
    leggere cosa riporta.
 
+Prima di tutto questo serve però il **merge sul branch di default**: GitHub
+elenca `workflow_dispatch` ed esegue `schedule` soltanto per i workflow
+presenti lì. Finché `record-lineups.yml` sta solo sul branch di lavoro, in
+*Actions* non c'è niente da lanciare.
+
+## Cosa stampa `--verify`, e cosa non può stampare
+
+Diagnostica soltanto: non scrive, non archivia, e non condivide alcun percorso
+di codice con la raccolta — `probe()` è separata da `fetch()` proprio perché
+niente di ciò che si vede qui possa diventare un record.
+
+```
+REQUEST=fixtures/date/2026-09-10?include=lineups
+HTTP_STATUS=200
+FIXTURES_FOUND=2
+FIXTURES_WITHOUT_CONFIRMED_LINEUP=1
+CONFIRMED=1
+PREDICTED=UNSUPPORTED_BY_ADAPTER
+KNOWN_AT_UNCERTAINTY_SECONDS=None  # richiede due poll riusciti
+FIRST_TEAM_ID=53
+FIRST_PLAYER_IDS=[...]
+FIRST_RAW_FIXTURE_PAYLOAD={ ... }
+```
+
+Due righe meritano di essere lette per quello che dicono:
+
+`PREDICTED=UNSUPPORTED_BY_ADAPTER` non è mai `0`. L'adapter legge solo le righe
+dei titolari: non guarda. **Zero** affermerebbe che ha guardato e non ha
+trovato niente, che è un fatto diverso — la stessa regola che `SOURCES.json`
+applica alla qualità dei timestamp.
+
+`KNOWN_AT_UNCERTAINTY_SECONDS=None` non è simulato. Al primo avvistamento in
+assoluto non esiste un poll precedente su cui misurare, quindi `None` è il
+valore vero e qualunque numero sarebbe inventato. Diventa reale al secondo
+poll riuscito, ed è lì che va verificato — non nel verify.
+
+Il token non compare mai nell'output, nemmeno nel corpo di un errore: è il
+punto in cui un provider tende a rimandare indietro la richiesta, e questo
+output è fatto per essere incollato.
+
 Senza il secret il workflow resta verde e non scrive niente: un workflow che
 fallisce ogni dieci minuti finché non lo configuri è un workflow che si mette
 in muto, e un collector in muto è un collector fermo.
