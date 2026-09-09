@@ -50,7 +50,30 @@ def verify() -> int:
 
     print(f"BYTES={len(text)}")
     print(f"COLUMNS={columns}")
+    # The first real payload came back dated 08/09/2026 while the poll ran on
+    # the 9th: the file is NOT guaranteed to hold only unplayed matches. That
+    # matters, because the whole point-in-time claim of this collector rests on
+    # observing a price BEFORE kickoff. A price read after kickoff is a stale
+    # row, not a prematch observation, and counting them is the difference
+    # between knowing that and finding out later.
+    from datetime import datetime, timezone
+
+    today = datetime.now(timezone.utc).date()
+    past = 0
+    for line in text.splitlines()[1:]:
+        parts = line.split(",")
+        if len(parts) < 2 or not parts[1].strip():
+            continue
+        try:
+            when = datetime.strptime(parts[1].strip(), "%d/%m/%Y").date()
+        except ValueError:
+            continue
+        if when < today:
+            past += 1
+
     print(f"FIXTURES_FOUND={len(scope)}")
+    print(f"FIXTURES_DATED_BEFORE_TODAY={past}  "
+          f"# non sono prematch: il file non contiene solo partite da giocare")
     print(f"FIXTURES_WITH_ANY_PRICE={len({q.match_key for q in quotes})}")
     print(f"FIXTURES_WITHOUT_ANY_PRICE={len(set(scope)) - len({q.match_key for q in quotes})}")
     for book, _ in source.BOOKS:

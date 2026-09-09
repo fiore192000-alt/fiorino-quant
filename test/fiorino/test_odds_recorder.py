@@ -201,7 +201,7 @@ class TestAgainstTheRealHeader:
     passed every synthetic test and would have mapped nothing at all."""
 
     #: Verbatim from the probe: STATUS=200, BYTES=5609.
-    HEADER = ("Div,Date,Time,HomeTeam,AwayTeam,Referee,"
+    HEADER = ("\ufeffDiv,Date,Time,HomeTeam,AwayTeam,Referee,"
               "B365H,B365D,B365A,BFDH,BFDD,BFDA,BVH,BVD,BVA,BWH,BWD,BWA,"
               "PPH,PPD,PPA,SKBH,SKBD,SKBA,MaxH,MaxD,MaxA,AvgH,AvgD,AvgA,"
               "BFEH,BFED,BFEA")
@@ -233,3 +233,11 @@ class TestAgainstTheRealHeader:
         assert "PINNACLE" in dict(source.BOOKS)
         _, quotes = source.parse(self.row())
         assert not [q for q in quotes if q.bookmaker == "PINNACLE"]
+
+    def test_the_bom_does_not_eat_the_division(self):
+        """The file is served with a UTF-8 BOM, so the first column arrives as
+        "\ufeffDiv" and row["Div"] returns nothing. Nothing fails: a missing
+        division is an empty string and an empty string joins fine, so the key
+        silently loses the one field that separates two divisions."""
+        scope, _ = source.parse(self.row())
+        assert scope[0].startswith("E0|"), scope[0]

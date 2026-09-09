@@ -105,7 +105,17 @@ def quotes_from_row(row: dict) -> list[Quote]:
 
 
 def parse(text: str) -> tuple[tuple[str, ...], list[Quote]]:
-    reader = csv.DictReader(io.StringIO(text))
+    # The file is served with a UTF-8 BOM, so the first column name arrives as
+    # "\ufeffDiv" and `row["Div"]` silently returns nothing. It cost the
+    # division out of every match key — FIRST_MATCH_KEY read
+    # "|08/09/2026|Blackburn|Sheffield United" — and nothing failed, because a
+    # missing division is an empty string and an empty string joins fine.
+    #
+    # Two fixtures with the same date and team names in different divisions
+    # would then share a key. Found in the first real payload, which is what
+    # the verify exists for: every synthetic test passed with a header written
+    # by hand, and a hand-written header has no BOM.
+    reader = csv.DictReader(io.StringIO(text.lstrip("\ufeff")))
     scope, quotes = [], []
     for row in reader:
         if not row.get("HomeTeam"):
