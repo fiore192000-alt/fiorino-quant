@@ -133,6 +133,10 @@ def main() -> int:
                 no_closing += 1
 
             best = None
+            # La banda nulla dipende solo dalla dispersione della partita, non
+            # dal book: calcolarla una volta per esito invece di una volta per
+            # coppia book-esito toglie un fattore sette su una stagione intera.
+            null = [consensus.null_edge(i) for i in range(3)]
             for view in consensus.books:
                 for i in range(3):
                     edge = consensus.edge_leave_one_out(view.bookmaker, i)
@@ -142,7 +146,7 @@ def main() -> int:
                     net = (1 + (price - 1) * (1 - EXCHANGE_COMMISSION)
                            if view.bookmaker == "BETFAIR_EX" else price)
                     edge_net = (edge + 1) * (net / price) - 1
-                    excess = edge_net - consensus.null_edge(i)
+                    excess = edge_net - null[i]
                     if best is None or excess > best["excess"]:
                         best = {"book": view.bookmaker, "sel": i, "price": price,
                                 "net": net, "edge": edge_net, "excess": excess}
@@ -166,7 +170,7 @@ def main() -> int:
               f"{'P.MERCATO H/D/A':22} {'MIGLIOR CANDIDATO':26} {'ECCESSO':>8}")
     print(header)
     print("-" * len(header))
-    for r in played[:40]:
+    for r in (played[:25] if len(played) < 200 else []):
         b = r["best"]
         cand = (f"{SELECTIONS[b['sel']]:5}{b['book'][:10]:11}{b['price']:5.2f}"
                 if b else "—")
@@ -193,8 +197,47 @@ def main() -> int:
         print(f"  vincenti           {wins}/{staked}")
         print(f"  rendimento         {ret / staked:+.2%}  (su {staked} unita)")
         if clv:
-            print(f"  CLV medio          {st.mean(clv):+.4f}  su {len(clv)} misurati")
-            print(f"  CLV positivo       {sum(c > 0 for c in clv)}/{len(clv)}")
+            mean = st.mean(clv)
+            print(f"  CLV medio          {mean:+.4f}  su {len(clv)} misurati")
+            print(f"  CLV positivo       {sum(c > 0 for c in clv)}/{len(clv)} "
+                  f"({sum(c > 0 for c in clv)/len(clv):.0%})")
+            if len(clv) > 2:
+                se = st.stdev(clv) / (len(clv) ** 0.5)
+                print(f"  errore standard    {se:.4f}   t = {mean/se:+.2f}")
+                import random
+                rng = random.Random(20260909)
+                boot = sorted(st.mean(rng.choices(clv, k=len(clv)))
+                              for _ in range(2000))
+                lo, hi = boot[50], boot[1949]
+                print(f"  CI 95% bootstrap   [{lo:+.4f}, {hi:+.4f}]  "
+                      f"{'ESCLUDE lo zero' if lo > 0 or hi < 0 else 'CONTIENE lo zero'}")
+                # Il minimo effetto rilevabile: senza questo, un "niente
+                # trovato" non dice se il segnale e assente o solo piccolo.
+                mde = 2.8 * st.stdev(clv) / (len(clv) ** 0.5)
+                print(f"  effetto minimo     {mde:.4f} di CLV per essere visto "
+                      f"con questo campione")
+
+            print("\n  PER BOOK")
+            by_book: dict[str, list] = {}
+            for r in candidates:
+                if r["close"]:
+                    by_book.setdefault(r["best"]["book"], []).append(
+                        r["close"][r["best"]["sel"]] * r["best"]["net"] - 1)
+            for book, values in sorted(by_book.items(),
+                                       key=lambda kv: -len(kv[1])):
+                print(f"    {book:13} n={len(values):4}  "
+                      f"CLV {st.mean(values):+.4f}")
+
+            print("\n  PER FASCIA DI QUOTA")
+            bands = ((1.0, 2.0), (2.0, 3.5), (3.5, 6.0), (6.0, 1e9))
+            for lo_p, hi_p in bands:
+                values = [r["close"][r["best"]["sel"]] * r["best"]["net"] - 1
+                          for r in candidates
+                          if r["close"] and lo_p <= r["best"]["price"] < hi_p]
+                if values:
+                    label = f"{lo_p:.1f}-{hi_p:.1f}" if hi_p < 1e8 else f"{lo_p:.1f}+"
+                    print(f"    {label:13} n={len(values):4}  "
+                          f"CLV {st.mean(values):+.4f}")
         print("\n  Il rendimento su questo campione e' rumore: M4 ha misurato che")
         print("  il verdetto del CLV e' corretto 30 volte su 30 mentre quello del")
         print("  rendimento sbaglia 7 volte su 30. Guardare il CLV.")

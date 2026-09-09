@@ -4,6 +4,11 @@ name: evidence-cards
 
 on:
   workflow_dispatch:
+    inputs:
+      days:
+        description: "Quanti giorni indietro guardare nella retrospettiva"
+        default: "3"
+
 
 permissions:
   contents: read
@@ -23,4 +28,4 @@ jobs:
         run: python scripts/edge_ranking.py
 
       - name: Ultimi giorni
-        run: python scripts/last_days.py --days 3
+        run: python scripts/last_days.py --days ${{ inputs.days || 3 }}
