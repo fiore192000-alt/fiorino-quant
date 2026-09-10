@@ -41,11 +41,11 @@ import urllib.request
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
 
-from fiorino.odds.devig import devig  # noqa: E402
+from fiorino.odds.devig import banner, devig  # noqa: E402
 
 UA = "fiorino-quant/1.0 (+research)"
-DIVISIONS = ("E0", "E1", "E2", "E3", "EC", "SC0", "SC1", "D1", "D2", "I1", "I2",
-             "SP1", "SP2", "F1", "F2", "N1", "B1", "P1", "T1", "G1")
+DIVISIONS = ("E0", "E1", "E2", "E3", "EC", "SC0", "SC1", "SC2", "D1", "D2",
+             "I1", "I2", "SP1", "SP2", "F1", "F2", "N1", "B1", "P1", "T1", "G1")
 ABSURD_CLV = 0.50
 
 #: Over/Under 2.5. Due esiti: il de-vig e piu' semplice e il margine piu' basso.
@@ -125,16 +125,39 @@ def collect(seasons):
                             })
 
                 # --- Handicap asiatico ----------------------------------
-                # La linea deve essere la STESSA all'apertura e alla chiusura:
-                # altrimenti si confrontano due scommesse diverse.
+                # Qui c'e' un problema che NON si risolve filtrando, e la
+                # versione precedente lo risolveva filtrando.
+                #
+                # Il prezzo di chiusura si riferisce alla linea di chiusura. Se
+                # la linea si e' mossa, valutare un handicap -0.5 preso in
+                # apertura contro la chiusura di un -0.75 confronta due
+                # scommesse diverse: giusto. Ma la vecchia soluzione era
+                # scartare quelle partite confrontando AHh con AHCh, e AHCh e'
+                # la linea di CHIUSURA: non e' conoscibile al momento della
+                # scommessa. Tenere solo le partite in cui la linea NON si e'
+                # mossa significa tenere solo quelle in cui non e' arrivata
+                # informazione, cioe' quelle in cui nessun book poteva essere
+                # lento. Il CLV che resta e' quasi deterministicamente
+                # -margine, e da li' si concludeva "zero celle positive".
+                #
+                # E' la stessa famiglia di errore del look-ahead di
+                # movement_lab — condizionare su una quantita' realizzata dopo
+                # la decisione — col segno rovesciato: spinge VERSO il nullo,
+                # e per questo era invisibile, perche' il risultato sembrava
+                # giusto.
+                #
+                # Non si filtra piu'. Le due popolazioni sono misurate
+                # separatamente e dichiarate: dove la linea ha tenuto il numero
+                # e' un CLV; dove si e' mossa NON lo e', ed e' etichettato
+                # come tale invece di sparire.
                 try:
                     line_open = float(raw["AHh"])
                     line_close = float(raw["AHCh"])
                 except (KeyError, TypeError, ValueError):
                     continue
-                if abs(line_open - line_close) > 1e-9:
+                linea_ferma = abs(line_open - line_close) <= 1e-9
+                if not linea_ferma:
                     stats["ah_linea_mossa"] += 1
-                    continue
                 close_ah, _ = two_way(raw, AH_CLOSE)
                 if not close_ah:
                     continue
@@ -149,9 +172,13 @@ def collect(seasons):
                             continue
                         stats["ah"] += 1
                         rows.append({
-                            "mercato": "ASIAN_HANDICAP", "season": season,
+                            "mercato": ("ASIAN_HANDICAP" if linea_ferma
+                                        else "ASIAN_HANDICAP_LINEA_MOSSA"),
+                            "season": season,
                             "book": book, "sel": "HOME" if i == 0 else "AWAY",
                             "clv": clv, "price": prices[i], "won": None,
+                            "linea_ferma": linea_ferma,
+                            "spostamento": line_close - line_open,
                         })
     return rows, stats
 
@@ -182,15 +209,28 @@ def main() -> int:
                         default=["2627", "2526", "2425", "2324"])
     args = parser.parse_args()
 
+    # Quale de-vig ha DAVVERO prodotto i numeri sotto.
+    print(banner("SHIN"))
+
     rows, stats = collect(args.seasons)
     print(f"PARTITE={stats['partite']:,}")
     print(f"OSSERVAZIONI  over/under={stats['ou']:,}  handicap={stats['ah']:,}")
-    print(f"HANDICAP SCARTATI perche la linea si e mossa fra apertura e "
-          f"chiusura: {stats['ah_linea_mossa']:,}")
+    mosse = stats["ah_linea_mossa"]
+    print(f"HANDICAP con la linea MOSSA fra apertura e chiusura: {mosse:,} "
+          f"partite")
+    print("  Non sono piu' scartate. Scartarle significava tenere solo le")
+    print("  partite in cui NON e' arrivata informazione, cioe' quelle in cui")
+    print("  nessun book poteva essere lento — una selezione su una quantita'")
+    print("  realizzata dopo la decisione, che spinge il risultato verso il")
+    print("  nullo. Sono misurate a parte sotto l'etichetta LINEA_MOSSA, dove")
+    print("  il numero NON e' un CLV: valuta un prezzo contro la chiusura di")
+    print("  una linea diversa. E' riportato per dire quanto e' grande la")
+    print("  popolazione che nessuna delle due misure copre, non per leggerlo.")
     print(f"CLV assurdi scartati: {stats['assurdi']:,}\n")
 
     tests = []
-    for mercato in ("OVER_UNDER_2.5", "ASIAN_HANDICAP"):
+    for mercato in ("OVER_UNDER_2.5", "ASIAN_HANDICAP",
+                    "ASIAN_HANDICAP_LINEA_MOSSA"):
         subset = [r["clv"] for r in rows if r["mercato"] == mercato]
         tests.append((mercato, subset))
         for book, _ in OU_BOOKS:
@@ -222,9 +262,12 @@ def main() -> int:
         for c in survivors:
             for season in args.seasons:
                 key = c["label"].strip().split()
+                # `and`, non `or`: la cella e' l'INTERSEZIONE di mercato e
+                # book. Con `or` la replica mediava righe che non
+                # appartengono alla cella che dice di replicare.
                 values = [r["clv"] for r in rows if r["season"] == season
-                          and (r["mercato"].startswith(key[0])
-                               or r["book"] == key[-1])]
+                          and r["mercato"].startswith(key[0])
+                          and r["book"] == key[-1]]
                 if len(values) > 200:
                     print(f"  {c['label']:32} {season}: "
                           f"{st.mean(values):+.4f} (n={len(values):,})")

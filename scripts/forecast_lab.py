@@ -52,11 +52,16 @@ from datetime import datetime
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
 
-from fiorino.odds.devig import devig  # noqa: E402
+from fiorino.odds.devig import banner, devig  # noqa: E402
 
 UA = "fiorino-quant/1.0 (+research)"
-DIVISIONS = ("E0", "E1", "E2", "E3", "SC0", "D1", "D2", "I1", "I2",
-             "SP1", "SP2", "F1", "F2", "N1", "B1", "P1", "T1", "G1")
+#: Le stesse 21 di clv_lab.py. La versione precedente ne usava 18, escludendo
+#: EC, SC1 e SC2 senza dichiararlo: tre delle dieci divisioni classificate
+#: LOWER, cioe' proprio quelle dove C-106 ha misurato il mercato meno affilato
+#: e dove un modello avrebbe la sua migliore possibilita'.
+DIVISIONS = ("E0", "E1", "E2", "E3", "EC", "SC0", "SC1", "SC2", "D1", "D2",
+             "I1", "I2", "SP1", "SP2", "F1", "F2", "N1", "B1", "P1", "T1", "G1")
+LOWER = {"E1", "E2", "E3", "EC", "SC1", "SC2", "D2", "I2", "SP2", "F2"}
 SELECTIONS = ("HOME", "DRAW", "AWAY")
 OPEN_COLS = ("AvgH", "AvgD", "AvgA")
 CLOSE_COLS = ("AvgCH", "AvgCD", "AvgCA")
@@ -108,8 +113,23 @@ def load(seasons):
                     hg, ag = int(raw["FTHG"]), int(raw["FTAG"])
                 except (KeyError, TypeError, ValueError):
                     continue
+                # Football-Data pubblica l'orario dal 2019-20. Senza, le
+                # partite dello stesso giorno finivano ordinate per divisione e
+                # squadra di casa, e una gara delle 15:00 poteva essere
+                # prevista con rating aggiornati da una delle 20:45. Dove
+                # l'orario manca resta 15:00, come fa l'ingestione: e' un
+                # ordine arbitrario ma dichiarato, non una fuga.
+                raw_time = (raw.get("Time") or "").strip()
+                try:
+                    when = datetime.combine(
+                        when.date(), datetime.strptime(raw_time, "%H:%M").time())
+                    orario_noto = True
+                except ValueError:
+                    when = when.replace(hour=15)
+                    orario_noto = False
                 out.append({
-                    "when": when, "div": division, "season": season,
+                    "when": when, "orario_noto": orario_noto,
+                    "div": division, "season": season,
                     "home": raw["HomeTeam"], "away": raw["AwayTeam"],
                     "hg": hg, "ag": ag,
                     "outcome": {"H": 0, "D": 1, "A": 2}[raw["FTR"]],
@@ -117,6 +137,10 @@ def load(seasons):
                     "close": fair(raw, CLOSE_COLS),
                 })
     out.sort(key=lambda r: (r["when"], r["div"], r["home"]))
+    senza = sum(1 for r in out if not r["orario_noto"])
+    if senza:
+        print(f"NOTA: {senza:,} partite su {len(out):,} non hanno l'orario nel "
+              f"file e sono ordinate alle 15:00 per convenzione.")
     return out
 
 
@@ -203,6 +227,9 @@ def main() -> int:
     parser.add_argument("--last", type=int, default=100)
     parser.add_argument("--seasons", nargs="+", default=["2526", "2627"])
     args = parser.parse_args()
+
+    # Quale de-vig ha DAVVERO prodotto i numeri sotto.
+    print(banner("SHIN"))
 
     matches = walk_forward(load(args.seasons))
     print(f"PARTITE CARICATE={len(matches):,}  stagioni={' '.join(args.seasons)}")

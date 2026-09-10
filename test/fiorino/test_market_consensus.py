@@ -149,3 +149,52 @@ class TestTheWinnersCurseIsNeutralised:
         """A threshold that moved between runs would make a grade unfalsifiable."""
         built = build_consensus("m", self.identical_books())
         assert built.null_edge(0) == built.null_edge(0)
+
+
+class TestTheNullBandIsCalibrated:
+    """The null band decides what counts as an edge, so a band that is wrong in
+    either direction is worse than none: too high and nothing can ever pass,
+    too low and dispersion is read as information. Both failures are silent —
+    the output looks the same. So the test is not on the code but on its
+    frequency behaviour: on a market built with ZERO inefficiency, a 95th
+    percentile must be cleared about 5% of the time, by construction.
+
+    This is what caught `(1 + overround / 3)`: it cleared 0.21%, twenty-four
+    times too rarely, which is why the evidence engine reported zero rows above
+    the band on every match it ever graded.
+    """
+
+    @staticmethod
+    def zero_inefficiency_market(rng, n_books=7, overround=0.05, noise=0.012):
+        """Every book estimates the same truth, with symmetric noise, and loads
+        the same known margin. Any edge measured here is dispersion."""
+        truth = (0.45, 0.28, 0.27)
+        quotes = []
+        for book in range(n_books):
+            drawn = [max(0.02, t + rng.gauss(0, noise)) for t in truth]
+            total = sum(drawn)
+            prices = [1.0 / ((p / total) * (1 + overround)) for p in drawn]
+            quotes.append(q(f"BOOK{book}", *prices))
+        return quotes
+
+    def test_a_market_with_no_inefficiency_clears_the_band_at_the_nominal_rate(self):
+        import random
+
+        rng = random.Random(11)
+        above = total = 0
+        for match in range(120):
+            built = build_consensus(f"m{match}", self.zero_inefficiency_market(rng))
+            if built is None:
+                continue
+            for index in range(3):
+                band = built.null_edge(index, draws=400, seed=11 + match)
+                for view in built.books:
+                    edge = built.edge_leave_one_out(view.bookmaker, index)
+                    if edge is None:
+                        continue
+                    total += 1
+                    above += edge > band
+        rate = above / total
+        # Wide on purpose: this pins the order of magnitude, not the decimal.
+        # 0.21% (the /3 bug) and 10.6% (uniform-over-range) both fail it.
+        assert 0.02 < rate < 0.09, f"tasso di superamento {rate:.2%}, atteso ~5%"

@@ -53,7 +53,7 @@ import urllib.request
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
 
-from fiorino.odds.devig import devig  # noqa: E402
+from fiorino.odds.devig import banner, devig  # noqa: E402
 
 UA = "fiorino-quant/1.0 (+research)"
 SELECTIONS = ("HOME", "DRAW", "AWAY")
@@ -186,6 +186,9 @@ def main() -> int:
     parser.add_argument("--seasons", nargs="+", default=["2627", "2526", "2425", "2324"])
     args = parser.parse_args()
 
+    # Quale de-vig ha DAVVERO prodotto i numeri sotto.
+    print(banner("SHIN"))
+
     rows, matches, absurd = collect(args.seasons)
     print(f"PARTITE={matches:,}   OSSERVAZIONI={len(rows):,}   "
           f"CLV assurdi scartati={absurd:,}")
@@ -237,11 +240,14 @@ def main() -> int:
     print(f"\nCELLE POSITIVE CHE SUPERANO BH: {len(survivors)}")
     if survivors:
         print("\nREPLICA PER STAGIONE — senza questa non e' un effetto.")
-        for season in args.seasons:
-            subset = [r["clv"] for r in rows if r["season"] == season
-                      and r["deviation"] < -0.005]
-            if len(subset) > 100:
-                print(f"  {season}: {st.mean(subset):+.4f}  (n={len(subset):,})")
+        for cell_survived in survivors:
+            book = cell_survived["label"].strip().split()[-1]
+            for season in args.seasons:
+                subset = [r["clv"] for r in rows if r["season"] == season
+                          and r["deviation"] < -0.005 and r["book"] == book]
+                if len(subset) > 100:
+                    print(f"  {cell_survived['label']:32} {season}: "
+                          f"{st.mean(subset):+.4f}  (n={len(subset):,})")
 
     # Per confronto, e SOLO come promemoria: la cella circolare.
     circolare = [r["clv"] for r in rows

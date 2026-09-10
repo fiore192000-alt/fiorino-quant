@@ -18,6 +18,10 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          # 3.11: le estensioni compilate di penaltyblog sono cpython-311.
+          # Su 3.12 non caricano e il de-vig ripiega su moltiplicativo.
+          python-version: "3.11"
+      - name: Dipendenze (senza queste il de-vig ripiega su moltiplicativo)
+        run: pip install -r requirements-lab.txt
       - name: Misura
         run: python scripts/clv_lab.py --seasons ${{ inputs.seasons || '2627 2526 2425' }}

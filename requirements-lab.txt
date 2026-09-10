@@ -1,0 +1,30 @@
+# Dipendenze dei laboratori quando girano in CI.
+#
+# Perche' esiste separato da requirements.txt: quel file serve a Streamlit
+# Community Cloud e ESCLUDE penaltyblog di proposito, perche' la dashboard non
+# addestra modelli. I laboratori invece de-viggano, e senza penaltyblog il
+# de-vig ripiega su moltiplicativo. Non e' un dettaglio: lo scarto Shin contro
+# moltiplicativo su un longshot a 17.00 vale 18 punti di CLV, piu' largo di
+# qualunque edge mai dichiarato in questo progetto.
+#
+# La lista e' lunga perche' `import penaltyblog` importa l'intero pacchetto,
+# non solo il sottomodulo `implied` che ci serve. Non e' stata dedotta dalla
+# documentazione: e' stata trovata in un venv pulito, installando finche' la
+# funzione `banner()` non ha smesso di dichiarare un ripiego.
+#
+# ATTENZIONE alla versione di Python. Il repository contiene le estensioni
+# compilate di penaltyblog per cpython-311. Su 3.12 non caricano e il de-vig
+# ripiega in silenzio: i workflow devono restare su 3.11.
+numpy
+scipy
+pandas
+tqdm
+pulp
+requests
+tabulate
+typing_extensions
+fsspec
+networkx
+lxml
+plotly
+matplotlib

@@ -18,7 +18,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Sequence
 
-__all__ = ["DevigResult", "devig", "overround", "DEFAULT_METHOD", "METHODS"]
+__all__ = ["DevigResult", "devig", "overround", "banner",
+           "method_in_force", "DEFAULT_METHOD", "METHODS"]
 
 DEFAULT_METHOD = "SHIN"
 METHODS = ("SHIN", "MULTIPLICATIVE", "POWER", "ADDITIVE", "ODDS_RATIO", "LOGARITHMIC")
@@ -102,6 +103,36 @@ def devig(selections: Sequence[str], prices: Sequence[float], method: str = DEFA
     )
 
 
+
+def method_in_force(requested: str = DEFAULT_METHOD) -> tuple[str, str]:
+    """The method `devig` would really apply, and why it differs if it does.
+
+    Callers that publish numbers are expected to print this. The failure this
+    prevents is specific and has already happened: every figure in the
+    project's laboratory scripts was produced with MULTIPLICATIVE while being
+    documented as SHIN, because the fallback was silent and `fell_back` was
+    never read. A method mismatch is not a detail — the Shin/multiplicative gap
+    on a longshot reaches 18 points of CLV, wider than any edge ever claimed.
+    """
+    requested = requested.upper()
+    if requested not in METHODS:
+        raise ValueError(f"unknown de-vig method: {requested}")
+    if requested == "MULTIPLICATIVE":
+        return "MULTIPLICATIVE", ""
+    if _solver():
+        return requested, ""
+    return "MULTIPLICATIVE", _SOLVER_ERROR or "penaltyblog non importabile"
+
+
+def banner(requested: str = DEFAULT_METHOD) -> str:
+    """One line naming the de-vig actually in force. Print it above results."""
+    applied, why = method_in_force(requested)
+    if not why:
+        return f"DE-VIG: {applied}"
+    return (f"DE-VIG: {applied}  ***RIPIEGO***  richiesto {requested}, "
+            f"non disponibile ({why}). I numeri sotto NON sono {requested}.")
+
+
 def _multiplicative(prices: list[float]) -> list[float]:
     probs = [1.0 / p for p in prices]
     total = sum(probs)
@@ -123,15 +154,23 @@ def _multiplicative(prices: list[float]) -> list[float]:
 _SOLVER: dict | None = None
 
 
+#: Why the solver is unavailable, when it is. Kept because "penaltyblog is
+#: missing" and "penaltyblog is present but its extensions were built for
+#: another Python" are different failures with different fixes, and a caller
+#: that only learns "no solver" cannot tell them apart.
+_SOLVER_ERROR: str = ""
+
+
 def _solver():
-    global _SOLVER
+    global _SOLVER, _SOLVER_ERROR
     if _SOLVER is None:
         try:
             from penaltyblog.implied import ImpliedMethod, calculate_implied
 
             _SOLVER = {"calculate": calculate_implied, "methods": ImpliedMethod}
-        except Exception:
+        except Exception as error:
             _SOLVER = {}
+            _SOLVER_ERROR = f"{type(error).__name__}: {error}"
     return _SOLVER
 
 

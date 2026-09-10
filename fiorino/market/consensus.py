@@ -125,19 +125,32 @@ class Consensus:
         import random
 
         column = [v.fair[index] for v in self.books]
-        centre, spread = st.median(column), max(column) - min(column)
-        if spread <= 0:
+        if len(column) < 3:
+            return 0.0
+        # Draw from the dispersion the books actually show, not from a uniform
+        # spanning their range. `max - min` is the range of n draws, which
+        # grows with n and has heavier shoulders than the distribution it is
+        # standing in for: on a market built with zero inefficiency the uniform
+        # version cleared its own band 10.6% of the time against a nominal 5%.
+        # Drawing from the observed standard deviation gives 5.6%.
+        centre, sigma = st.median(column), st.stdev(column)
+        if sigma <= 0:
             return 0.0
         rng = random.Random(seed)
         n = len(self.books)
         out = []
         for _ in range(draws):
-            drawn = [max(1e-4, centre + rng.uniform(-spread / 2, spread / 2))
-                     for _ in range(n)]
+            drawn = [max(1e-4, rng.gauss(centre, sigma)) for _ in range(n)]
             # One book named at random, exactly as edge_leave_one_out does.
             i = rng.randrange(n)
             others = drawn[:i] + drawn[i + 1:]
-            price = 1.0 / (drawn[i] * (1 + self.mean_overround / 3))
+            # The overround is defined on the WHOLE market as sum(1/price) - 1,
+            # so a fair probability carries the full (1 + ov) load, not a third
+            # of it. Dividing by the number of selections made the simulated
+            # prices ~3% longer than the real ones the measured edges come
+            # from, which lifted the null band above every attainable edge and
+            # made this test blind rather than conservative.
+            price = 1.0 / (drawn[i] * (1 + self.mean_overround))
             out.append(st.median(others) * price - 1.0)
         out.sort()
         # The 95th percentile: an edge below this is ordinary disagreement.

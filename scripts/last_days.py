@@ -40,12 +40,12 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
 
 from fiorino.data.ingest.odds_feed.recorder import Quote  # noqa: E402
 from fiorino.market.consensus import SELECTIONS, build_consensus  # noqa: E402
-from fiorino.odds.devig import devig  # noqa: E402
+from fiorino.odds.devig import banner, devig  # noqa: E402
 
 BASE = "https://football-data.co.uk/mmz4281/2627"
 UA = "fiorino-quant/1.0 (+research)"
-DIVISIONS = ("E0", "E1", "E2", "E3", "EC", "SC0", "SC1", "D1", "D2", "I1", "I2",
-             "SP1", "SP2", "F1", "F2", "N1", "B1", "P1", "T1", "G1")
+DIVISIONS = ("E0", "E1", "E2", "E3", "EC", "SC0", "SC1", "SC2", "D1", "D2",
+             "I1", "I2", "SP1", "SP2", "F1", "F2", "N1", "B1", "P1", "T1", "G1")
 
 #: Prematch. Gli stessi che il collector legge da fixtures.csv.
 BOOKS = (("BET365", ("B365H", "B365D", "B365A")),
@@ -102,6 +102,9 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--days", type=int, default=3)
     args = parser.parse_args()
+
+    # Quale de-vig ha DAVVERO prodotto i numeri sotto.
+    print(banner("SHIN"))
 
     cutoff = datetime.now(timezone.utc).date() - timedelta(days=args.days)
     played, candidates, no_closing = [], [], 0

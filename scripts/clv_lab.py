@@ -48,7 +48,7 @@ import urllib.request
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
 
-from fiorino.odds.devig import devig  # noqa: E402
+from fiorino.odds.devig import banner, devig  # noqa: E402
 
 UA = "fiorino-quant/1.0 (+research)"
 SELECTIONS = ("HOME", "DRAW", "AWAY")
@@ -93,8 +93,15 @@ def band_of(price: float) -> str:
 
 
 def collect(seasons):
-    """Una riga per (partita, book, esito) con il suo CLV."""
+    """Una riga per (partita, book, esito) con il suo CLV.
+
+    Ogni riga porta la chiave della partita da cui viene. Serve a due cose che
+    prima non erano possibili: raggruppare gli errori standard per partita (le
+    27 righe di una partita non sono 27 osservazioni indipendenti) e sapere,
+    al momento della decisione, se quel prezzo era il piu' lungo del mercato.
+    """
     rows, absurd, no_close, files = [], 0, 0, 0
+    scarti = {"alto": 0, "basso": 0}
     for season in seasons:
         for division in DIVISIONS:
             text = fetch(season, division)
@@ -119,6 +126,25 @@ def collect(seasons):
                     continue
 
                 outcome = {"H": 0, "D": 1, "A": 2}[raw["FTR"]]
+                match_key = (f"{division}|{season}|{raw.get('Date','')}|"
+                             f"{raw.get('HomeTeam','')}|{raw.get('AwayTeam','')}")
+
+                # Il prezzo piu' lungo del mercato per ogni esito, contato solo
+                # sui book veri: MARKET_MAX e MARKET_AVG sono statistiche sugli
+                # altri, non quotazioni prendibili.
+                best = [0.0, 0.0, 0.0]
+                for book, cols in BOOKS:
+                    if book in ("MARKET_MAX", "MARKET_AVG"):
+                        continue
+                    try:
+                        candidate = [float(raw[c]) for c in cols]
+                    except (KeyError, TypeError, ValueError):
+                        continue
+                    if min(candidate) <= 1.0:
+                        continue
+                    for i, price in enumerate(candidate):
+                        best[i] = max(best[i], price)
+
                 for book, cols in BOOKS:
                     try:
                         prices = [float(raw[c]) for c in cols]
@@ -130,30 +156,131 @@ def collect(seasons):
                         clv = close_fair[i] * price - 1.0
                         if abs(clv) > ABSURD_CLV:
                             absurd += 1
+                            scarti["alto" if clv > 0 else "basso"] += 1
                             continue
                         rows.append({
                             "season": season, "div": division, "book": book,
                             "sel": SELECTIONS[i], "price": price, "clv": clv,
                             "won": i == outcome, "band": band_of(price),
                             "tier": "LOWER" if division in LOWER else "TOP",
+                            "match": match_key,
+                            # Noto al momento della decisione: nessuna
+                            # informazione di chiusura entra qui.
+                            "is_best": best[i] > 0 and price >= best[i] - 1e-9,
                         })
-    return rows, absurd, no_close, files
+    return rows, absurd, no_close, files, scarti
 
 
 def cell(rows, label):
-    """Media, errore standard, t e p normale a due code."""
+    """Media, errore standard RAGGRUPPATO PER PARTITA, t e p a due code.
+
+    Una partita produce fino a 9 book x 3 esiti = 27 righe che condividono la
+    stessa probabilita' equa di chiusura, e le 3 selezioni di un book sono
+    legate per costruzione perche' le eque sommano a 1. Trattarle come
+    indipendenti gonfia il t: il numero di partite, non di righe, e' cio' che
+    porta informazione. Lo scarto fra i due errori standard e' stampato come
+    `design effect`, perche' e' la misura di quanto era sovrastimata la
+    precisione dichiarata finora.
+    """
     values = [r["clv"] for r in rows]
     n = len(values)
     if n < 200:
         return None
     mean = st.mean(values)
-    se = st.stdev(values) / (n ** 0.5)
+    se_ingenuo = st.stdev(values) / (n ** 0.5)
+
+    # Sandwich per medie raggruppate: la varianza della media e' quella delle
+    # somme per partita, non quella delle singole righe.
+    per_match: dict[str, list[float]] = {}
+    for r in rows:
+        per_match.setdefault(r["match"], []).append(r["clv"])
+    residui = [sum(v - mean for v in group) for group in per_match.values()]
+    g = len(residui)
+    if g > 1:
+        se = (sum(x * x for x in residui) / (n * n)) ** 0.5
+        se = se * (g / (g - 1)) ** 0.5
+    else:
+        se = se_ingenuo
+    se = max(se, 1e-12)
     t = mean / se if se else 0.0
     # p a due code dalla normale: con n nell'ordine delle migliaia la
     # differenza dalla t di Student e' irrilevante.
     p = 2 * (1 - 0.5 * (1 + _erf(abs(t) / (2 ** 0.5))))
     return {"label": label, "n": n, "mean": mean, "se": se, "t": t, "p": p,
+            "partite": g, "deff": (se / se_ingenuo) ** 2 if se_ingenuo else 1.0,
             "won": sum(r["won"] for r in rows) / n}
+
+
+
+def contrasto_dentro_il_book(rows, replicas=400, seed=20260910):
+    """CLV(prezzo migliore del mercato) meno CLV(non migliore), DENTRO il book.
+
+    Il perche' e' tutto qui. Il CLV in livello assoluto di un book e' il suo
+    margine: l'identita' equa*prezzo = 1/(1+margine) lo rende vero per
+    costruzione, non per misura. Una regola che spostasse Bet365 da -0.0630 a
+    -0.0300 sarebbe informazione enorme, e il disegno per livelli assoluti la
+    classificherebbe "cella negativa" perche' resta sotto zero.
+
+    Prendendo la differenza fra due sottoinsiemi DELLO STESSO book il margine
+    si cancella e resta solo cio' che la regola aggiunge. La regola qui e'
+    "questo prezzo era il piu' lungo del mercato", che e' calcolabile al
+    momento della decisione: nessuna informazione di chiusura entra nella
+    selezione. Il prezzo di chiusura serve solo a valutare, mai a scegliere.
+
+    L'errore standard viene da un bootstrap sulle PARTITE, non sulle righe:
+    ricampionare righe tratterebbe 27 osservazioni della stessa partita come
+    27 informazioni indipendenti.
+    """
+    import random
+
+    # Somme per (partita, book, gruppo), cosi' ogni replica e' una somma di
+    # partite gia' aggregate invece di una scansione di 370.000 righe.
+    per_match: dict[str, dict[tuple[str, bool], tuple[float, int]]] = {}
+    for r in rows:
+        cell_key = (r["book"], r["is_best"])
+        bucket = per_match.setdefault(r["match"], {})
+        total, count = bucket.get(cell_key, (0.0, 0))
+        bucket[cell_key] = (total + r["clv"], count + 1)
+
+    matches = list(per_match)
+    books = sorted({r["book"] for r in rows})
+
+    def differenze(campione):
+        somme: dict[tuple[str, bool], list[float]] = {}
+        for key in campione:
+            for cell_key, (total, count) in per_match[key].items():
+                acc = somme.setdefault(cell_key, [0.0, 0])
+                acc[0] += total
+                acc[1] += count
+        out = {}
+        for book in books:
+            migliore = somme.get((book, True), [0.0, 0])
+            resto = somme.get((book, False), [0.0, 0])
+            if migliore[1] < 200 or resto[1] < 200:
+                continue
+            out[book] = (migliore[0] / migliore[1]) - (resto[0] / resto[1])
+        return out
+
+    osservato = differenze(matches)
+    rng = random.Random(seed)
+    repliche: dict[str, list[float]] = {b: [] for b in osservato}
+    for _ in range(replicas):
+        campione = [rng.choice(matches) for _ in matches]
+        for book, value in differenze(campione).items():
+            if book in repliche:
+                repliche[book].append(value)
+
+    fuori = []
+    for book, diff in osservato.items():
+        draws = repliche[book]
+        errore = st.stdev(draws) if len(draws) > 2 else float("nan")
+        n_best = sum(1 for r in rows if r["book"] == book and r["is_best"])
+        n_altri = sum(1 for r in rows if r["book"] == book and not r["is_best"])
+        fuori.append({"book": book, "diff": diff, "se": errore,
+                      "n_best": n_best, "n_altri": n_altri,
+                      "t": diff / errore if errore and errore == errore else 0.0})
+    fuori.sort(key=lambda d: -d["diff"])
+    return fuori
 
 
 def benjamini_hochberg(pvalues, q=0.10):
@@ -185,13 +312,28 @@ def main() -> int:
     parser.add_argument("--seasons", nargs="+", default=["2627", "2526", "2425"])
     args = parser.parse_args()
 
-    rows, absurd, no_close, files = collect(args.seasons)
-    print(f"FILE LETTI={files}   OSSERVAZIONI={len(rows):,}")
+    # Quale de-vig ha DAVVERO prodotto i numeri sotto.
+    print(banner("SHIN"))
+
+    rows, absurd, no_close, files, scarti = collect(args.seasons)
+    partite = len({r["match"] for r in rows})
+    print(f"FILE LETTI={files}   OSSERVAZIONI={len(rows):,}   PARTITE={partite:,}")
     print(f"SCARTATE: CLV assurdo (>{ABSURD_CLV:.0%})={absurd:,}   "
           f"senza chiusura utilizzabile={no_close:,}")
+    # Il filtro e' simmetrico in unita' di CLV, ma il CLV non lo e': e'
+    # limitato in basso a prezzo_equo-1 e illimitato in alto. In termini di
+    # prezzo/prezzo_equo la banda +-0.50 e' [0.5, 1.5], in log [-0.69, +0.41]:
+    # il lato perdita e' il 70% piu' largo. Stampare lo split e' l'unico modo
+    # perche' quell'asimmetria non resti invisibile dall'output.
+    print(f"   di cui sopra +{ABSURD_CLV:.2f}: {scarti['alto']:,}   "
+          f"sotto -{ABSURD_CLV:.2f}: {scarti['basso']:,}"
+          + (f"   rapporto {scarti['alto'] / scarti['basso']:.1f}:1"
+             if scarti["basso"] else ""))
     print(f"CLV medio su TUTTO                      {st.mean(r['clv'] for r in rows):+.4f}")
-    print("  (negativo per costruzione: e' il margine. Cio che conta e quali\n"
-          "   celle si staccano da questa base, non il segno della base.)\n")
+    print("  (negativo per costruzione: sotto de-vig moltiplicativo vale\n"
+          "   l'identita' equa*prezzo = 1/(1+margine), quindi il CLV medio di\n"
+          "   un book E' il margine di quel book. Questo numero non misura\n"
+          "   efficienza: misura quanto carica il banco.)\n")
 
     # Ipotesi fissate PRIMA di guardare i risultati.
     families = []
@@ -211,14 +353,34 @@ def main() -> int:
         c["q"] = value
 
     cells.sort(key=lambda c: -c["mean"])
-    header = (f"{'CELLA':22} {'N':>8} {'CLV':>9} {'SE':>8} {'t':>7} "
-              f"{'q':>8} {'VINTE':>7}")
+    header = (f"{'CELLA':22} {'N':>8} {'PARTITE':>8} {'CLV':>9} {'SE':>8} "
+              f"{'DEFF':>6} {'t':>7} {'q':>8} {'VINTE':>7}")
     print(header)
     print("-" * len(header))
     for c in cells:
         flag = "  <<<" if c["q"] < 0.10 and c["mean"] > 0 else ""
-        print(f"{c['label']:22} {c['n']:8,} {c['mean']:+9.4f} {c['se']:8.4f} "
-              f"{c['t']:+7.2f} {c['q']:8.4f} {c['won']:7.1%}{flag}")
+        print(f"{c['label']:22} {c['n']:8,} {c['partite']:8,} {c['mean']:+9.4f} "
+              f"{c['se']:8.4f} {c['deff']:6.1f} {c['t']:+7.2f} {c['q']:8.4f} "
+              f"{c['won']:7.1%}{flag}")
+    print("\nDEFF = di quanto l'errore standard raggruppato per partita e' piu'")
+    print("grande di quello ingenuo, al quadrato. Un DEFF di 9 significa che i t")
+    print("dichiarati finora erano gonfiati di tre volte.")
+
+    print("\n" + "=" * 78)
+    print("CONTRASTO DENTRO IL BOOK — il margine si cancella, resta la regola.")
+    print("Regola: 'questo prezzo era il piu' lungo del mercato', nota al")
+    print("momento della decisione. La chiusura valuta, non seleziona.")
+    print("=" * 78)
+    contrasti = contrasto_dentro_il_book(rows)
+    intestazione = (f"{'BOOK':13} {'N MIGLIORE':>11} {'N ALTRI':>9} "
+                    f"{'DIFFERENZA':>11} {'SE':>8} {'t':>7}")
+    print(intestazione)
+    print("-" * len(intestazione))
+    for d in contrasti:
+        print(f"{d['book']:13} {d['n_best']:11,} {d['n_altri']:9,} "
+              f"{d['diff']:+11.4f} {d['se']:8.4f} {d['t']:+7.2f}")
+    print("\nUna differenza positiva NON e' un profitto: e' un candidato il cui")
+    print("CLV fuori campione non e' mai stato misurato. PROMOTED resta 0.")
 
     survivors = [c for c in cells if c["q"] < 0.10 and c["mean"] > 0]
     print(f"\nCELLE CON CLV POSITIVO CHE SUPERANO BH a q=0.10: {len(survivors)}")
