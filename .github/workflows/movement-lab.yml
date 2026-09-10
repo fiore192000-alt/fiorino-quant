@@ -17,6 +17,15 @@ jobs:
           # 3.11: le estensioni compilate di penaltyblog sono cpython-311.
           # Su 3.12 non caricano e il de-vig ripiega su moltiplicativo.
           python-version: "3.11"
+      - name: Compila le estensioni di penaltyblog
+        # Senza questo passo `import penaltyblog` fallisce su
+        # penaltyblog.metrics.metrics e il de-vig ripiega su moltiplicativo:
+        # i .so non sono tracciati in git (.gitignore riga 150), quindi un
+        # checkout pulito non li ha. Verificato leggendo il banner stampato da
+        # un run reale, non dedotto.
+        run: |
+          pip install Cython numpy setuptools wheel
+          python setup.py build_ext --inplace
       - name: Dipendenze (senza queste il de-vig ripiega su moltiplicativo)
         run: pip install -r requirements-lab.txt
       - run: python scripts/movement_lab.py --seasons ${{ inputs.seasons || '2627 2526 2425 2324' }}
