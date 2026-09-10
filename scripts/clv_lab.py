@@ -48,7 +48,7 @@ import urllib.request
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
 
-from fiorino.odds.devig import banner, devig  # noqa: E402
+from fiorino.odds.devig import banner, devig, method_in_force  # noqa: E402
 
 UA = "fiorino-quant/1.0 (+research)"
 SELECTIONS = ("HOME", "DRAW", "AWAY")
@@ -330,10 +330,17 @@ def main() -> int:
           + (f"   rapporto {scarti['alto'] / scarti['basso']:.1f}:1"
              if scarti["basso"] else ""))
     print(f"CLV medio su TUTTO                      {st.mean(r['clv'] for r in rows):+.4f}")
-    print("  (negativo per costruzione: sotto de-vig moltiplicativo vale\n"
-          "   l'identita' equa*prezzo = 1/(1+margine), quindi il CLV medio di\n"
-          "   un book E' il margine di quel book. Questo numero non misura\n"
-          "   efficienza: misura quanto carica il banco.)\n")
+    applicato, _ = method_in_force("SHIN")
+    if applicato == "MULTIPLICATIVE":
+        print("  (sotto de-vig moltiplicativo vale l'identita'\n"
+              "   equa*prezzo = 1/(1+margine) per OGNI selezione, quindi il CLV\n"
+              "   medio di un book E' esattamente il suo margine. Questo numero\n"
+              "   non misura efficienza: misura quanto carica il banco.)\n")
+    else:
+        print(f"  (negativo di base perche' contiene il margine. Sotto {applicato}\n"
+              "   NON vale l'identita' del moltiplicativo, quindi la tabella per\n"
+              "   book non e' piu' solo l'ordinamento dei margini — ma ne resta\n"
+              "   dominata. Cio' che decide e' il contrasto DENTRO il book.)\n")
 
     # Ipotesi fissate PRIMA di guardare i risultati.
     families = []
